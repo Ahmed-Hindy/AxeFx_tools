@@ -1,0 +1,2852 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="sparse_pyro_dynamics" label="Pyro FX">
+    <memberTool name="spyro_billowysmoke"/>
+    <memberTool name="spyro_fireball"/>
+    <memberTool name="spyro_airexplosion"/>
+    <memberTool name="spyro_groundexplosion"/>
+    <memberTool name="spyro_shockwave"/>
+    <memberTool name="spyro_campfire"/>
+    <memberTool name="spyro_firespread"/>
+  </toolshelf>
+
+  <toolshelf name="ocean" label="Oceans">
+    <memberTool name="geometry_smallocean"/>
+    <memberTool name="geometry_largeocean"/>
+    <memberTool name="dynamics_guidedoceanlayer"/>
+    <memberTool name="dynamics_wavetank"/>
+    <memberTool name="dynamics_beachtank"/>
+    <memberTool name="dynamics_flattank"/>
+    <memberTool name="dynamics_oceanflattank"/>
+    <memberTool name="dynamics_whitewater"/>
+  </toolshelf>
+
+  <toolshelf name="melting_dynamics" label="Viscous Fluids">
+    <memberTool name="dynamics_meltobject"/>
+    <memberTool name="dynamics_objecttolava"/>
+    <memberTool name="dynamics_emitlava"/>
+    <memberTool name="dynamics_heatfromobject"/>
+    <memberTool name="dynamics_coolfromobject"/>
+    <memberTool name="dynamics_emitsteamoncollision"/>
+    <memberTool name="dynamics_makesink"/>
+    <memberTool name="dynamics_slicebyplane"/>
+    <memberTool name="dynamics_slicealongline"/>
+    <memberTool name="dynamics_distribute_fluid"/>
+  </toolshelf>
+
+  <toolshelf name="liquid_dynamics" label="Particle Fluids">
+    <memberTool name="dynamics_makeflip"/>
+    <memberTool name="dynamics_flipbox"/>
+    <memberTool name="dynamics_particlefluidemitter"/>
+    <memberTool name="dynamics_makesink"/>
+    <memberTool name="dynamics_sculptedparticlefluid"/>
+    <memberTool name="dynamics_crownsplashfluid"/>
+    <memberTool name="dynamics_dripparticlefluid"/>
+    <memberTool name="dynamics_suctionfluid"/>
+    <memberTool name="dynamics_popcondensation"/>
+    <memberTool name="dynamics_makeviscous"/>
+    <memberTool name="dynamics_whitewater"/>
+    <memberTool name="dynamics_slicebyplane"/>
+    <memberTool name="dynamics_slicealongline"/>
+    <memberTool name="dynamics_distribute_fluid"/>
+  </toolshelf>
+
+  <toolshelf name="rbd_dynamics" label="Rigid Bodies">
+    <memberTool name="dynamics_rbdobjects"/>
+    <memberTool name="dynamics_rbdheroobject"/>
+    <memberTool name="dynamics_rbdglueobject"/>
+    <memberTool name="dynamics_rbdpointobject"/>
+    <memberTool name="dynamics_rbdragdollobject"/>
+    <memberTool name="dynamics_rbdgrains"/>
+    <memberTool name="dynamics_rbdconvexproxy"/>
+    <memberTool name="dynamics_rbdsphereproxy"/>
+    <memberTool name="dynamics_rbdfracturedobject"/>
+    <memberTool name="dynamics_makebreakable"/>
+    <memberTool name="dynamics_impactanalysis"/>
+    <memberTool name="dynamics_debris"/>
+    <memberTool name="dynamics_autofreeze"/>
+    <memberTool name="dynamics_gluenetwork"/>
+    <memberTool name="dop_rbdpinconstraint"/>
+    <memberTool name="dop_rbdconetwistconstraint"/>
+    <memberTool name="dop_rbdsliderconstraint"/>
+    <memberTool name="dop_rbdhingeconstraint"/>
+    <memberTool name="dop_rbdspringconstraint"/>
+    <memberTool name="dop_rbdangularconstraint"/>
+    <memberTool name="dop_rbdangularspringconstraint"/>
+    <memberTool name="dop_parentconstraint"/>
+  </toolshelf>
+
+  <toolshelf name="vellum" label="Vellum">
+    <memberTool name="dop_surfacecollider"/>
+    <memberTool name="dynamics_vellumcloth"/>
+    <memberTool name="dynamics_vellumhair"/>
+    <memberTool name="dynamics_vellumsoftbody"/>
+    <memberTool name="dynamics_vellumtetsoftbody"/>
+    <memberTool name="dynamics_vellumballoon"/>
+    <memberTool name="dynamics_vellumgrains"/>
+  </toolshelf>
+
+  <toolshelf name="grains" label="Grains">
+    <memberTool name="dynamics_popgrains"/>
+    <memberTool name="dynamics_popgrainswet"/>
+    <memberTool name="dynamics_sandbox"/>
+    <memberTool name="dynamics_rbdgrains"/>
+    <memberTool name="geometry_grainupres"/>
+    <memberTool name="dynamics_popgrainsolid"/>
+    <memberTool name="dynamics_popgrainsheet"/>
+    <memberTool name="dynamics_popgrainstrand"/>
+    <memberTool name="dynamics_popautofreeze"/>
+    <memberTool name="dynamics_popawaken"/>
+    <memberTool name="dynamics_slicebyplane"/>
+    <memberTool name="dynamics_slicealongline"/>
+    <memberTool name="dynamics_distribute_fluid"/>
+  </toolshelf>
+
+  <toolshelf name="particles" label="Particles">
+    <memberTool name="dynamics_popfireworks"/>
+    <memberTool name="dynamics_poplocation"/>
+    <memberTool name="dynamics_popsource"/>
+    <memberTool name="dynamics_popreplicate"/>
+    <memberTool name="dynamics_popaxisforce"/>
+    <memberTool name="dynamics_popattracttopoints"/>
+    <memberTool name="dynamics_popattracttocurvepoint"/>
+    <memberTool name="dynamics_popcurveforce"/>
+    <memberTool name="dynamics_popmetaballforce"/>
+    <memberTool name="dynamics_popcolor"/>
+    <memberTool name="dynamics_popdrag"/>
+    <memberTool name="dynamics_popfan"/>
+    <memberTool name="dynamics_popflock"/>
+    <memberTool name="dynamics_popforce"/>
+    <memberTool name="dynamics_popwind"/>
+    <memberTool name="dynamics_popinteract"/>
+    <memberTool name="dynamics_popcollision"/>
+    <memberTool name="dynamics_popinstance"/>
+    <memberTool name="dynamics_popsprite"/>
+    <memberTool name="dynamics_popvortexfilaments"/>
+  </toolshelf>
+
+  <toolshelf name="collisions" label="Collisions">
+    <memberTool name="dynamics_staticobject"/>
+    <memberTool name="dop_deformingobject"/>
+    <memberTool name="dop_surfacecollider"/>
+    <memberTool name="dop_groundplane"/>
+    <memberTool name="dop_terrainobject"/>
+  </toolshelf>
+
+  <toolshelf name="lights_and_cameras" label="Lights and Cameras">
+    <memberTool name="object_cam"/>
+    <memberTool name="object_pointlight"/>
+    <memberTool name="object_spotlight"/>
+    <memberTool name="object_arealight"/>
+    <memberTool name="obj_geolight"/>
+    <memberTool name="obj_volumelight"/>
+    <memberTool name="object_distantlight"/>
+    <memberTool name="object_envlight"/>
+    <memberTool name="obj_skylight"/>
+    <memberTool name="obj_gilight"/>
+    <memberTool name="obj_causticlight"/>
+    <memberTool name="obj_portallight"/>
+    <memberTool name="object_ambient"/>
+    <memberTool name="object_stereocamrig"/>
+    <memberTool name="object_vrcam"/>
+    <memberTool name="object_switcher"/>
+    <memberTool name="obj_gamepadcamera"/>
+  </toolshelf>
+
+  <toolshelf name="wire_dynamics" label="Wires">
+    <memberTool name="dop_wireobject"/>
+    <memberTool name="dop_wiresetinitialpose"/>
+    <memberTool name="dynamics_gluewiretoanimation"/>
+    <memberTool name="dop_wireattachmentconstraint"/>
+    <memberTool name="dop_wirepinconstraint"/>
+    <memberTool name="dop_wirespringconstraint"/>
+    <memberTool name="dop_wireangularconstraint"/>
+    <memberTool name="dop_wireangularspringconstraint"/>
+    <memberTool name="dop_wireglueconstraint"/>
+    <memberTool name="dop_sbdattachconstraintrbd"/>
+    <memberTool name="dop_sbdattachconstraintpoint"/>
+    <memberTool name="dop_sbdattachconstraintanimation"/>
+    <memberTool name="dop_sbddetachconstraint"/>
+    <memberTool name="dop_sbddeleteconstraint"/>
+    <memberTool name="dynamics_distribute_wire"/>
+  </toolshelf>
+
+  <toolshelf name="solid_dynamics" label="FEM">
+    <memberTool name="dynamics_femsolidobject"/>
+    <memberTool name="dynamics_femhybridobject"/>
+    <memberTool name="dynamics_organicmass"/>
+    <memberTool name="dynamics_organictissue"/>
+    <memberTool name="dynamics_fracturedsolidobject"/>
+    <memberTool name="dop_solidcollider"/>
+    <memberTool name="dop_volumecollider"/>
+    <memberTool name="dynamics_femtargetconstraint"/>
+    <memberTool name="dynamics_femattachconstraint"/>
+    <memberTool name="dynamics_femslideconstraint"/>
+    <memberTool name="dynamics_femregionconstraint"/>
+    <memberTool name="dynamics_femfusepointpairs"/>
+    <memberTool name="dynamics_visualizefiniteelements"/>
+    <memberTool name="dynamics_embedhighresobject"/>
+  </toolshelf>
+
+  <toolshelf name="drive_simulation" label="Drive Simulation">
+    <memberTool name="dynamics_makeactive"/>
+    <memberTool name="dynamics_makepassive"/>
+    <memberTool name="dynamics_removeobject"/>
+    <memberTool name="dynamics_newsimulation"/>
+    <memberTool name="dop_group"/>
+    <memberTool name="dop_gravity"/>
+    <memberTool name="dop_drag"/>
+    <memberTool name="dop_uniformforce"/>
+    <memberTool name="dop_fan"/>
+    <memberTool name="dop_fluidforce"/>
+    <memberTool name="dop_windforce"/>
+    <memberTool name="dop_magnetforce"/>
+    <memberTool name="dop_vortexforce"/>
+  </toolshelf>
+
+  <toolshelf name="crowds" label="Crowds">
+    <memberTool name="object_crowdagent"/>
+    <memberTool name="object_crowdaddclip"/>
+    <memberTool name="object_crowdcollisionlayer"/>
+    <memberTool name="object_crowdconfigurejoints"/>
+    <memberTool name="object_crowdpopulate"/>
+    <memberTool name="object_crowdpaintdensity"/>
+    <memberTool name="object_crowdsolver"/>
+    <memberTool name="object_crowdterrain"/>
+    <memberTool name="object_crowdobstacle"/>
+    <memberTool name="object_crowdpath"/>
+    <memberTool name="object_crowdlookat"/>
+    <memberTool name="object_crowdtargetposition"/>
+    <memberTool name="object_crowdagentcam"/>
+    <memberTool name="object_stadiumcrowdsexample"/>
+    <memberTool name="object_streetcrowdsexample"/>
+    <memberTool name="object_formationcrowdsexample"/>
+    <memberTool name="object_fuzzyobstaclescrowdsexample"/>
+    <memberTool name="object_fuzzytransitioncrowdsexample"/>
+    <memberTool name="object_ragdollrunexample"/>
+  </toolshelf>
+
+  <tool name="dop_fan" label="Fan Force" icon="DOP_fan">
+    <helpURL>operator:Dop/fan</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/fan</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Forces</toolSubmenu>
+    <script scriptType="python"><![CDATA[import doptoolutils
+from doptoolutils import OrientInfo
+
+doptoolutils.genericTool(kwargs, 'fan', orient=OrientInfo('direction'))]]></script>
+  </tool>
+
+  <tool name="dop_uniformforce" label="Uniform Force" icon="DOP_uniformforce">
+    <helpURL>operator:Dop/uniformforce</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/uniformforce</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Forces</toolSubmenu>
+    <script scriptType="python"><![CDATA[import doptoolutils
+
+doptoolutils.genericTool(kwargs, 'uniformforce')]]></script>
+  </tool>
+
+  <tool name="dop_wireobject" label="Wire Object" icon="DOP_wireobject">
+    <helpURL>operator:Dop/wireobject</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/wireobject</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import doptoolutils
+
+doptoolutils.genericTool(kwargs, 'wireobject')]]></script>
+  </tool>
+
+  <tool name="dop_terrainobject" label="Terrain Object" icon="DOP_terrainobject">
+    <helpURL>tool:terrainobject</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/terrainobject</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import doptoolutils
+
+doptoolutils.genericTool(kwargs, 'terrainobject')]]></script>
+  </tool>
+
+  <tool name="object_ambient" label="Ambient Light" icon="OBJ_light">
+    <helpURL>operator:Object/ambient</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/ambient</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox'] = hou.BoundingBox(-1.5, -1.5, -1.5, 1.5, 1.5, 1.5)
+objecttoolutils.genericTool(kwargs, 'ambient')]]></script>
+  </tool>
+
+  <tool name="object_switcher" label="Switcher" icon="OBJ_switcher">
+    <helpURL>operator:Object/switcher</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/switcher</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Cameras</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+objecttoolutils.genericTool(kwargs, 'switcher')]]></script>
+  </tool>
+
+  <tool name="obj_gamepadcamera" label="Gamepad Camera" icon="CHOP_gamepad">
+    <helpURL>tool:gamepadcamera</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/cam</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Cameras</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+cam = objecttoolutils.genericCameraLightTool(kwargs, 'cam', 'cam1',
+        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+kwargs['node'] = cam
+objecttoolutils.constraintgamepadStateTool(kwargs)]]></script>
+  </tool>
+
+  <tool name="object_vrcam" label="VR Camera" icon="SHOP_vrlens">
+    <helpURL>operator:Object/vrcam</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/vrcam</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Cameras</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox'] = hou.BoundingBox(-0.0875, -0.075, 0.0, 0.0875, 0.236, 0.43)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'vrcam',
+        'cam1',
+        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))]]></script>
+  </tool>
+
+  <tool name="object_stereocamrig" label="Stereo Camera" icon="OBJ_stereocamera">
+    <helpURL>operator:Object/stereocamrig</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/stereocamrig</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Cameras</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox'] = hou.BoundingBox(-0.0875, -0.075, 0.0, 0.0875, 0.236, 0.43)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'stereocamrig',
+        'stereocamrig1',
+        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))]]></script>
+  </tool>
+
+  <tool name="object_cam" label="Camera" icon="OBJ_camera">
+    <helpURL>operator:Object/cam</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Cameras</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+# When launched from a scene view, always create a camera that matches
+# the current viewpoint.
+clicktoplace = False
+lock_to_view = kwargs['ctrlclick'] or kwargs['cmdclick']
+
+if (pane.pwd().childTypeCategory() == hou.lopNodeTypeCategory()):
+    import loptoolutils
+    newnode = loptoolutils.genericCameraLightTool(kwargs, 'camera',
+                'camera1', clicktoplace, lock_to_view)
+else:
+    import objecttoolutils
+
+    kwargs['bbox_min'] = hou.Vector3(-0.1, -0.1, 0.0001)
+    kwargs['bbox_max'] = hou.Vector3(0.1, 0.236, 0.431)
+    newnode = objecttoolutils.genericCameraLightTool(kwargs, 'cam', 'cam1',
+    clicktoplace, lock_to_view)
+    ]]></script>
+  </tool>
+
+  <tool name="obj_causticlight" label="Caustic Light" icon="OBJ_light_caustic">
+    <helpURL>operator:Object/indirectlight#caustic</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/indirectlight</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+newnode = objecttoolutils.genericTool(kwargs, 'indirectlight', 'causticlight1', False)
+newnode.parm('light_type').set('caustic')
+newnode.parm('photon_filter').set('sphere')
+newnode.parm('photon_count').set(100)
+newnode.parm('photon_prefilter').set(False)]]></script>
+  </tool>
+
+  <tool name="obj_gilight" label="GI Light" icon="OBJ_light_gi">
+    <helpURL>operator:Object/indirectlight#gi</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/indirectlight</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+objecttoolutils.genericTool(kwargs, 'indirectlight', 'gilight1', False)]]></script>
+  </tool>
+
+  <tool name="obj_skylight" label="Sky Light" icon="OBJ_light_sky">
+    <helpURL>operator:Object/envlight#sky</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/envlight</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+objecttoolutils.createSkyLight(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_envlight" label="Environment Light" icon="OBJ_light_environment">
+    <helpURL>operator:Object/envlight</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+if (pane.pwd().childTypeCategory() == hou.lopNodeTypeCategory()):
+    import loptoolutils
+    newnode   = loptoolutils.genericTool(kwargs, 'domelight::2.0',
+                'domelight1')
+else:
+    import objecttoolutils
+    from objecttoolutils import OrientInfo
+
+    objecttoolutils.genericTool(kwargs, 'envlight',
+        None, False, orient=OrientInfo('r'))]]></script>
+  </tool>
+
+  <tool name="object_distantlight" label="Distant Light" icon="OBJ_light_directional">
+    <helpURL>operator:Lop/distantlight</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+# When launched from a scene view, always create a camera that matches
+# the current viewpoint.
+clicktoplace = False
+lock_to_view = kwargs['ctrlclick'] or kwargs['cmdclick']
+
+if (pane.pwd().childTypeCategory() == hou.lopNodeTypeCategory()):
+    import loptoolutils
+    newnode   = loptoolutils.genericCameraLightTool(kwargs, 'distantlight::2.0',
+                'distantlight1', clicktoplace, lock_to_view)
+else:
+    import objecttoolutils
+
+    kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+    kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+    newnode = objecttoolutils.genericCameraLightTool(kwargs, 'hlight::2.0',
+                            'distantlight1', clicktoplace, lock_to_view)
+    newnode.parm("light_type").set('distant')]]></script>
+  </tool>
+
+  <tool name="obj_portallight" label="Portal Light" icon="OBJ_light_portal">
+    <helpURL>operator:Object/envlight#portal</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/envlight</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+import objecttoolutils
+
+# Get selection
+scene_viewer = toolutils.sceneViewer()
+targets = scene_viewer.selectObjects(
+                prompt = toolutils.selectionPrompt(hou.objNodeTypeCategory()),
+                allow_multisel = False,
+                allowed_types = ("geo",))
+newnode = objecttoolutils.genericTool(kwargs, 'envlight', 'portallight1', False)
+newnode.parm("folder01").set(1)
+newnode.parm("env_portalenable").set( 1 )
+if len( targets ) > 0:
+    target = targets[0]
+    target_path = newnode.relativePathTo( target )
+    newnode.parm("env_portal").set( target_path )]]></script>
+  </tool>
+
+  <tool name="obj_volumelight" label="Volume Light" icon="SHELF_volumelight">
+    <helpURL>operator:Lop/light#volume</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/arealight</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+import objecttoolutils
+kwargs['bbox'] = hou.BoundingBox(-0.5, -0.5, 0.0, 0.5, 0.5, 0.0)
+
+# Get selection
+scene_viewer = toolutils.sceneViewer()
+targets = scene_viewer.selectObjects(
+                prompt = toolutils.selectionPrompt(hou.objNodeTypeCategory()),
+                allow_multisel = False,
+                allowed_types = ("geo",))
+newnode = objecttoolutils.genericTool(kwargs, 'hlight::2.0',
+                'volumelight1', False)
+newnode.parmTuple("stdswitcher4")[0].set(1)
+newnode.parmTuple("atten_folder_1")[0].set(1)
+if len( targets ) > 0:
+    target = targets[0]
+    hou.hscript("opproperty -f %s mantra vm_emitillum" % target.path())
+    target.parm("vm_emitillum").set(0)
+    target_path = newnode.relativePathTo( target )
+    newnode.setWorldTransform( target.worldTransform() )
+    newnode.parm("shop_materialpath").set( target.parm("shop_materialpath").eval() )
+    newnode.parm("areageometry").set( target_path )
+newnode.parm("light_type").set('geo')
+newnode.parm("normalizearea").set(0)
+newnode.parm("selfshadow").set(0)
+newnode.parm("pc_enable").set(1)]]></script>
+  </tool>
+
+  <tool name="obj_geolight" label="Geometry Light" icon="OBJ_light_geo">
+    <helpURL>operator:Lop/light#geo</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+if (pane.pwd().childTypeCategory() == hou.lopNodeTypeCategory()):
+    import loptoolutils
+    newnode = loptoolutils.genericTool(kwargs, 'rendergeometrysettings')
+    newnode.parmTuple("xn__primvarskarmaobjecttreat_as_lightsource_control_oicfg")[0].set('set')
+    newnode.parmTuple("xn__primvarskarmaobjecttreat_as_lightsource_n4bfg")[0].set('Yes')
+else:
+    import objecttoolutils
+    kwargs['bbox'] = hou.BoundingBox(-0.5, -0.5, 0.0, 0.5, 0.5, 0.0)
+
+    # Get selection
+    scene_viewer = toolutils.sceneViewer()
+    targets = scene_viewer.selectObjects(
+                    prompt = toolutils.selectionPrompt(hou.objNodeTypeCategory()),
+                    allow_multisel = False,
+                    allowed_types = ("geo",))
+    newnode = objecttoolutils.genericTool(kwargs, 'hlight::2.0',
+                    'geolight1', False)
+    newnode.parmTuple("stdswitcher4")[0].set(1)
+    newnode.parmTuple("atten_folder_1")[0].set(1)
+    if len( targets ) > 0:
+        target = targets[0]
+        target_path = newnode.relativePathTo( target )
+        newnode.setWorldTransform( target.worldTransform() )
+        newnode.parm("areageometry").set( target_path )
+        target.setDisplayFlag( False )
+    newnode.parm("light_type").set('geo')
+    newnode.parm("normalizearea").set(0)
+]]></script>
+  </tool>
+
+  <tool name="object_arealight" label="Area Light" icon="OBJ_light_area">
+    <helpURL>operator:Lop/light#area</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+# When launched from a scene view, always create a camera that matches
+# the current viewpoint.
+clicktoplace = False
+lock_to_view = kwargs['ctrlclick'] or kwargs['cmdclick']
+
+if (pane.pwd().childTypeCategory() == hou.lopNodeTypeCategory()):
+    import loptoolutils
+    newnode   = loptoolutils.genericCameraLightTool(kwargs, 'light::2.0',
+                'arealight1', clicktoplace, lock_to_view)
+    newnode.parm("lighttype").set('UsdLuxRectLight')
+    loptoolutils.setGoodLightExposure(kwargs, newnode)
+else:
+    import objecttoolutils
+    kwargs['bbox'] = hou.BoundingBox(-0.5, -0.5, 0.0, 0.5, 0.5, 0.0)
+
+    newnode   = objecttoolutils.genericCameraLightTool(kwargs, 'hlight::2.0',
+                'arealight1', clicktoplace, lock_to_view)
+    newnode.parmTuple("stdswitcher4")[0].set(1)
+    newnode.parmTuple("atten_folder_1")[0].set(1)
+    objecttoolutils.setGoodLightExposure(kwargs, newnode)
+    newnode.parm("light_type").set('grid')]]></script>
+  </tool>
+
+  <tool name="object_pointlight" label="Point Light" icon="OBJ_light_point">
+    <helpURL>operator:Lop/light#point</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+# When launched from a scene view, always create a camera that matches
+# the current viewpoint.
+clicktoplace = False
+lock_to_view = kwargs['ctrlclick'] or kwargs['cmdclick']
+
+if (pane.pwd().childTypeCategory() == hou.lopNodeTypeCategory()):
+    import loptoolutils
+    newnode   = loptoolutils.genericCameraLightTool(kwargs, 'light::2.0',
+                'pointlight1', clicktoplace, lock_to_view)
+    newnode.parm("lighttype").set("point")
+    loptoolutils.setGoodLightExposure(kwargs, newnode)
+else:
+    import objecttoolutils
+
+    kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+    kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+    newnode = objecttoolutils.genericCameraLightTool(kwargs, 'hlight::2.0',
+                'pointlight1', clicktoplace, lock_to_view)
+    objecttoolutils.setGoodLightExposure(kwargs, newnode)
+    newnode.parm("light_type").set("point")]]></script>
+  </tool>
+
+  <tool name="object_spotlight" label="Spot Light" icon="OBJ_light_spot">
+    <helpURL>operator:Lop/light#spot</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+# When launched from a scene view, always create a camera that matches
+# the current viewpoint.
+clicktoplace = False
+lock_to_view = kwargs['ctrlclick'] or kwargs['cmdclick']
+
+if (pane.pwd().childTypeCategory() == hou.lopNodeTypeCategory()):
+    import loptoolutils
+    newnode   = loptoolutils.genericCameraLightTool(kwargs, 'light::2.0',
+                'spotlight1', clicktoplace, lock_to_view)
+    newnode.parm("lighttype").set("UsdLuxDiskLight")
+    newnode.parm("spotlightenable").set(1)
+    loptoolutils.setGoodLightExposure(kwargs, newnode)
+else:
+    import objecttoolutils
+
+    kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+    kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+    newnode = objecttoolutils.genericCameraLightTool(kwargs, 'hlight::2.0',
+                'spotlight1', clicktoplace, lock_to_view)
+    objecttoolutils.setGoodLightExposure(kwargs, newnode)
+    newnode.parm("light_type").set("point")
+    newnode.parm("coneenable").set(1)]]></script>
+  </tool>
+
+  <tool name="geometry_grainupres" label="Upres Sand" icon="SHELF_sand_upres">
+    <helpURL>tool:upressand</helpURL>
+    <script scriptType="python"><![CDATA[
+import toolutils
+import soptoolutils
+import doppyrotoolutils
+
+activepane = toolutils.activePane(kwargs)
+
+if not isinstance(activepane, hou.SceneViewer):
+    raise hou.Error("Invalid pane type for this operation.")
+
+# Correct pane type, grab our geo.
+selectedobjects = activepane.selectObjects(
+    prompt = toolutils.selectionPrompt(hou.objNodeTypeCategory()),
+    allow_multisel = True,
+    allowed_types = ("geo",))
+
+if len(selectedobjects) < 1:
+    raise hou.Error("No objects were selected.")
+
+objnode = selectedobjects[0]
+sopnode = objnode.displayNode()
+
+if sopnode is None:
+    raise hou.Error("No geometry inside selection.")
+
+if sopnode.type().category() != hou.sopNodeTypeCategory():
+    raise hou.Error("Displayed node is wrong type in selection.")
+
+nextnode = sopnode
+
+orientnode = objnode.createNode('attribwrangle', 'createorient');
+orientnode.setNextInput(nextnode)
+orientnode.moveToGoodPosition()
+nextnode = orientnode
+orientnode.parm('snippet').set('vector4 @orient = { 0, 0, 0, 1 };')
+
+repnode = objnode.createNode('pointreplicate', 'duplicatepoints')
+repnode.setNextInput(nextnode)
+repnode.moveToGoodPosition()
+nextnode = repnode
+repnode.parm('nptsperpt').set(10)
+repnode.parm('shape').set('sphere')
+repnode.parm('scale').set(2.5)
+repnode.parm('docopyattribs').set(True)
+repnode.parm('attribstocopy').set('v pscale sprite* Cd')
+
+landinnode = repnode
+
+seednode = objnode.createNode('attribwrangle', 'setseed_adjust_pscale')
+seednode.setNextInput(nextnode)
+seednode.moveToGoodPosition()
+nextnode = seednode
+
+seednode.addSpareParmTuple(hou.IntParmTemplate('nptsperpt', 'Points per Point', 1, default_value=(10, ), min=0, max=1))
+seednode.addSpareParmTuple(hou.FloatParmTemplate('packingdensity', 'Packing Density', 1, default_value=(1.0, ), min=0, max=2))
+seednode.parm('nptsperpt').set(repnode.parm('nptsperpt'))
+seednode.parm('snippet').set(
+"""float @pscale = 1;
+
+@seed = rand(@ptnum);
+@pscale *= (1/cbrt(ch('nptsperpt')));
+@pscale *= ch('packingdensity');
+""")
+
+colornode = objnode.createNode('color', 'color')
+colornode.setNextInput(nextnode)
+colornode.moveToGoodPosition()
+nextnode = colornode
+colornode.parm('colortype').set(3)
+colornode.parm('rampattribute').set('seed')
+doppyrotoolutils.buildColorRamp(colornode, 'ramp', 'catmull-rom',
+            [
+            (0, (0.4, 0.32, 0.20)),
+            (0.9, (0.72, 0.706, 0.405)),
+            (1, (1, 1, 1))
+            ])
+
+landinnode.setCurrent(True,True)
+activepane.enterCurrentNodeState()
+
+nextnode.setDisplayFlag(True)
+nextnode.setRenderFlag(True)
+]]></script>
+  </tool>
+
+  <tool name="geometry_largeocean" label="Large Ocean" icon="SHELF_ocean_large">
+    <helpURL>tool:largeocean</helpURL>
+    <toolSubmenu>Manipulate</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.largeOcean(kwargs)]]></script>
+  </tool>
+
+  <tool name="geometry_smallocean" label="Small Ocean" icon="SHELF_ocean_small">
+    <helpURL>tool:smallocean</helpURL>
+    <toolSubmenu>Manipulate</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.smallOcean(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_heatfromobject" label="Heat Within Object" icon="SHELF_heat_within_object">
+    <helpURL>tool:heatwithinobject</helpURL>
+    <script scriptType="python"><![CDATA[import dopsmoketoolutils
+applyname = 'SOP_Source'
+dopsmoketoolutils.selectedConvertToAttribSource(kwargs, applyname, 'heatingvolume1', 'temperature', 'float',
+    mergemethod='target', increaserate=3.0, decreaserate=0.0,
+    objprompt="Select object to heat with.",
+    fluidprompt="Select fluid object to heat", autoconvert=True)]]></script>
+  </tool>
+
+  <tool name="dynamics_meltobject" label="Melt Object" icon="SHELF_melt">
+    <helpURL>tool:meltobject</helpURL>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+
+dopnode = doptoolutils.genericDopConverterTool(
+    toolutils.activePane(kwargs), 'flipfluidobject', 'flipfluidobject1',
+    'Select object to melt.  Press Enter to complete.', subtype='melt')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_emitlava" label="Emit Lava" icon="SHELF_volcano">
+    <helpURL>tool:emitlava</helpURL>
+    <script scriptType="python"><![CDATA[import dopsmoketoolutils
+applyname = 'SOP_Source_VolumeSurface'
+dopsmoketoolutils.selectedConvertToSourceSink(kwargs, applyname, objprompt="Select object to emit lava from.", fluidprompt="Select fluid object to emit lava into", autoconvert = False, createifempty="flipfluid", subtype='emitlava')]]></script>
+  </tool>
+
+  <tool name="object_crowdagentcam" label="Agent Cam" icon="CROWDS_agentcam">
+    <helpURL>tool:crowds_agentcam</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.crowdagentcam(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdtargetposition" label="Target Position" icon="CROWDS_popsteerseek">
+    <helpURL>tool:crowds_target</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.crowdtargetposition(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_ragdollrunexample" label="Ragdoll Run Example" icon="MISC_present">
+    <helpURL>tool:ragdollrunexample</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import objecttoolutils
+n = objecttoolutils.genericTool(kwargs, 'ragdollrunexample', clicktoplace=False)
+n.allowEditingOfContents()
+hou.node(n.path()+"/crowdsource").setCurrent(True,True)
+]]></script>
+  </tool>
+
+  <tool name="object_fuzzytransitioncrowdsexample" label="Fuzzy Transition Example" icon="MISC_present">
+    <helpURL>tool:fuzzystatetransition</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import objecttoolutils
+n = objecttoolutils.genericTool(kwargs, 'fuzzystatetransition', clicktoplace=False)
+n.allowEditingOfContents()
+hou.node(n.path()+"/crowdsource").setCurrent(True,True)
+]]></script>
+  </tool>
+
+  <tool name="object_fuzzyobstaclescrowdsexample" label="Fuzzy Obstacles Example" icon="MISC_present">
+    <helpURL>tool:fuzzyobstaclescrowdsexample</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import objecttoolutils
+n = objecttoolutils.genericTool(kwargs, 'fuzzyObstacleAvoidance', clicktoplace=False)
+n.allowEditingOfContents()
+hou.node(n.path()+"/crowdsource").setCurrent(True,True)
+]]></script>
+  </tool>
+
+  <tool name="object_formationcrowdsexample" label="Formation Example" icon="MISC_present">
+    <helpURL>tool:formationcrowdsexample</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import objecttoolutils
+n = objecttoolutils.genericTool(kwargs, 'formationcrowdsexample', clicktoplace=False)
+n.allowEditingOfContents()
+hou.node(n.path()+"/crowdsource").setCurrent(True,True)
+]]></script>
+  </tool>
+
+  <tool name="object_streetcrowdsexample" label="Street Example" icon="MISC_present">
+    <helpURL>tool:streetcrowdsexample</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import objecttoolutils
+n = objecttoolutils.genericTool(kwargs, 'streetcrowdsexample', clicktoplace=False)
+n.allowEditingOfContents()
+hou.node(n.path()+"/zombies").setCurrent(True,True)
+]]></script>
+  </tool>
+
+  <tool name="object_stadiumcrowdsexample" label="Stadium Example" icon="MISC_present">
+    <helpURL>tool:stadiumcrowdsexample</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import objecttoolutils
+n = objecttoolutils.genericTool(kwargs, 'stadiumcrowdsexample', clicktoplace=False)
+n.allowEditingOfContents()
+hou.node(n.path()+"/crowd").setCurrent(True,True)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdpaintdensity" label="Paint Density" icon="SOP_paint">
+    <helpURL>tool:crowds_paintdensity</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.crowdpaintdensity(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdlookat" label="Look At" icon="CROWDS_agentlookat">
+    <helpURL>tool:crowds_lookat</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.crowdlookat(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdpath" label="Path" icon="SHELF_agents_follow_path">
+    <helpURL>tool:crowds_path</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.crowdpath(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdconfigurejoints" label="Configure Joints" icon="SOP_agentconfigurejoints">
+    <helpURL>tool:crowds_configurejoints</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.configurejoints(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdcollisionlayer" label="Collision Layer" icon="SOP_agentcollisionlayer">
+    <helpURL>tool:crowds_collisionlayer</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.addcollisionlayer(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdaddclip" label="Add Clip" icon="SOP_agentclip">
+    <helpURL>tool:crowds_addclip</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.addClipInteractive(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdagent" label="Agent" icon="SHELF_bake_character">
+    <helpURL>tool:crowds_agent</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.bakeAgentInteractive(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdobstacle" label="Obstacle" icon="CROWDS_obstacle">
+    <helpURL>tool:crowds_obstacle</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.addobstacle(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdterrain" label="Terrain Foot Planting" icon="CROWDS_agentterrainprojection">
+    <helpURL>tool:crowds_terrain</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.addterrain(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdsolver" label="Simulate" icon="CROWDS_simulate">
+    <helpURL>tool:crowds_simulate</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.simulateInteractive(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_crowdpopulate" label="Populate" icon="CROWDS_populate">
+    <helpURL>tool:crowds_populate</helpURL>
+    <toolSubmenu>Create</toolSubmenu>
+    <script scriptType="python"><![CDATA[import crowdstoolutils
+crowdstoolutils.populateInteractive(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dop_windforce" label="Wind Force" icon="SHELF_wind_force">
+    <helpURL>operator:Dop/windforce</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/windforce</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Forces</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+
+doptoolutils.genericTool(kwargs, 'windforce')]]></script>
+  </tool>
+
+  <tool name="dop_fluidforce" label="Fluid Force" icon="DOP_fluidforce">
+    <helpURL>operator:Dop/fluidforce</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/fluidforce</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Forces</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+
+theSupportedNodeTypes = ("fluidobject",
+                         "particlefluidobject",
+                         "smokeobject",
+                         "sandobject")
+
+activepane = toolutils.activePane(kwargs)
+if not isinstance(activepane, hou.SceneViewer):
+    toolutils.genericTool(kwargs, "fluidforce")
+else:
+    # Make the user select an object to specify the DOP Network.
+    dopobjects = activepane.selectDynamics(
+                        prompt = "Select affected objects for Fluid Force.  Press enter to accept selection.",
+                        allow_multisel = True)
+
+    if len(dopobjects) > 0:
+        group = doptoolutils.getGroupString(dopobjects, False)
+
+        fluidobjects = activepane.selectDynamics(
+                            prompt = "Select fluid object for Fluid Force.  Press enter to accept selection.",
+                            allow_multisel = False, use_existing_selection = False)
+
+        # create a constraint for the selected fluid
+        if len(fluidobjects) == 1 and doptoolutils.getDopDataCreator(fluidobjects[0]).type().name() in theSupportedNodeTypes:
+            fluid = fluidobjects[0].name()
+
+            container = fluidobjects[0].dopNetNode()
+            inputdop = container.displayNode()
+            newdopnode = container.createNode("fluidforce")
+
+            newdopnode.parm("group").set(group)
+            newdopnode.parm("fluid").set(fluid)
+
+            newdopnode.setFirstInput(inputdop)
+            newdopnode.setDisplayFlag(True)
+            newdopnode.moveToGoodPosition()
+            newdopnode.setCurrent(True, True)
+
+            activepane.enterCurrentNodeState()]]></script>
+  </tool>
+
+  <tool name="dop_sbddeleteconstraint" label="Delete Constraint" icon="SHELF_detach_constraint">
+    <helpURL>tool:deleteconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopsbdtoolutils
+
+dopsbdtoolutils.deleteConstraint(kwargs)]]></script>
+  </tool>
+
+  <tool name="dop_sbddetachconstraint" label="Detach Constraint" icon="SHELF_detach_constraint">
+    <helpURL>tool:detachconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopsbdtoolutils
+
+dopsbdtoolutils.attachConstraint(kwargs, 'worldspace')]]></script>
+  </tool>
+
+  <tool name="dop_sbdattachconstraintanimation" label="Attach Constraint to Animation" icon="SHELF_attach_constraint_animation">
+    <helpURL>tool:attachconstrainttoanimation</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopsbdtoolutils
+
+dopsbdtoolutils.attachConstraint(kwargs, 'animation')]]></script>
+  </tool>
+
+  <tool name="dop_sbdattachconstraintpoint" label="Attach Constraint to Dynamics Point" icon="SHELF_attach_constraint_dynamicspoint">
+    <helpURL>tool:attachconstrainttodynamicspoint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopsbdtoolutils
+
+dopsbdtoolutils.attachConstraint(kwargs, 'point')]]></script>
+  </tool>
+
+  <tool name="dop_sbdattachconstraintrbd" label="Attach Constraint to Rigid Body" icon="SHELF_attach_constraint_rbd">
+    <helpURL>tool:attachconstrainttorbd</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopsbdtoolutils
+
+dopsbdtoolutils.attachConstraint(kwargs, 'rbd')]]></script>
+  </tool>
+
+  <tool name="dop_parentconstraint" label="RBD Parent Constraint" icon="SHELF_parent_constraint">
+    <helpURL>tool:parentconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+
+theSupportedNodeTypes = ("rbdpinconstraint",
+                         "rbdconetwistconstraint",
+                         "rbdsliderconstraint",
+                         "rbdspringconstraint",
+                         "rbdhingeconstraint",
+                         "rbdangularconstraint",
+                         "rbdangularspringconstraint")
+
+sceneviewer = toolutils.activePane(kwargs)
+prompt = "Select constraint to change parent. Press Enter to accept selection."
+seldata = sceneviewer.selectDynamics(prompt = prompt,
+                                     allow_objects = False,
+                                     allow_modifiers = True,
+                                     allow_multisel = False)
+if len(seldata) == 1:
+    creator = doptoolutils.getDopDataCreator(seldata[0])
+    if creator.type().name() in theSupportedNodeTypes:
+        prompt = "Select new goal object. Press Enter to accept selection."
+        selobjects = sceneviewer.selectDynamics(prompt = prompt,
+                                                allow_objects = True,
+                                                allow_modifiers = False,
+                                                allow_multisel = False)
+        if len(selobjects) == 1:
+            selobjectname = selobjects[0].name()
+        else:
+            selobjectname = ""
+        creator.parm("goalgroup").set(selobjectname)
+        creator.parm("mirror").set(len(selobjectname) > 0)
+        creator.setCurrent(True, True)
+        sceneviewer.enterCurrentNodeState()
+    else:
+        raise hou.OperationFailed("An unsupported constraint type was selected.")
+else:
+    raise hou.OperationFailed("No constraint was selected.")]]></script>
+  </tool>
+
+  <tool name="dop_group" label="Group Dynamic Objects" icon="DOP_group">
+    <helpURL>operator:Dop/group</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/group</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Relationships</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+
+activepane = toolutils.activePane(kwargs)
+if not isinstance(activepane, hou.SceneViewer):
+    toolutils.genericTool(kwargs, "group")
+else:
+    dopobjects = activepane.selectDynamics(
+        prompt = toolutils.selectionPrompt(hou.dopNodeTypeCategory()))
+    if len(dopobjects) > 0:
+        # Get the group string right away. As soon as we start
+        # creating nodes or changing parm values, the dopobjects
+        # will be invalidated as the DOPNET recooks.
+        groupstring = doptoolutils.getGroupString(dopobjects, True)
+        displaynode = dopobjects[0].dopNetNode().displayNode()
+        groupnode = toolutils.findInputNodeOfType(displaynode,
+                                                  "group", True)
+        if groupnode is not None:
+            # Get all the processed objects that are being grouped.
+            processed = groupnode.processedObjects()
+            processeddict = dict([(obj,0) for obj in processed])
+            for obj in dopobjects:
+                if obj not in processeddict:
+                    groupnode = None
+                    break
+        if groupnode is None:
+            groupnode = doptoolutils.genericDopFilterCreate(
+                        dopobjects, "group", None, False)
+            groupnode.parm("numgroups").set(0)
+        numgroups = groupnode.evalParm("numgroups")
+        groupnode.parm("numgroups").set(numgroups+1)
+        suffix = str(numgroups)
+        groupnode.parm("groupname"+suffix).set("group"+suffix)
+        groupnode.parm("groupmask"+suffix).set(groupstring)
+        groupnode.setCurrent(True, True)
+        activepane.enterCurrentNodeState()
+]]></script>
+  </tool>
+
+  <tool name="dop_wireglueconstraint" label="Wire Glue Constraint" icon="DOP_wireglueconstraint">
+    <helpURL>operator:Dop/wireglueconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/wireglueconstraint</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopsbdtoolutils
+
+dopsbdtoolutils.genericConstraintTool(kwargs, 'wireglueconstraint')
+]]></script>
+  </tool>
+
+  <tool name="dop_wireangularspringconstraint" label="Wire Angular Spring Constraint" icon="DOP_wireangularspringconstraint">
+    <helpURL>operator:Dop/wireangularspringconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/wireangularspringconstraint</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopsbdtoolutils
+
+dopsbdtoolutils.genericConstraintTool(kwargs, 'wireangularspringconstraint')
+]]></script>
+  </tool>
+
+  <tool name="dop_wireangularconstraint" label="Wire Angular Constraint" icon="DOP_wireangularconstraint">
+    <helpURL>operator:Dop/wireangularconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/wireangularconstraint</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopsbdtoolutils
+
+dopsbdtoolutils.genericConstraintTool(kwargs, 'wireangularconstraint')
+]]></script>
+  </tool>
+
+  <tool name="dop_wireattachmentconstraint" label="Attach Wire to Surface" icon="SHELF_attach_wire_to_surface">
+    <helpURL>tool:wireattachtosurface</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopsbdtoolutils
+
+dopsbdtoolutils.createSBDAttachmentConstraints(kwargs,
+                            dopsbdtoolutils.SBD_CONSTRAINT_TYPE_SOFT, 'wire',
+                            dopsbdtoolutils.DYNAMIC_SELECTION_TYPE_POINT)
+]]></script>
+  </tool>
+
+  <tool name="dop_wirespringconstraint" label="Wire Spring Constraint" icon="SHELF_wirespringconstraint">
+    <helpURL>tool:wirespringconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopsbdtoolutils
+
+dopsbdtoolutils.genericConstraintTool(kwargs, 'sbdspringconstraint')
+]]></script>
+  </tool>
+
+  <tool name="dop_wirepinconstraint" label="Wire Pin Constraint" icon="SHELF_wirepinconstraint">
+    <helpURL>tool:wirepinconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopsbdtoolutils
+
+dopsbdtoolutils.genericConstraintTool(kwargs, 'sbdpinconstraint')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_gluewiretoanimation" label="Glue Wire to Animation" icon="SHELF_attach_constraint_animation">
+    <helpURL>tool:gluewiretoanimation</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/gluewiretoanimation</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopwiretoolutils
+
+dopwiretoolutils.glueWireToAnimation(kwargs, 'gluewiretoanimation')
+]]></script>
+  </tool>
+
+  <tool name="dop_wiresetinitialpose" label="Set Initial Pose" icon="SHELF_wire_initial_pose">
+    <helpURL>tool:setinitialpose</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Position</toolSubmenu>
+    <script scriptType="python"><![CDATA[import doptoolutils
+import dopwiretoolutils
+
+dopwiretoolutils.setInitialPose(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dop_rbdspringconstraint" label="RBD Spring Constraint" icon="DOP_rbdspringconstraint">
+    <helpURL>tool:rbdspringconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/rbdspringconstraint</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopreltoolutils
+
+dopreltoolutils.genericConstraintTool(kwargs, 'rbdspringconstraint',
+                            validateobjfunc = dopreltoolutils.validateRBDorBullet,
+                            mutual = True,
+                            allowaffector = True)
+]]></script>
+  </tool>
+
+  <tool name="dop_rbdsliderconstraint" label="RBD Slider Constraint" icon="DOP_rbdsliderconstraint">
+    <helpURL>tool:rbdsliderconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/rbdsliderconstraint</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopreltoolutils
+
+dopreltoolutils.genericConstraintTool(kwargs, 'rbdsliderconstraint',
+                            validateobjfunc = dopreltoolutils.validateBullet,
+                            mutual = True,
+                            allowaffector = True)
+]]></script>
+  </tool>
+
+  <tool name="dop_rbdconetwistconstraint" label="RBD Cone Twist Constraint" icon="DOP_rbdconetwistconstraint">
+    <helpURL>tool:rbdconetwistconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/rbdconetwistconstraint</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopreltoolutils
+
+dopreltoolutils.genericConstraintTool(kwargs, 'rbdconetwistconstraint',
+                            validateobjfunc = dopreltoolutils.validateBullet,
+                            mutual = True,
+                            allowaffector = True)
+]]></script>
+  </tool>
+
+  <tool name="dop_rbdpinconstraint" label="RBD Pin Constraint" icon="DOP_rbdpinconstraint">
+    <helpURL>tool:rbdpinconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/rbdpinconstraint</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopreltoolutils
+
+dopreltoolutils.genericConstraintTool(kwargs, 'rbdpinconstraint',
+                            validateobjfunc = dopreltoolutils.validateRBDorBullet,
+                            mutual = True,
+                            allowaffector = True)
+]]></script>
+  </tool>
+
+  <tool name="dop_rbdhingeconstraint" label="RBD Hinge Constraint" icon="DOP_rbdhingeconstraint">
+    <helpURL>tool:rbdhingeconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/rbdhingeconstraint</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopreltoolutils
+
+dopreltoolutils.genericConstraintTool(kwargs, 'rbdhingeconstraint',
+                            validateobjfunc = dopreltoolutils.validateRBDorBullet,
+                            mutual = True,
+                            allowaffector = True)
+]]></script>
+  </tool>
+
+  <tool name="dop_rbdangularconstraint" label="RBD Angular Constraint" icon="DOP_rbdangularconstraint">
+    <helpURL>tool:rbdangularconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/rbdangularconstraint</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopreltoolutils
+
+dopreltoolutils.genericConstraintTool(kwargs, 'rbdangularconstraint',
+                            validateobjfunc = dopreltoolutils.validateRBDorBullet,
+                            mutual = True,
+                            allowaffector = True)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_emitsteamoncollision" label="Emit Steam On Collision" icon="SHELF_emit_steam">
+    <helpURL>tool:emitsteamoncollision</helpURL>
+    <script scriptType="python"><![CDATA[import dopparticlefluidtoolutils
+
+dopparticlefluidtoolutils.createSteam(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_objecttolava" label="Lava From Object" icon="SHELF_convert_to_lava">
+    <helpURL>tool:lavafromobject</helpURL>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+
+dopnode = doptoolutils.genericDopConverterTool(
+    toolutils.activePane(kwargs), 'flipfluidobject', 'flipfluidobject1',
+    'Select object to turn into lava.  Press Enter to accept selection.', subtype='lava')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_coolfromobject" label="Cool Within Object" icon="SHELF_cool_within_object">
+    <helpURL>tool:coolwithinobject</helpURL>
+    <script scriptType="python"><![CDATA[import dopsmoketoolutils
+applyname = 'SOP_Source'
+dopsmoketoolutils.selectedConvertToAttribSource(kwargs, applyname, 'coolingvolume1', 'temperature', 'float',
+    mergemethod='target', rangeout=(3.0, 0.0), increaserate=0.0, decreaserate=3.0,
+    objprompt="Select object to cool with.",
+    fluidprompt="Select fluid object to cool", autoconvert=True)]]></script>
+  </tool>
+
+  <tool name="dop_rbdangularspringconstraint" label="RBD Angular Spring Constraint" icon="DOP_rbdangularspringconstraint">
+    <helpURL>tool:rbdangularspringconstraint</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/rbdangularspringconstraint</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopreltoolutils
+
+dopreltoolutils.genericConstraintTool(kwargs, 'rbdangularspringconstraint',
+                            validateobjfunc = dopreltoolutils.validateRBDorBullet,
+                            mutual = True,
+                            allowaffector = True)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_femfusepointpairs" label="Fuse Point Pairs" icon="DOP_fefuseconstraint">
+    <helpURL>tool:fefusepointpairs</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+import dopsbdtoolutils
+dopfemtoolutils.createFEFuseConstraint(kwargs,
+                            dopsbdtoolutils.SBD_CONSTRAINT_TYPE_HARD, 'solid')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_visualizefiniteelements" label="Visualize Finite Elements" icon="SHELF_visualize_fem">
+    <helpURL>tool:fevisualize</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+import dopsbdtoolutils
+dopfemtoolutils.createVisualization(kwargs,
+                            'solid',
+                            None)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_femregionconstraint" label="Constrain Region" icon="SHELF_constrain_region">
+    <helpURL>tool:feconstrainregion</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+import dopsbdtoolutils
+dopfemtoolutils.createRegionConstraint(kwargs,
+                            dopsbdtoolutils.SBD_CONSTRAINT_TYPE_SOFT, 'solid',
+                            None)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_femslideconstraint" label="Slide Points against Target Object" icon="SHELF_constrain_slide">
+    <helpURL>tool:femslide</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+import dopsbdtoolutils
+dopfemtoolutils.createSlideConstraint(kwargs,
+                            dopsbdtoolutils.SBD_CONSTRAINT_TYPE_SOFT, 'solid',
+                            None)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_femattachconstraint" label="Attach Points to Target Object" icon="SHELF_constrain_attach">
+    <helpURL>tool:femattach</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+import dopsbdtoolutils
+dopfemtoolutils.createAttachConstraint(kwargs,
+                            dopsbdtoolutils.SBD_CONSTRAINT_TYPE_SOFT, 'solid',
+                            None)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_femtargetconstraint" label="Constrain Points to Target Animation" icon="SHELF_cloth_follow_animation">
+    <helpURL>tool:feconstrainpointstotarget</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Constraints</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+import dopsbdtoolutils
+dopfemtoolutils.createTargetConstraint(kwargs,
+                            dopsbdtoolutils.SBD_CONSTRAINT_TYPE_HARD, 'solid',
+                            None)
+]]></script>
+  </tool>
+
+  <tool name="dop_volumecollider" label="Volume Collider" icon="DOP_surfacecollisionparms">
+    <helpURL>tool:rigidcollider</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+
+dopfemtoolutils.selectAndCreateVolumeCollider(kwargs, 'volumecollider')
+]]></script>
+  </tool>
+
+  <tool name="dop_solidcollider" label="Surface Collider" icon="DOP_clothbodycollider">
+    <helpURL>tool:clothbodycollider</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+
+dopfemtoolutils.selectAndCreateSolidCollider(kwargs, 'solidcollider')
+]]></script>
+  </tool>
+
+  <tool name="dop_surfacecollider" label="Surface Collider" icon="DOP_clothbodycollider">
+    <helpURL>tool:clothbodycollider</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+
+dopfemtoolutils.selectAndCreateSurfaceCollider(kwargs, 'surfacecollider')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_fracturedsolidobject" label="Fractured Solid Object" icon="DOP_fracturedsolidobject">
+    <helpURL>tool:fracturedsolidobject</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+
+import dopfemtoolutils
+
+dopfemtoolutils.selectAndCreateSolidObjects(kwargs, 'solidobject', 'fractured', 'fractured object')
+
+]]></script>
+  </tool>
+
+  <tool name="dynamics_embedhighresobject" label="Embed Highres Object" icon="DOP_embedhighresobject">
+    <helpURL>tool:embedhighresobject</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Utility</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+
+import dopclothproxy
+
+dopclothproxy.selectAndEmbedHighresObject(kwargs, 'embedhighres')
+
+]]></script>
+  </tool>
+
+  <tool name="dynamics_organictissue" label="Organic Tissue" icon="SHELF_organic_tissue">
+    <helpURL>operator:Dop/femhybridobject#organictissue</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+
+dopfemtoolutils.selectAndCreateHybridObjects(kwargs, 'femhybridobject', 'organictissue', 'organic tissue')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_organicmass" label="Organic Mass" icon="SHELF_squid">
+    <helpURL>operator:Dop/femsolidobject#organicmass</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+
+dopfemtoolutils.selectAndCreateSolidObjects(kwargs, 'femsolidobject', 'organicmass', 'organic mass')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_femhybridobject" label="Hybrid Object" icon="DOP_femhybridobject">
+    <helpURL>operator:Dop/femhybridobject</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+
+dopfemtoolutils.selectAndCreateHybridObjects(kwargs, 'femhybridobject', 'generic', 'hybrid object')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_femsolidobject" label="Solid Object" icon="DOP_femsolidobject">
+    <helpURL>tool:femsolidobject</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopfemtoolutils
+
+dopfemtoolutils.selectAndCreateSolidObjects(kwargs, 'femsolidobject', 'generic', 'solid object')
+]]></script>
+  </tool>
+
+  <tool name="dop_vortexforce" label="Vortex Force" icon="DOP_vortexforce">
+    <helpURL>operator:Dop/vortexforce</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/vortexforce</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Forces</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopgeofiltertoolutils
+
+def vortexValidateGeometry(vortexobject):
+    geometry = vortexobject.displayNode().geometry()
+    # Vortex geometry must have at least on open curve, and must have point
+    # attributes for the orbit radius and orbit velocity.
+    hasopenface = False
+    hasorbitrad = False
+    hasorbitvel = False
+    # First look for an open curve.
+    for prim in geometry.prims():
+        if isinstance(prim, hou.Face) and not prim.closed():
+            hasopenface = True
+            break
+    if hasopenface:
+        # Now look for the orbit radius and orbit velocity attributes.
+        for attrib in geometry.pointAttribs():
+            if attrib.dataType() == hou.attribData.Float and attrib.size() == 1:
+                if attrib.name() == "orbitrad":
+                    hasorbitrad = True
+                elif attrib.name() == "orbitvel":
+                    hasorbitvel = True
+        # If no orbitrad or no orbitvel attributes were found, we should
+        # create these attributes.
+        if not hasorbitrad or not hasorbitvel:
+            # Create the attributes with the vortexforceattribs SOP.
+            olddisplay = vortexobject.displayNode()
+            attribsop = vortexobject.createNode("vortexforceattribs")
+            attribsop.setFirstInput(olddisplay)
+            attribsop.setDisplayFlag(True)
+            attribsop.setRenderFlag(olddisplay.isRenderFlagSet())
+            attribsop.moveToGoodPosition()
+    if not hasopenface:
+        msg = "Selected vortex geometry has no open curves."
+        raise hou.OperationFailed(msg)
+
+dopgeofiltertoolutils.genericTool(kwargs, 'vortexforce', vortexValidateGeometry, force_prompt="Now select an open curve to be the center of the vortex.  Press Enter to complete.")
+]]></script>
+  </tool>
+
+  <tool name="dop_magnetforce" label="Magnet Force" icon="DOP_magnetforce">
+    <helpURL>operator:Dop/magnetforce</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/magnetforce</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Forces</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopgeofiltertoolutils
+
+def magnetValidateGeometry(magnetobject):
+    geometry = magnetobject.displayNode().geometry()
+    for prim in geometry.prims():
+        if prim.type() == hou.primType.Metaball:
+            return
+    msg = "Selected magnet geometry has no metaballs."
+    raise hou.OperationFailed(msg)
+
+dopgeofiltertoolutils.genericTool(kwargs, 'magnetforce', magnetValidateGeometry)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_rbdragdollobject" label="RBD Ragdolls" icon="DOP_rbdragdollobject">
+    <helpURL>tool:rbdragdollobject</helpURL>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+import doprbdtoolutils
+doprbdtoolutils.createRagdollObject(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_rbdsphereproxy" label="RBD Sphere Proxy" icon="SHELF_rbdsphereproxy">
+    <helpURL>tool:rbdsphereproxy</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doprbdtoolutils
+doprbdtoolutils.createSphereProxy(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_rbdconvexproxy" label="RBD Convex Proxy" icon="SHELF_rbdconvexproxy">
+    <helpURL>tool:rbdconvexproxy</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doprbdtoolutils
+doprbdtoolutils.createConvexProxy(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_rbdglueobject" label="RBD Glued Objects" icon="DOP_rbdfracturedobject">
+    <helpURL>tool:rbdglueobject</helpURL>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+import doprbdtoolutils
+
+doprbdtoolutils.createGluedObject(kwargs, True)]]></script>
+  </tool>
+
+  <tool name="dynamics_rbdfracturedobject" label="RBD Fractured Object" icon="DOP_rbdfracturedobject">
+    <helpURL>tool:rbdfracturedobject</helpURL>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+
+choice = -1
+activepane = toolutils.activePane(kwargs)
+if isinstance(activepane, hou.SceneViewer):
+    choice = hou.ui.displayMessage(
+        text='What type of fractured object?',
+        help='\n'.join([ 'Click RBD Packed Object unless you need the RBD objects to interact with other',
+                         'solvers (fluids, cloth), or if you want to use constraints other than a constraint',
+                         'network. Packed objects are much faster and use less memory for large geometry.',
+                         'They can also be influenced by POP Forces, such as drag.' ]),
+        buttons=('RBD Packed Object', 'RBD Fractured Object', 'Cancel'))
+if choice == 0:
+    doptoolutils.genericTool(kwargs, 'rbdpackedobject')
+elif choice == 1:
+    doptoolutils.genericTool(kwargs, 'rbdfracturedobject')]]></script>
+  </tool>
+
+  <tool name="dynamics_rbdobjects" label="RBD Objects" icon="DOP_rbdpackedobject">
+    <helpURL>tool:rbdobjects</helpURL>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+doptoolutils.genericTool(kwargs, 'rbdpackedobject')]]></script>
+  </tool>
+
+  <tool name="dynamics_rbdheroobject" label="RBD Hero Object" icon="DOP_rbdobject">
+    <helpURL>operator:Dop/rbdobject</helpURL>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+doptoolutils.genericTool(kwargs, 'rbdobject')]]></script>
+  </tool>
+
+  <tool name="dynamics_debris" label="Debris" icon="SHELF_debris">
+    <helpURL>tool:debris</helpURL>
+    <script scriptType="python"><![CDATA[import toolutils
+import soptoolutils
+
+activepane = toolutils.activePane(kwargs)
+if activepane.type() != hou.paneTabType.SceneViewer:
+    raise hou.Error("This tool cannot run in the current pane")
+
+scene_viewer = toolutils.sceneViewer()
+nodetypename = "delete"
+
+# Obtain a geometry selection
+geo_types = (hou.geometryType.Primitives, )
+selection = scene_viewer.selectGeometry(
+                "Select the primitives from which to create debris and press Enter to complete",
+                geometry_types = geo_types,
+                allow_obj_sel = True)
+# The following will raise an exception if nothing was selected.
+if len(selection.nodes()) == 0:
+    raise hou.Error("Nothing was selected.")
+
+#
+# Create Source
+#
+# Create a new SOP container with the merged geometry
+container = soptoolutils.createSopNodeContainer(scene_viewer, "debris_source")
+merge_sop = selection.mergedNode(container, nodetypename, True, True)
+# Turn back on the display flag for merged nodes
+for sop in selection.nodes():
+    sop.parent().setDisplayFlag(True)
+
+merge_sop.moveToGoodPosition()
+
+unpack_sop = container.createNode('unpack')
+unpack_sop.parm('limit_iterations').set(False)
+unpack_sop.setFirstInput(merge_sop)
+unpack_sop.moveToGoodPosition()
+
+attribdelete_sop = container.createNode('attribdelete', 'remove_attributes')
+attribdelete_sop.parm('ptdel').set('*')
+attribdelete_sop.parm('vtxdel').set('*')
+attribdelete_sop.parm('primdel').set('* ^name')
+attribdelete_sop.parm('dtldel').set('*')
+attribdelete_sop.setFirstInput(unpack_sop)
+attribdelete_sop.moveToGoodPosition()
+
+trail_sop = container.createNode('trail', 'compute_velocity')
+trail_sop.parm('result').set('velocity')
+trail_sop.setFirstInput(attribdelete_sop)
+trail_sop.moveToGoodPosition()
+
+debrissource_sop = container.createNode('debrissource')
+debrissource_sop.setFirstInput(trail_sop)
+debrissource_sop.moveToGoodPosition()
+
+null_sop = container.createNode('null', 'OUT')
+null_sop.setFirstInput(debrissource_sop)
+null_sop.moveToGoodPosition()
+null_sop.setDisplayFlag(True)
+null_sop.setRenderFlag(True)
+
+container.setDisplayFlag(False)
+
+#
+# Create Simulation
+#
+dopnet = container.parent().createNode('dopnet', 'debris_sim')
+dopnet.moveToGoodPosition()
+
+popobject = dopnet.createNode('popobject')
+popobject.parm('friction').set(0.8)
+popobject.parm('dynamicfriction').set(0.25)
+popobject.moveToGoodPosition()
+
+popsource = dopnet.createNode('popsource')
+popsource.parm('emittype').set('point')
+popsource.parm('soppath').set(null_sop.path())
+popsource.parm('inheritattrib').set('* ^Cd')
+popsource.parm('inheritvel').set(0.56)
+popsource.moveToGoodPosition()
+
+popstream = dopnet.createNode('popstream')
+popstream.setFirstInput(popsource)
+popstream.moveToGoodPosition()
+
+popreplicate = dopnet.createNode('popreplicate')
+popreplicate.parm('constantrate').set(100)
+popreplicate.parm('killorig').set(True)
+popreplicate.parm('shape').set('point')
+popreplicate.parm('donoise').set(True)
+popreplicate.parm('initvel').set('add')
+popreplicate.parm('varx').set(0.7)
+popreplicate.parm('vary').set(0.7)
+popreplicate.parm('varz').set(0.7)
+popreplicate.setFirstInput(popstream)
+popreplicate.moveToGoodPosition()
+
+popinteract = dopnet.createNode('popinteract')
+popinteract.parm('positionforce').set(-0.2)
+popinteract.parm('falloffradius').set(0.44)
+popinteract.setFirstInput(popreplicate)
+popinteract.moveToGoodPosition()
+
+popdrag = dopnet.createNode('popdrag')
+popdrag.parm('airresist').set(0.01)
+popdrag.setFirstInput(popinteract)
+popdrag.moveToGoodPosition()
+
+popforce = dopnet.createNode('popforce')
+popforce.parm('forcey').set(-9.80665)
+popforce.setFirstInput(popdrag)
+popforce.moveToGoodPosition()
+
+popsolver = dopnet.createNode('popsolver')
+popsolver.setFirstInput(popobject)
+popsolver.setNextInput(popforce)
+popsolver.setNextInput(popsource)
+popsolver.moveToGoodPosition()
+
+popsolver.setDisplayFlag(True)
+dopnet.setDisplayFlag(False)
+
+#
+# Create Simulation
+#
+debris = container.parent().createNode('geo', 'debris', False)
+debris.moveToGoodPosition()
+
+dopimport = debris.createNode('dopimport')
+dopimport.parm('doppath').set(dopnet.path())
+dopimport.parm('importstyle').set('fetch')
+dopimport.moveToGoodPosition()
+
+# Change our viewer to the dop network
+scene_viewer.setPwd(popsolver)
+popsolver.setCurrent(True, True)
+toolutils.homeToSelectionNetworkEditorsFor(popsolver)
+scene_viewer.enterCurrentNodeState()]]></script>
+  </tool>
+
+  <tool name="dynamics_rbdpointobject" label="RBD Instanced Objects" icon="DOP_rbdpointobject">
+    <helpURL>tool:rbdpointobject</helpURL>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+import doprbdtoolutils
+
+activepane = toolutils.activePane(kwargs)
+
+# Make the user select some source objects to simulate.
+selectedobjects = activepane.selectObjects(
+    prompt = "Select object whose points will be used for instancing.  Press Enter to accept selection,",
+    allow_multisel = True, allowed_types = ("geo",))
+
+# Select the object(s) to instance.  For packed points, make sure each
+# object has an instance attribute or make the user select an instance
+# override object.
+instancesops = {}
+for objectnode in selectedobjects:
+    instancesop = None
+    # Check if the selected geometry has an instance point attribute.
+    if objectnode.displayNode().geometry().findPointAttrib("instance") is None:
+        # There is no instance attribute, so make the user pick an object.
+        prompt = "Select object to instance at each point of %s. Press Enter to accept selection." % (objectnode.name(), )
+        instanceselection = activepane.selectObjects(
+            prompt = prompt, use_existing_selection = False,
+            allow_multisel = False, allowed_types = ("geo",))
+        if len(instanceselection) == 0:
+            raise hou.OperationFailed("No instance geometry was chosen.")
+        instancesop = instanceselection[0].displayNode()
+    instancesops[objectnode] = instancesop
+
+# Use /obj to ensure that no nodes are selected anywhere.
+hou.node("/obj").setCurrent(False, True)
+# Move to frame one so the simulation will be recalculated.
+frame = hou.frame()
+hou.setFrame(1)
+
+# Set up the DOP objects.
+for objectnode in selectedobjects:
+    instancenode = instancesops[objectnode]
+
+    pointsnode = objectnode.displayNode()
+
+    mergenode = objectnode.createNode('object_merge', 'fetch_instance_geometry')
+    mergenode.setCreatorState(hou.shelves.runningTool().name())
+    mergenode.parm('objpath1').set(instancenode.path())
+
+    doprbdtoolutils.createPackedRBDInstances(objectnode, pointsnode, mergenode, '`opname("..")`', [])
+
+    instancenode.creator().setDisplayFlag(False)
+
+    # Make the source object node the current node.
+    objectnode.setCurrent(True, False)
+
+# Enter the viewer state for the selected object nodes.
+activepane.enterCurrentNodeState()
+# Move back to the starting frame, with the new simulated objects.
+hou.setFrame(frame)]]></script>
+  </tool>
+
+  <tool name="dynamics_impactanalysis" label="RBD Impacts" icon="DOP_affector">
+    <helpURL>operator:Dop/impactanalysis</helpURL>
+    <script scriptType="python"><![CDATA[
+
+import doptoolutils
+import doprbdtoolutils
+doprbdtoolutils.makeImpactAnalysis(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_autofreeze" label="RBD Auto Freeze" icon="DOP_rbdautofreeze">
+    <helpURL>tool:rbdautofreeze</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doprbdtoolutils
+doprbdtoolutils.makeAutoFreeze(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_gluenetwork" label="Glue Adjacent" icon="PARTS_glue">
+    <helpURL>tool:gluenetwork</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doprbdtoolutils
+doprbdtoolutils.glueNetwork(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_makebreakable" label="Make Breakable" icon="SHELF_makebreakable">
+    <helpURL>tool:makebreakable</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doprbdtoolutils
+doprbdtoolutils.makeBreakable(kwargs)]]></script>
+  </tool>
+
+  <tool name="dop_groundplane" label="Ground Plane" icon="DOP_groundplane">
+    <helpURL>tool:groundplane</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+
+activepane = toolutils.activePane(kwargs)
+if isinstance(activepane, hou.SceneViewer):
+    frame = hou.frame()
+    hou.setFrame(1)
+    dopnet = doptoolutils.getCurrentDopNetwork()
+    # Create the ground plane DOP node.
+    groundplane = dopnet.createNode("groundplane")
+    # Create an object level node that will represent the DOP object.
+    objectnode = hou.node("/obj").createNode("geo", "groundplane_object1",
+                                             run_init_scripts = False)
+    toolutils.setUpOrientation(objectnode, "r", hou.orientUpAxis.Y)
+    objectnode.moveToGoodPosition()
+    # Point the ground plane DOP to the new object for its position.
+    groundplane.parm("objpath").set(objectnode.path())
+    # Create the static solver that we'll feed the ground plane through.
+    solvernode = doptoolutils.createSolver("staticsolver", True)
+    # Add the ground plane to the static solver.
+    doptoolutils.addObjectToSolver(groundplane, solvernode, True)
+    groundplane.moveToGoodPosition(False, False, False, False)
+
+    objectmerge = objectnode.createNode('object_merge', 'import_groundplane')
+
+    objectmerge.parm('objpath1').set(groundplane.path() + '/display')
+
+    hou.setFrame(frame)
+    # Make the new object node current, and enter its viewer state.
+    objectnode.setCurrent(True, True)
+    activepane.enterCurrentNodeState()
+else:
+    toolutils.genericTool(kwargs, "groundplane")]]></script>
+  </tool>
+
+  <tool name="dop_deformingobject" label="Deforming Object" icon="SHELF_deforming_object">
+    <helpURL>tool:deformingobject</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+doptoolutils.convertToDeformingObject(kwargs, True)]]></script>
+  </tool>
+
+  <tool name="dynamics_staticobject" label="Static Object" icon="DOP_staticobject">
+    <helpURL>tool:staticobject</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Objects</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+import doptoolutils
+doptoolutils.convertToDeformingObject(kwargs, False)]]></script>
+  </tool>
+
+  <tool name="dynamics_particlefluidemitter" label="Emit Particle Fluid" icon="DOP_particlefluidemitter">
+    <helpURL>tool:emitparticlefluid</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsmoketoolutils
+applyname = 'SOP_Source_VolumeSurface'
+dopsmoketoolutils.selectedConvertToSourceSink(kwargs, applyname, objprompt="Select object to emit fluid from.", fluidprompt="Select a fluid object to emit into", autoconvert = False, createifempty="flipfluid")]]></script>
+  </tool>
+
+  <tool name="dynamics_popcondensation" label="Condensation" icon="SHELF_condensation">
+    <helpURL>tool:condensation</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.createCondensationPOPFluid(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_suctionfluid" label="Suction Fluid" icon="SHELF_suctionfluid">
+    <helpURL>tool:suctionfluid</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.particleFluidSuctionSelect(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_slicealongline" label="Slice Along Line" icon="DOP_slicealongline">
+    <helpURL>tool:slicealongline</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.sliceSimByPlane(kwargs, 'slicealongline')]]></script>
+  </tool>
+
+  <tool name="dynamics_slicebyplane" label="Slice" icon="DOP_sliceplane">
+    <helpURL>tool:slice</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.sliceSimByPlane(kwargs, 'sliceplane')]]></script>
+  </tool>
+
+  <tool name="dynamics_distribute_wire" label="Distribute" icon="SHELF_distribute_fluid_sim">
+    <helpURL>help:/dyno/distribute</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopsmoketoolutils
+dopsmoketoolutils.distributeSimulation(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_distribute_fluid" label="Distribute Particle Fluid" icon="SHELF_distribute_fluid_sim">
+    <helpURL>help:/dyno/distribute</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopsmoketoolutils
+prompt = "Select particle fluid(s) to distibute. Press Enter to complete."
+invalid_selection_method = "No fluid selected to distribute."
+dopsmoketoolutils.distributeSimulation(kwargs, prompt, invalid_selection_method)]]></script>
+  </tool>
+
+  <tool name="dynamics_makesink" label="Sink from Objects" icon="SHELF_fluid_sink">
+    <helpURL>tool:sinkfromobjects</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopsmoketoolutils
+
+applyname = 'SOP_Sink'
+dopsmoketoolutils.selectedConvertToSourceSink(kwargs, applyname,
+    objprompt="Select object to create sink from.",
+    fluidprompt="Select fluid object to add sink to")]]></script>
+  </tool>
+
+  <tool name="dynamics_makeviscous" label="Make Viscous" icon="SHELF_pour">
+    <helpURL>tool:makeviscous</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.makeViscous(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_oceanflattank" label="Ocean Flat Tank" icon="SHELF_flat_tank">
+    <helpURL>tool:oceanflattank</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.oceanFlatTank(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_flattank" label="Flat Tank" icon="SHELF_flat_tank">
+    <helpURL>tool:flattank</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.flatTank(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_beachtank" label="Beach Tank" icon="SHELF_beach_tank">
+    <helpURL>tool:beachtank</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.beachTank(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_guidedoceanlayer" label="Guided Ocean Layer" icon="SHELF_guided_ocean_layer">
+    <helpURL>tool:guidedoceanlayer</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.guidedOceanLayer(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_wavetank" label="Wave Tank" icon="SHELF_wave_tank">
+    <helpURL>tool:wavetank</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.waveTank(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_flipbox" label="FLIP Tank" icon="SHELF_flip_tank">
+    <helpURL>tool:fliptank</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.flipBox(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_makeflip" label="FLIP Fluid from Object" icon="SHELF_convert_to_fluid">
+    <helpURL>tool:flipfluidfromobject</helpURL>
+    <script scriptType="python"><![CDATA[
+import toolutils
+import doptoolutils
+import dopparticlefluidtoolutils
+
+objectnode = doptoolutils.genericDopConverterTool(toolutils.activePane(kwargs), 'flipfluidobject', 'flipfluidobject1', 'Select object to convert into a FLIP Fluid.  Press Enter to accept selection.')
+dopparticlefluidtoolutils.convertToFLIP(objectnode)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popsprite" label="Sprite Particles" icon="POP_sprite">
+    <helpURL>tool:dynamics_popsprite</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+import dopsmoketoolutils
+node = doppoptoolutils.applyModifier(kwargs, 'popsprite')
+
+pobject = doppoptoolutils.findParticleSystem()
+if pobject is not None and node is not None:
+    ionodes = doptoolutils.getNodesImportingCreator(pobject)
+    for ionode in ionodes:
+        if ionode is not None:
+            (material, built) = dopsmoketoolutils.findOrCreateMaterial('spritefog', 'sprite')
+            if ionode.parent() is not None and ionode.parent().parm('shop_materialpath') is not None:
+                ionode.parent().parm('shop_materialpath').set(material.path())
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popmetaballforce" label="Metaball Force Particles" icon="SOP_metaball">
+    <helpURL>tool:dynamics_popmetaballforce</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+(node, geo) = doppoptoolutils.applyGeoModifier(kwargs, 'popmetaballforce',
+                            "Select metaballs for Metaball Force Particles.  Press Enter to accept selection.")
+if node is not None:
+    node.parm('metaballpath').set(geo.path())
+
+    # Verify we have force attributes!
+    sop = geo
+    if sop.type().category() == hou.objNodeTypeCategory():
+        sop = sop.displayNode()
+    if sop is not None and sop.type().category() == hou.sopNodeTypeCategory():
+        geometry = sop.geometry()
+        if geometry is not None:
+            if geometry.findPrimAttrib('fradial') is None and geometry.findPrimAttrib('dir') is None:
+                # No proper force attributes, create the force SOP!
+                forcenode = sop.parent().createNode('force')
+                forcenode.parm('doradial').set(True)
+                forcenode.setNextInput(sop)
+
+                # Move flags.
+                if sop.isDisplayFlagSet():
+                    forcenode.setDisplayFlag(True)
+                if sop.isRenderFlagSet():
+                    forcenode.setRenderFlag(True)
+                forcenode.moveToGoodPosition()
+
+                # Wire up to the new node
+                if sop == geo:
+                    node.parm('metaballpath').set(forcenode.path())
+
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popinstance" label="Instance Geometry on Particles" icon="POP_instance">
+    <helpURL>tool:dynamics_popinstance</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+(node, geo) = doppoptoolutils.applyGeoModifier(kwargs, 'popinstance')
+if node is not None:
+    node.parm('instancepath').set(geo.path())
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popvortexfilaments" label="Vortex Filaments" icon="DOP_popadvectbyfilaments">
+    <helpURL>help:/dopparticles/filaments</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+doppoptoolutils.addVortexFilaments(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popcurveforce" label="Curve Force Particles" icon="DOP_vortexforce">
+    <helpURL>tool:dynamics_popcurveforce</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+(node, geo) = doppoptoolutils.applyGeoModifier(kwargs, 'popcurveforce',
+                            "Select curves for Curve Force Particles.  Press Enter to accept selection.")
+if node is not None:
+    node.parm('soppath').set(geo.path())
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popattracttocurvepoint" label="Curve Attract Particles" icon="SHELF_curveattract">
+    <helpURL>tool:dynamics_popattract</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+(node, geo) = doppoptoolutils.applyGeoModifier(kwargs, 'popattract',
+                            "Select curves for Curve Attract Particles.  Press Enter to accept selection.")
+if node is not None:
+    node.parm('attracttype').set('surface')
+    node.parm('soppath').set(geo.path())
+    node.parm('uselocalprimuv').set(True)
+    node.parm('primuvcode').set('goalprimuv.x = @age / @life;')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popautofreeze" label="Auto-Sleep Particles" icon="POP_sleep">
+    <helpURL>tool:autosleep</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.setupAutoFreeze(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popawaken" label="Awaken By Geometry" icon="POP_awaken">
+    <helpURL>tool:awakenbygeometry</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+(node, geo) = doppoptoolutils.applyGeoModifier(kwargs, 'popawaken', targetinput='pre')
+if node is not None:
+    node.parm('dovolumewakeup').set(True)
+    displaysop = geo.displayNode()
+    if displaysop is None:
+        raise hou.Error("No geometry found in selected object.")
+    convertsop = geo.createNode('vdbfrompolygons', 'convert_to_sdf')
+    convertsop.setNextInput(displaysop)
+    convertsop.moveToGoodPosition()
+    dilatesop = geo.createNode('vdbreshapesdf', 'expand_sdf')
+    dilatesop.setNextInput(convertsop)
+    dilatesop.parm('useworldspaceunits').set(True)
+    dilatesop.parm('voxeloffset').set(0.3)
+    dilatesop.moveToGoodPosition()
+    null = geo.createNode('null', 'ACTIVATE_SOURCE')
+    null.setNextInput(dilatesop)
+    null.moveToGoodPosition()
+
+    node.parm('soppath').set(null.path())
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popattracttopoints" label="Point Attract Particles" icon="SHELF_pointattract">
+    <helpURL>tool:dynamics_popattract</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+(node, geo) = doppoptoolutils.applyGeoModifier(kwargs, 'popattract')
+if node is not None:
+    node.parm('attracttype').set('points')
+    node.parm('soppath').set(geo.path())
+    node.parm('matchmethod').set('point')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popcollision" label="Collision Detect Particles" icon="POP_collision">
+    <helpURL>tool:dynamics_popcollision</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+(node, geo) = doppoptoolutils.applyGeoModifier(kwargs, 'popcollisiondetect')
+if node is not None:
+    node.parm('soppath').set(geo.path())
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popinteract" label="Interact Particles" icon="POP_interact">
+    <helpURL>tool:dynamics_popinteract</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.applyModifier(kwargs, 'popinteract')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popwind" label="Wind on Particles" icon="POP_wind">
+    <helpURL>tool:dynamics_popwind</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.applyModifier(kwargs, 'popwind')
+if node is not None:
+    scale = hou.scaleFromMKS("m1s-1")
+    node.parmTuple('wind').set(hou.Vector3(1*scale, 0, 0))
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popforce" label="Force Particles" icon="POP_force">
+    <helpURL>tool:dynamics_popforce</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.applyModifier(kwargs, 'popforce')
+if node is not None:
+    scale = hou.scaleFromMKS("m1s-2")
+    node.parmTuple('force').set(hou.Vector3(0, -9.81*scale, 0))
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popflock" label="Flock Particles" icon="POP_follow">
+    <helpURL>tool:dynamics_popflock</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.applyModifier(kwargs, 'popflock')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popfan" label="Fan Particles" icon="POP_fan">
+    <helpURL>tool:dynamics_popfan</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.applyModifier(kwargs, 'popfan')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popdrag" label="Drag Particles" icon="POP_drag">
+    <helpURL>tool:dynamics_popdrag</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.applyModifier(kwargs, 'popdrag')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popcolor" label="Color Particles" icon="POP_color">
+    <helpURL>tool:dynamics_popcolor</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.applyModifier(kwargs, 'popcolor')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_newsimulation" label="New Simulation" icon="NETWORKS_dop">
+    <helpURL>tool:newsimulation</helpURL>
+    <script scriptType="python"><![CDATA[import doptoolutils
+
+doptoolutils.createNewDopNetwork()]]></script>
+  </tool>
+
+  <tool name="dynamics_removeobject" label="Remove Objects from Simulation" icon="SHELF_remove_from_simulation">
+    <helpURL>tool:removeobjectsfromsimulation</helpURL>
+    <script scriptType="python"><![CDATA[import doptoolutils
+
+doptoolutils.selectedDopObjectsRemoveFromSimulation(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_makepassive" label="Deactivate Objects" icon="SHELF_rbd_deactivate">
+    <helpURL>tool:deactivateobjects</helpURL>
+    <script scriptType="python"><![CDATA[import doptoolutils
+
+doptoolutils.selectedDopObjectsSetActiveState(kwargs, 0)]]></script>
+  </tool>
+
+  <tool name="dynamics_makeactive" label="Activate Objects" icon="SHELF_rbd_activate">
+    <helpURL>tool:activateobjects</helpURL>
+    <script scriptType="python"><![CDATA[import doptoolutils
+
+doptoolutils.selectedDopObjectsSetActiveState(kwargs, 1)]]></script>
+  </tool>
+
+  <tool name="dynamics_dripparticlefluid" label="Drip Particle Fluid" icon="SHELF_drip">
+    <helpURL>tool:dripparticlefluid</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/dripparticlefluid</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Fluids</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopparticlefluidtoolutils
+
+dopparticlefluidtoolutils.createDripParticleFluid(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_crownsplashfluid" label="Crown Splash Particle Fluid" icon="SHELF_crown_splash">
+    <helpURL>tool:crownsplash</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/crownsplashfluid</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Fluids</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopparticlefluidtoolutils
+
+dopparticlefluidtoolutils.createCrownSplash(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_sculptedparticlefluid" label="Sculpted Particle Fluid" icon="SHELF_sculptedparticlefluid">
+    <helpURL>tool:sculptedparticlefluid</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/sculptedparticlefluid</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Fluids</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopparticlefluidtoolutils
+
+dopparticlefluidtoolutils.createSculptedFluid(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_whitewater" label="Whitewater" icon="SHELF_whitewater">
+    <helpURL>tool:whitewater</helpURL>
+    <toolSubmenu>Fluids</toolSubmenu>
+    <script scriptType="python"><![CDATA[import dopparticlefluidtoolutils
+
+dopparticlefluidtoolutils.createWhitewater(kwargs)]]></script>
+  </tool>
+
+  <tool name="dynamics_popaxisforce" label="Axis Force Particles" icon="POP_orbit">
+    <helpURL>tool:dynamics_popaxisforce</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.applyModifier(kwargs, 'popaxisforce')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_vellumgrains" label="Vellum Grains" icon="SHELF_vellum_grains">
+    <helpURL>tool:vellumgrains</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createVellumSource(kwargs, style='grains')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_vellumtetsoftbody" label="Vellum Tetrahedral Softbody" icon="SHELF_vellum_softbody_tetrahedral">
+    <helpURL>tool:vellumtetsoftbody</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createVellumSource(kwargs, style='tetsoftbody')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_vellumsoftbody" label="Vellum Strut Softbody" icon="SHELF_vellum_softbody_struts">
+    <helpURL>tool:vellumsoftbody</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createVellumSource(kwargs, style='softbody')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_vellumballoon" label="Vellum Balloon" icon="SHELF_vellum_balloon">
+    <helpURL>tool:vellumballoon</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createVellumSource(kwargs, style='balloon')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_vellumhair" label="Vellum Hair" icon="SHELF_vellum_hair">
+    <helpURL>tool:vellumhair</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createVellumSource(kwargs, style='hair')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popreplicate" label="Replicate Particles" icon="POP_split">
+    <helpURL>tool:dynamics_popreplicate</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.applyModifier(kwargs, 'popreplicate')
+if node is not None:
+    # selgroup = node.parm('partgroup').evalAsString()
+    # selgroup += ' ^stream_`chs("streamname")`'
+    # node.parm('partgroup').set(selgroup)
+    node.parm('initvel').set('add')
+    node.parm('shape').set('point')
+    node.parm('killorig').set(1)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_vellumcloth" label="Vellum Cloth" icon="SHELF_vellum_cloth">
+    <helpURL>tool:vellumcloth</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createVellumSource(kwargs, style='cloth')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_rbdgrains" label="RBD Grains" icon="SHELF_rbd_grains">
+    <helpURL>tool:rbdgrains</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doprbdtoolutils
+doprbdtoolutils.createRBDGrains(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popgrainstrand" label="Granular Strand" icon="SHELF_sand_strand">
+    <helpURL>tool:granularstrand</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createSandSource(kwargs, style='strand')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popgrainsheet" label="Granular Sheet" icon="SHELF_sand_sheet">
+    <helpURL>tool:granularsheet</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createSandSource(kwargs, style='sheet')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popgrainsolid" label="Granular Solid" icon="DOP_sandobject">
+    <helpURL>tool:granularsolid</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createSandSource(kwargs, style='solid')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popgrainswet" label="Wet Sand" icon="SHELF_wet_sand">
+    <helpURL>tool:wetsand</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createSandSource(kwargs, style='pointwet')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_sandbox" label="Sand Box" icon="SHELF_sandbox">
+    <helpURL>tool:sandbox</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createSandBox(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popgrains" label="Dry Sand" icon="SHELF_dry_sand">
+    <helpURL>tool:drysand</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createSandSource(kwargs, style='point')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popsource" label="Source Particle Emitter" icon="POP_source">
+    <helpURL>tool:dynamics_popsource</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+node = doppoptoolutils.createSourceEmitter(kwargs)
+if node is not None:
+    node.parm('initvel').set('add')
+]]></script>
+  </tool>
+
+  <tool name="dynamics_popfireworks" label="Fireworks" icon="POP_fireworks">
+    <helpURL>tool:dynamics_popfireworks</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+doppoptoolutils.createFireworksEmitter(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="dynamics_poplocation" label="Location Particle Emitter" icon="POP_location">
+    <helpURL>tool:dynamics_poplocation</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+doppoptoolutils.createLocationEmitter(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="spyro_campfire" label="Bonfire" icon="SHELF_campfire">
+    <helpURL>tool:spyro_campfire</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createBonfire(kwargs, True)
+]]></script>
+  </tool>
+
+  <tool name="spyro_shockwave" label="Shockwave" icon="SHELF_shockwave">
+    <helpURL>tool:spyro_shockwave</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createFireballShockwave(kwargs, True)
+]]></script>
+  </tool>
+
+  <tool name="spyro_fireball" label="Sparse Fireball" icon="SHELF_fireball">
+    <helpURL>tool:spyro_fireball</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createFireball(kwargs, True)
+]]></script>
+  </tool>
+
+  <tool name="spyro_billowysmoke" label="Sparse Billowy Smoke" icon="SHELF_smoke_heavy">
+    <helpURL>tool:spyro_billowysmoke</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createBillowySmoke(kwargs, True)
+]]></script>
+  </tool>
+
+  <tool name="spyro_firespread" label="Spreading Fire" icon="SHELF_spyro_firespread">
+    <helpURL>tool:spyro_firespread</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createSpreadingFire(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="spyro_airexplosion" label="Aerial Explosion" icon="SHELF_aerial_explosion">
+    <helpURL>tool:spyro_airexplosion</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createAerialExplosion(kwargs, True)
+]]></script>
+  </tool>
+
+  <tool name="spyro_groundexplosion" label="Ground Explosion" icon="SHELF_explosion">
+    <helpURL>tool:spyro_groundexplosion</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createGroundExplosion(kwargs, True)
+]]></script>
+  </tool>
+
+  <tool name="dop_gravity" label="Gravity Force" icon="DOP_gravity">
+    <helpURL>operator:Dop/gravity</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/gravity</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Forces</toolSubmenu>
+    <script scriptType="python"><![CDATA[import doptoolutils
+from doptoolutils import OrientInfo
+
+doptoolutils.genericTool(kwargs, 'gravity', orient=OrientInfo('force'))]]></script>
+  </tool>
+
+  <tool name="dop_drag" label="Drag Force" icon="DOP_drag">
+    <helpURL>operator:Dop/drag</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>DOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/drag</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Forces</toolSubmenu>
+    <script scriptType="python"><![CDATA[import doptoolutils
+
+doptoolutils.genericTool(kwargs, 'drag')]]></script>
+  </tool>
+</shelfDocument>
