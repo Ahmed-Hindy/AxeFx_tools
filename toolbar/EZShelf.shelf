@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="EZ_Shelf" label="EZ Shelf">
+    <memberTool name="EZCopyPasteObjectMerge"/>
+    <memberTool name="EZPredictableOrient"/>
+    <memberTool name="EZ_CutOffDelete"/>
+    <memberTool name="EZ_ID"/>
+    <memberTool name="EZ_Camera_Frustrum"/>
+    <memberTool name="EZ_Camera_NDC"/>
+    <memberTool name="EZ_Call_Rest"/>
+    <memberTool name="EZ_Transform_Points_With_Input_2"/>
+    <memberTool name="EZ_Random_Point_Percentage_Delete"/>
+    <memberTool name="EZ_Normal_Direction_From_Input_2_Offset"/>
+  </toolshelf>
+</shelfDocument>

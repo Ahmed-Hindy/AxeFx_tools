@@ -1,0 +1,14 @@
+#
+#       @file       VEXpressions.txt
+#       @author     Oliver Hotz (plus all the collected ones over the past few months)
+#
+#       @since      2018-09-02
+#
+#       @brief      Varions VEXpression presets for nodes.
+#
+#
+
+attribwrangle/snippet
+    [Hindy] Connect NearPoints
+    // empty vexpression
+
