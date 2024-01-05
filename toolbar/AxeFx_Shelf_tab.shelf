@@ -5,6 +5,26 @@
  Note, that two definitions of the same element are not allowed in
  a single file. -->
 
+  <toolshelf name="AxeFx_Shelf_tab" label="AxeFx Shelf tab">
+    <memberTool name="batchChangePaths_1.1"/>
+    <memberTool name="tool_5"/>
+    <memberTool name="Principled_to_MTLX"/>
+    <memberTool name="Paragon_Importer"/>
+    <memberTool name="KB3D_change_mat_res"/>
+    <memberTool name="cam_bake"/>
+    <memberTool name="Cam_shake"/>
+    <memberTool name="mixtrn - 3"/>
+    <memberTool name="File_Loader"/>
+    <memberTool name="attribmantut"/>
+    <memberTool name="XOP_SP_Linker"/>
+    <memberTool name="Shader_Converter_echopr"/>
+    <memberTool name="Shader Converter"/>
+    <memberTool name="principled_from_pat"/>
+    <memberTool name="Principled_to_MTLX_v4"/>
+    <memberTool name="usd_mat_override"/>
+  </toolshelf>
+
+
   <tool name="batchChangePaths_1.1" label="Batch Change Paths 1.1" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[import hou
 import os

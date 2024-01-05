@@ -6,12 +6,14 @@
  a single file. -->
 
   <shelfSet name="AxeFx_Shelf_set" label="AxeFx Shelf set">
+    <memberToolshelf name="lights_and_cameras"/>
     <memberToolshelf name="simplefx"/>
     <memberToolshelf name="terrainfx"/>
     <memberToolshelf name="lop_oceans"/>
     <memberToolshelf name="qLib"/>
     <memberToolshelf name="kb3d"/>
-    <memberToolshelf name="lights_and_cameras"/>
     <memberToolshelf name="arnold"/>
+    <memberToolshelf name="AxeFx_Shelf_tab"/>
+    <memberToolshelf name="AxeFx_Shelf_tab_2"/>
   </shelfSet>
 </shelfDocument>
