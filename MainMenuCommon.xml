@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mainMenu>
+	<menuBar>
+		
+		<subMenu id="AxeFx_menu">
+			<label>AxeFx menu</label>
+			<insertAfter>help_menu</insertAfter>
+
+			<separatorItem />
+		
+    <scriptItem id="menuItem1">
+        <label>func1</label>
+        <scriptCode><![CDATA[
+print(f'hi')]]></scriptCode>
+    </scriptItem>
+
+<separatorItem />
+		
+    <scriptItem id="menuItem2">
+        <label>Select Asset Gallery</label>
+        <scriptCode><![CDATA[
+print(f'hi2')]]></scriptCode>
+    </scriptItem>
+
+        </subMenu>
+    </menuBar>
+</mainMenu>
