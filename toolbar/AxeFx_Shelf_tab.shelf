@@ -597,7 +597,9 @@ data = SolarisMaterialOverride().run_debug(target_stage=node)]]></script>
   </tool>
 
   <tool name="convert_from_relative_absolute" label="batch convert from relative absolute" icon="hicon:/SVGIcons.index?BUTTONS_reload.svg">
-    <script scriptType="python"><![CDATA[import string
+    <script scriptType="python"><![CDATA[### works on selected nodes, converts all relative parameters to absolute ###
+
+import string
 def abs_path_reference(node):
     parms = node.parms()
     
@@ -638,7 +640,11 @@ def abs_path_reference(node):
                                     
 #excute script
 sels = hou.selectedNodes()
-for sel in sels:
-    abs_path_reference(sel)]]></script>
+if sels:
+    for sel in sels:
+        abs_path_reference(sel)
+else:
+    hou.ui.displayMessage('please select a Node', severity=hou.severityType.Warning, title='No Node Selected')
+    ]]></script>
   </tool>
 </shelfDocument>
