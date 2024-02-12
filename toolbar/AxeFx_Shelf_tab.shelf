@@ -21,6 +21,8 @@
     <memberTool name="principled_from_pat"/>
     <memberTool name="usd_mat_override"/>
     <memberTool name="convert_from_relative_absolute"/>
+    <memberTool name="pyside_demo"/>
+    <memberTool name="live_renamer"/>
   </toolshelf>
 
   <tool name="batchChangePaths_1.1" label="Batch Change Paths 1.1" icon="PLASMA_App">
@@ -72,35 +74,32 @@ KB3D_change_res.changeRough(kwargs)
   <tool name="cam_bake" label="Camera Bake" icon="OBJ_camera">
     <script scriptType="python"><![CDATA[import hou
 
-selectedNode = hou.selectedNodes()[0]
+nodes           = hou.selectedNodes()
+frame_range     = [int(hou.playbar.playbackRange()[0]), int(hou.playbar.playbackRange()[1])+1]
+parms_animated  = ['tx', 'ty', 'tz', 'rx', 'ry', 'rz']
+parms_static    = ['iconscale', 'aspect', 'vm_bgenable','focal', 'aperture', 'near', 'far',
+                    'resx', 'resy', 'winsizex', 'winsizey', 'shutter', 'aspect']
+for node in nodes:
+    if node.type().name() == 'cam':
+        node_baked = hou.node('/obj').createNode('cam', node.name() + '_baked')
+        node_position = node.position()
+        node_baked.setPosition([node_position[0], node_position[1]-2])
+        hou.setFrame(int(hou.playbar.playbackRange()[0]))
 
-bakingNode = hou.node('/obj').createNode('cam', selectedNode.name() + '_bake')
+        ### set static parms
+        for parm_static in parms_static:
+            node_baked.parm(parm_static).set(node.parm(parm_static).eval())
 
+        ### set bg_image
+        node_baked.parm('vm_background').set(node.parm('vm_background').rawValue())
 
-hou.setFrame(int(hou.playbar.playbackRange()[0]))
-
-for f in range(int(hou.playbar.playbackRange()[0]), int(hou.playbar.playbackRange()[1])+1):
-    hou.setFrame(f)
-    
-    bakingNode.setWorldTransform(selectedNode.worldTransform())
-    bakingNode.parm("tx").setKeyframe(hou.Keyframe(bakingNode.parm("tx").eval()))
-    bakingNode.parm("ty").setKeyframe(hou.Keyframe(bakingNode.parm("ty").eval()))
-    bakingNode.parm("tz").setKeyframe(hou.Keyframe(bakingNode.parm("tz").eval()))
-    bakingNode.parm("rx").setKeyframe(hou.Keyframe(bakingNode.parm("rx").eval()))
-    bakingNode.parm("ry").setKeyframe(hou.Keyframe(bakingNode.parm("ry").eval()))
-    bakingNode.parm("rz").setKeyframe(hou.Keyframe(bakingNode.parm("rz").eval()))
-    
-    
-    bakingNode.parm('focal').setKeyframe(hou.Keyframe(selectedNode.parm('focal').eval()))
-    bakingNode.parm('aperture').setKeyframe(hou.Keyframe(selectedNode.parm('aperture').eval()))
-    bakingNode.parm('near').setKeyframe(hou.Keyframe(selectedNode.parm('near').eval()))
-    bakingNode.parm('far').setKeyframe(hou.Keyframe(selectedNode.parm('far').eval()))
-    bakingNode.parm('resx').setKeyframe(hou.Keyframe(selectedNode.parm('resx').eval()))
-    bakingNode.parm('resy').setKeyframe(hou.Keyframe(selectedNode.parm('resy').eval()))
-    bakingNode.parm('winsizex').setKeyframe(hou.Keyframe(selectedNode.parm('winsizex').eval()))
-    bakingNode.parm('winsizey').setKeyframe(hou.Keyframe(selectedNode.parm('winsizey').eval()))
-    bakingNode.parm('shutter').setKeyframe(hou.Keyframe(selectedNode.parm('shutter').eval()))
-    bakingNode.parm('aspect').setKeyframe(hou.Keyframe(selectedNode.parm('aspect').eval()))]]></script>
+        ### set animated parms
+        for f in range(frame_range[0], frame_range[1]):
+            hou.setFrame(f)
+            node_baked.setWorldTransform(node.worldTransform())  ##maybe dont put it under a framerange forloop?
+            for parm_animated in parms_animated:
+                node_baked.parm(parm_animated).setKeyframe(hou.Keyframe(node_baked.parm(parm_animated).eval()))
+]]></script>
   </tool>
 
   <tool name="Cam_shake" label="Cam Shake" icon="OBJ_camera">
@@ -646,5 +645,63 @@ if sels:
 else:
     hou.ui.displayMessage('please select a Node', severity=hou.severityType.Warning, title='No Node Selected')
     ]]></script>
+  </tool>
+
+  <tool name="pyside_demo" label="pyside demo" icon="F:/Users/Ahmed Hindy/Documents/houdini20.0/AxeFx_tools/config/Icons/Firefly_a+logo with a single Axe in the middle_vector_look_67782.png">
+    <script scriptType="python"><![CDATA[import hou
+from PySide2.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget
+
+
+class PythonTools(QMainWindow):
+        def __init__(self):
+                super().__init__()
+                
+                self.setWindowTitle('Python Tools')
+                self.resize(250, 100)
+                
+                button_gnt = QPushButton('func get_node_type')
+                button_gnt.clicked.connect(self.get_node_type)
+                
+                button_hello = QPushButton('func to print hello')
+                button_hello.clicked.connect(self.print_awesome)
+                
+                layout = QVBoxLayout()
+                layout.addWidget(button_gnt)
+                layout.addWidget(button_hello)
+                
+                widget = QWidget()
+                widget.setLayout(layout)
+                
+                self.setCentralWidget(widget)
+        
+        def print_awesome(self):
+                print('we are awesome')
+        
+        def get_node_type(self):
+                sel = hou.selectedNodes()
+                if sel:
+                        for each in sel:
+                                print(each.type().name())
+                else:
+                        print('Nothing is being Selected')
+
+
+window = PythonTools()
+window.show()
+
+
+        ]]></script>
+  </tool>
+
+  <tool name="live_renamer" label="live_renamer" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[from importlib import reload
+import live_renamer as lr
+
+reload(lr)
+
+nodes = hou.selectedNodes()
+renamer = lr.live_renamer(nodes)
+renamer.show()
+]]></script>
   </tool>
 </shelfDocument>
