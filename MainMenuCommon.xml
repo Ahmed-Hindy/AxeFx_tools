@@ -4,7 +4,7 @@
 	<menuBar>
 		
 		<subMenu id="AxeFx_menu">
-			<label>AxeFx menu</label>
+			<label>AxeFx</label>
 			<insertAfter>help_menu</insertAfter>
 
 			<separatorItem />
