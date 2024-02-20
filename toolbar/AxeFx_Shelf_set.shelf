@@ -7,12 +7,13 @@
 
   <shelfSet name="AxeFx_Shelf_set" label="AxeFx Shelf set">
     <memberToolshelf name="lights_and_cameras"/>
-    <memberToolshelf name="arnold"/>
-    <memberToolshelf name="Redshift"/>
     <memberToolshelf name="simplefx"/>
     <memberToolshelf name="lop_oceans"/>
     <memberToolshelf name="terrainfx"/>
-    <memberToolshelf name="AxeFx_Shelf_tab"/>
+    <memberToolshelf name="arnold"/>
+    <memberToolshelf name="Redshift"/>
     <memberToolshelf name="prism"/>
+    <memberToolshelf name="aelib_shelf"/>
+    <memberToolshelf name="AxeFx_Shelf_tab"/>
   </shelfSet>
 </shelfDocument>

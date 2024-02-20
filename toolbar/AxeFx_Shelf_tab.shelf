@@ -5,7 +5,7 @@
  Note, that two definitions of the same element are not allowed in
  a single file. -->
 
-  <toolshelf name="AxeFx_Shelf_tab" label="AxeFx Shelf tab">
+  <toolshelf name="AxeFx_Shelf_tab" label="AxeFx">
     <memberTool name="batchChangePaths_1.1"/>
     <memberTool name="Principled_to_MTLX_v4"/>
     <memberTool name="Paragon_Importer"/>
@@ -21,8 +21,8 @@
     <memberTool name="principled_from_pat"/>
     <memberTool name="usd_mat_override"/>
     <memberTool name="convert_from_relative_absolute"/>
-    <memberTool name="pyside_demo"/>
     <memberTool name="live_renamer"/>
+    <memberTool name="pyside_demo"/>
   </toolshelf>
 
   <tool name="batchChangePaths_1.1" label="Batch Change Paths 1.1" icon="PLASMA_App">
@@ -503,7 +503,10 @@ w.show()
   </tool>
 
   <tool name="Shader_Converter_echopr" label="Shader Converter 0.1" icon="hicon:/SVGIcons.index?COP2_aidenoise.svg">
-    <script scriptType="python"><![CDATA[import shader_conv_echopr as shaderConv
+    <script scriptType="python"><![CDATA[from importlib import reload
+import ShaderConverter
+import ShaderConverter.python.shader_conv_echopr as shaderConv
+
 
 shaderConvWin = shaderConv.ShaderConv()
 shaderConvWin.resize(360,500)
@@ -581,8 +584,8 @@ reload(principled_from_path)
 
   <tool name="Principled_to_MTLX_v4" label="Principled_to_MTLX_v4" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[from importlib import reload
-from AdrienLambert import principledShader_to_MTLX-v4
-reload(principledShader_to_MTLX-v4)
+from AdrienLambert import principledShader_to_MTLX_v4
+reload(principledShader_to_MTLX_v4)
 ]]></script>
   </tool>
 
@@ -648,49 +651,108 @@ else:
   </tool>
 
   <tool name="pyside_demo" label="pyside demo" icon="F:/Users/Ahmed Hindy/Documents/houdini20.0/AxeFx_tools/config/Icons/Firefly_a+logo with a single Axe in the middle_vector_look_67782.png">
-    <script scriptType="python"><![CDATA[import hou
-from PySide2.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget
+    <script scriptType="python"><![CDATA[from PySide2.QtWidgets import (QApplication, QMainWindow, QPushButton, QVBoxLayout,
+                               QWidget, QLabel, QToolTip, QMessageBox, QDesktopWidget)
+from PySide2.QtGui import QIcon, QPixmap, QFont, QCloseEvent
+import sys
+
+try:
+    import hou
+except:
+    pass
 
 
-class PythonTools(QMainWindow):
-        def __init__(self):
-                super().__init__()
-                
-                self.setWindowTitle('Python Tools')
-                self.resize(250, 100)
-                
-                button_gnt = QPushButton('func get_node_type')
-                button_gnt.clicked.connect(self.get_node_type)
-                
-                button_hello = QPushButton('func to print hello')
-                button_hello.clicked.connect(self.print_awesome)
-                
-                layout = QVBoxLayout()
-                layout.addWidget(button_gnt)
-                layout.addWidget(button_hello)
-                
-                widget = QWidget()
-                widget.setLayout(layout)
-                
-                self.setCentralWidget(widget)
-        
-        def print_awesome(self):
-                print('we are awesome')
-        
-        def get_node_type(self):
-                sel = hou.selectedNodes()
-                if sel:
-                        for each in sel:
-                                print(each.type().name())
-                else:
-                        print('Nothing is being Selected')
+class PythonTools(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle('Python Tools')
+        # self.resize(250, 100)
+        self.setGeometry(300, 300, 500, 400)
+
+        QToolTip.setFont(QFont('Decorative', 10, QFont.Bold))
+        self.setToolTip('MainWindow')
+        self.setIcon()
+        self.setIconModes()
+        self.setButtons()
+        # self.center()
+
+        # self.setCentralWidget(widget)
+
+    def setIcon(self):  # sets window icon
+        appIcon = QIcon(r"F:\My Folder\temps\profile pics and wallpapers and etc\pikachu.png")
+        self.setWindowIcon(appIcon)
+
+    def setIconModes(self):
+        icon1 = QIcon(r"F:\My Folder\temps\profile pics and wallpapers and etc\pikachu.png")
+        label1 = QLabel('sample', self)
+        label1.setToolTip('Icon1')
+        pixmap1 = icon1.pixmap(100, 100, QIcon.Active, QIcon.On)
+
+        label1.setPixmap(pixmap1)
+
+    def setButtons(self):
+        layout = QVBoxLayout()
+        button_gnt = QPushButton('func get_node_type', self)
+        button_gnt.move(50, 900)
+        button_gnt.clicked.connect(self.get_node_type)
+
+        button_hello = QPushButton('func to print hello', self)
+        button_hello.clicked.connect(self.print_awesome)
+
+        button_quit = QPushButton('Quit', self)
+        button_quit.clicked.connect(self.quitApp)
+
+        button_about = QPushButton('about', self)
+        button_about.clicked.connect(self.aboutBox)
+
+        layout.addWidget(button_gnt)
+        layout.addWidget(button_hello)
+        layout.addWidget(button_about)
+        layout.addWidget(button_quit)
+        self.setLayout(layout)
+
+    def center(self):
+        qRect       = self.frameGeometry()
+        centerPoint = QDesktopWidget().availableGeometry().center()
+        qRect.moveCenter(centerPoint)
+        self.move(qRect.topLeft())
+
+    def aboutBox(self):
+        QMessageBox.about(self, 'about Title', 'made by Ahmed Hindy')
+
+    def quitApp(self):
+        userInfo = QMessageBox.question(self, 'confirmation', 'Do you want to quit?',
+                                        QMessageBox.Yes, QMessageBox.No)
+        if userInfo == QMessageBox.Yes:
+            self.close()
+        if userInfo == QMessageBox.No:
+            pass
+
+    def print_awesome(self):
+        print('we are awesome')
+
+    def get_node_type(self):
+        if hou:
+            sel = hou.selectedNodes()
+            if sel:
+                for each in sel:
+                    print(each.type().name())
+            else:
+                print('Nothing is being Selected')
+        else:
+            print(f'No Hou Found')
 
 
+# myapp = QApplication()
 window = PythonTools()
 window.show()
 
+# myapp.exec_()
+sys.exit()
 
-        ]]></script>
+if __name__ == '__main__':
+    print('sdsds')]]></script>
   </tool>
 
   <tool name="live_renamer" label="live_renamer" icon="PLASMA_App">
