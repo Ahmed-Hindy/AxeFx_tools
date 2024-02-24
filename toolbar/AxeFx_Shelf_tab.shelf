@@ -7,7 +7,6 @@
 
   <toolshelf name="AxeFx_Shelf_tab" label="AxeFx">
     <memberTool name="batchChangePaths_1.1"/>
-    <memberTool name="Principled_to_MTLX_v4"/>
     <memberTool name="Paragon_Importer"/>
     <memberTool name="KB3D_change_mat_res"/>
     <memberTool name="cam_bake"/>
@@ -18,8 +17,10 @@
     <memberTool name="XOP_SP_Linker"/>
     <memberTool name="Shader_Converter_echopr"/>
     <memberTool name="Shader Converter"/>
+    <memberTool name="Principled_to_MTLX_v4"/>
     <memberTool name="principled_from_pat"/>
     <memberTool name="usd_mat_override"/>
+    <memberTool name="usdPreviewSurface_converter"/>
     <memberTool name="convert_from_relative_absolute"/>
     <memberTool name="live_renamer"/>
     <memberTool name="pyside_demo"/>
@@ -651,108 +652,75 @@ else:
   </tool>
 
   <tool name="pyside_demo" label="pyside demo" icon="F:/Users/Ahmed Hindy/Documents/houdini20.0/AxeFx_tools/config/Icons/Firefly_a+logo with a single Axe in the middle_vector_look_67782.png">
-    <script scriptType="python"><![CDATA[from PySide2.QtWidgets import (QApplication, QMainWindow, QPushButton, QVBoxLayout,
-                               QWidget, QLabel, QToolTip, QMessageBox, QDesktopWidget)
-from PySide2.QtGui import QIcon, QPixmap, QFont, QCloseEvent
-import sys
+    <script scriptType="python"><![CDATA[import sys
+from PySide2 import QtWidgets, QtCore
+import hou
 
-try:
-    import hou
-except:
-    pass
-
-
-class PythonTools(QWidget):
+class NodeDropWidget(QtWidgets.QWidget):
     def __init__(self):
-        super().__init__()
+        super(NodeDropWidget, self).__init__()
+        self.initUI()
 
-        self.setWindowTitle('Python Tools')
-        # self.resize(250, 100)
-        self.setGeometry(300, 300, 500, 400)
+    def initUI(self):
+        self.setAcceptDrops(True)
+        self.setWindowTitle('Node Drop Handler')
+        self.setGeometry(300, 300, 300, 150)
 
-        QToolTip.setFont(QFont('Decorative', 10, QFont.Bold))
-        self.setToolTip('MainWindow')
-        self.setIcon()
-        self.setIconModes()
-        self.setButtons()
-        # self.center()
+        # Set the window always on top
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
 
-        # self.setCentralWidget(widget)
-
-    def setIcon(self):  # sets window icon
-        appIcon = QIcon(r"F:\My Folder\temps\profile pics and wallpapers and etc\pikachu.png")
-        self.setWindowIcon(appIcon)
-
-    def setIconModes(self):
-        icon1 = QIcon(r"F:\My Folder\temps\profile pics and wallpapers and etc\pikachu.png")
-        label1 = QLabel('sample', self)
-        label1.setToolTip('Icon1')
-        pixmap1 = icon1.pixmap(100, 100, QIcon.Active, QIcon.On)
-
-        label1.setPixmap(pixmap1)
-
-    def setButtons(self):
-        layout = QVBoxLayout()
-        button_gnt = QPushButton('func get_node_type', self)
-        button_gnt.move(50, 900)
-        button_gnt.clicked.connect(self.get_node_type)
-
-        button_hello = QPushButton('func to print hello', self)
-        button_hello.clicked.connect(self.print_awesome)
-
-        button_quit = QPushButton('Quit', self)
-        button_quit.clicked.connect(self.quitApp)
-
-        button_about = QPushButton('about', self)
-        button_about.clicked.connect(self.aboutBox)
-
-        layout.addWidget(button_gnt)
-        layout.addWidget(button_hello)
-        layout.addWidget(button_about)
-        layout.addWidget(button_quit)
-        self.setLayout(layout)
-
-    def center(self):
-        qRect       = self.frameGeometry()
-        centerPoint = QDesktopWidget().availableGeometry().center()
-        qRect.moveCenter(centerPoint)
-        self.move(qRect.topLeft())
-
-    def aboutBox(self):
-        QMessageBox.about(self, 'about Title', 'made by Ahmed Hindy')
-
-    def quitApp(self):
-        userInfo = QMessageBox.question(self, 'confirmation', 'Do you want to quit?',
-                                        QMessageBox.Yes, QMessageBox.No)
-        if userInfo == QMessageBox.Yes:
-            self.close()
-        if userInfo == QMessageBox.No:
-            pass
-
-    def print_awesome(self):
-        print('we are awesome')
-
-    def get_node_type(self):
-        if hou:
-            sel = hou.selectedNodes()
-            if sel:
-                for each in sel:
-                    print(each.type().name())
-            else:
-                print('Nothing is being Selected')
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat('application/sidefx-houdini-node.path'):
+            event.accept()
         else:
-            print(f'No Hou Found')
+            event.ignore()
 
+    def dropEvent(self, event):
+        mime = event.mimeData()
+        if mime.hasFormat('application/sidefx-houdini-node.path'):
+            data = mime.data('application/sidefx-houdini-node.path')
+            node_paths = str(data, 'utf-8').split('\t')  # Splitting by tab
 
-# myapp = QApplication()
-window = PythonTools()
-window.show()
+            for node_path in node_paths:
+                node_path = node_path.strip()
+                if node_path:
+                    node = hou.node(node_path)
+                    if node:
+                        self.processNode(node)
+                        print(f"Node {node_path} processed")
+                    else:
+                        print(f"Dropped item {node_path} is not a valid node")
+        else:
+            print("Unsupported MIME type")
 
-# myapp.exec_()
-sys.exit()
+    def processNode(self, node):
+        # Process the dropped node
+        try:
+            file_param = node.parm('file')
+            if file_param:
+                current_value = file_param.eval()
+                new_value = current_value + '.jpg'
+                file_param.set(new_value)
+        except Exception as e:
+            print(f"Error processing node: {e}")
 
-if __name__ == '__main__':
-    print('sdsds')]]></script>
+# Global variable to keep a reference to the widget
+global_widget = None
+
+def main():
+    global global_widget
+
+    # Check if QApplication already exists
+    app = QtWidgets.QApplication.instance()
+    if not app:  # Create QApplication if it doesn't exist
+        app = QtWidgets.QApplication([])
+
+    global_widget = NodeDropWidget()
+    global_widget.show()
+
+# Uncomment the following line to run the application
+main()
+]]></script>
   </tool>
 
   <tool name="live_renamer" label="live_renamer" icon="PLASMA_App">
