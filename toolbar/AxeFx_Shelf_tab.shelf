@@ -24,6 +24,7 @@
     <memberTool name="convert_from_relative_absolute"/>
     <memberTool name="live_renamer"/>
     <memberTool name="pyside_demo"/>
+    <memberTool name="material_processor"/>
   </toolshelf>
 
   <tool name="batchChangePaths_1.1" label="Batch Change Paths 1.1" icon="PLASMA_App">
@@ -652,7 +653,7 @@ else:
   </tool>
 
   <tool name="pyside_demo" label="pyside demo" icon="F:/Users/Ahmed Hindy/Documents/houdini20.0/AxeFx_tools/config/Icons/Firefly_a+logo with a single Axe in the middle_vector_look_67782.png">
-    <script scriptType="python"><![CDATA[import sys
+    <script scriptType="python"><![CDATA[# import sys
 from PySide2 import QtWidgets, QtCore
 import hou
 
@@ -669,13 +670,17 @@ class NodeDropWidget(QtWidgets.QWidget):
         # Set the window always on top
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
 
+    ## probably not used
     def dragEnterEvent(self, event):
+        print(f'//dragEnterEvent')
         if event.mimeData().hasFormat('application/sidefx-houdini-node.path'):
             event.accept()
         else:
             event.ignore()
 
+    ## probably not used
     def dropEvent(self, event):
+        print(f'//dropEvent')
         mime = event.mimeData()
         if mime.hasFormat('application/sidefx-houdini-node.path'):
             data = mime.data('application/sidefx-houdini-node.path')
@@ -694,6 +699,7 @@ class NodeDropWidget(QtWidgets.QWidget):
             print("Unsupported MIME type")
 
     def processNode(self, node):
+        print(f'//processNode')
         # Process the dropped node
         try:
             file_param = node.parm('file')
@@ -703,6 +709,19 @@ class NodeDropWidget(QtWidgets.QWidget):
                 file_param.set(new_value)
         except Exception as e:
             print(f"Error processing node: {e}")
+
+    def mouseMoveEvent(self, event):
+        print(f'//mouseMoveEvent')
+        # Change the background color when the mouse hovers over the widget
+        self.setStyleSheet("background-color: red")
+        
+    def mouseLeaveEvent(self, event):
+        print(f'//mouseLeaveEvent')
+        # Change the background color when the mouse hovers over the widget
+        self.setStyleSheet("background-color: blue")
+
+
+
 
 # Global variable to keep a reference to the widget
 global_widget = None
@@ -733,5 +752,27 @@ nodes = hou.selectedNodes()
 renamer = lr.live_renamer(nodes)
 renamer.show()
 ]]></script>
+  </tool>
+
+  <tool name="usdPreviewSurface_converter" label="usdPreviewSurface Converter" icon="hicon:/SVGIcons.index?VOP_usdpreviewsurface.svg">
+    <script scriptType="python"><![CDATA[from importlib import reload
+import usd_material_converters as mc
+reload(mc)
+
+
+# Example usage
+classMC  = mc.USD_Shaders()
+textures = classMC.extract_textures_from_shaders() 
+
+# classMC.create_principled_shaders_with_textures(textures)
+classMC.create_redshift_materials_with_textures(textures)]]></script>
+  </tool>
+
+  <tool name="material_processor" label="material processor" icon="hicon:/SVGIcons.index?SHOP_material.svg">
+    <script scriptType="python"><![CDATA[from importlib import reload
+import materials_processer
+reload(materials_processer)
+
+materials_processer.run()]]></script>
   </tool>
 </shelfDocument>
