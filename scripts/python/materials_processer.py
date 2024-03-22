@@ -53,7 +53,10 @@ class MaterialProcessor():
 
     @staticmethod
     def get_enabled_texture_parms_for_principled_shader(node) -> list:
-        """returns all parameters on a node that have '<tex_name>_useTexture' enabled"""
+        """
+        returns list of parameters on a node that have '<tex_name>_useTexture' enabled
+        basically get all texture parameters
+        """
         input_tex_parm_list = []
         for parm in node.parms():
             if '_useTexture' in parm.name():
@@ -62,6 +65,12 @@ class MaterialProcessor():
                     input_tex_parm = node.parm(input_tex_str)
                     # print(f'{input_tex_parm=}')
                     input_tex_parm_list.append(input_tex_parm)
+
+            # special case for getting displacement
+            if node.parm('dispTex_enable'):
+                input_tex_parm = node.parm('dispTex_texture')
+                input_tex_parm_list.append(input_tex_parm)
+
         return input_tex_parm_list
 
     @staticmethod
@@ -73,7 +82,7 @@ class MaterialProcessor():
         textures_dict = {}
         for parm in input_parms:
             textures_dict[parm.name()] = parm.unexpandedString()
-            print(f'{textures_dict=}')
+            # print(f'{textures_dict=}')
         return textures_dict
     
     from typing import Dict
@@ -91,8 +100,12 @@ class MaterialProcessor():
         for key, value in texture_dict.items():
             if any(k in key for k in ['albedo', 'diffuse', 'basecolor']):
                 normalized_dict['albedo'] = value
-            elif any(k in key for k in ['rough']):
-                normalized_dict['rough'] = value
+            elif any(k in key for k in ['rough', 'roughness']):
+                normalized_dict['roughness'] = value
+            elif any(k in key for k in ['normal', 'normalmap', 'baseNormal']):
+                normalized_dict['normal'] = value
+            elif any(k in key for k in ['dispTex']):
+                normalized_dict['displacement'] = value
             else:
                 print(f'/// {key=} is {value=}')
                 normalized_dict[key] = value
@@ -153,7 +166,7 @@ class NotUsed():
             usdmat = matcontext.createNode("usdpreviewsurface", mysel.name() + "_previewUSD")
 
             albedo = matcontext.createNode("usduvtexture::2.0", "USD_albedo")
-            rough = matcontext.createNode("usduvtexture::2.0", "USD_roughness")
+            roughness = matcontext.createNode("usduvtexture::2.0", "USD_roughness")
             primvar = matcontext.createNode("usdprimvarreader","usd_primvar_ST")
 
             primvar.parm("signature").set("float2")
@@ -161,11 +174,11 @@ class NotUsed():
 
             #connect USD MAT with textures
             usdmat.setInput(0, albedo,4 )
-            usdmat.setInput(5, rough,4 )
+            usdmat.setInput(5, roughness,4 )
 
             #connect USD textures with primvar
             albedo.setInput(1, primvar, 0)
-            rough.setInput(1, primvar, 0)
+            roughness.setInput(1, primvar, 0)
 
             #set albedo path
             path = mysel.parm("basecolor_texture").eval()
@@ -173,7 +186,7 @@ class NotUsed():
 
             #set roughness path
             path = mysel.parm("rough_texture").eval()
-            rough.parm("file").set(path)
+            roughness.parm("file").set(path)
 
             #create opacity if exists
             if mysel.parm("opaccolor_useTexture").eval() == 1:
@@ -245,78 +258,39 @@ class Convert():
         surfaceoutput.setInput(0, mtlx)
 
         # CREATE ALBEDO
-        path = mysel.parm("basecolor_texture").eval()
-        albedo = matsubnet.createNode("mtlximage", "ALBEDO")
-        albedo.parm("file").set(path)
+        albedo = matsubnet.createNode("mtlximage", "albedo")
         mtlx.setInput(1, albedo)
 
         # CREATE METALLIC
-        if mysel.parm("metallic_useTexture").eval() == 1:
-            path = mysel.parm("metallic_texture").eval()
-            metal = matsubnet.createNode("mtlximage", "METALLIC")
-            metal.parm("signature").set("0")
-            metal.parm("file").set(path)
-            mtlx.setInput(3, metal)
+        metal = matsubnet.createNode("mtlximage", "metallic")
+        metal.parm("signature").set("0")
+        mtlx.setInput(3, metal)
 
         # CREATE ROUGHNESS
-        path = mysel.parm("rough_texture").eval()
-        rough = matsubnet.createNode("mtlximage", "ROUGHNESS")
-        rough.parm("file").set(path)
-        rough.parm("signature").set("0")
-        mtlx.setInput(6, rough)
-
-        # CREATE SPECULAR
-        if mysel.parm("reflect_useTexture").eval() == 1:
-            path = mysel.parm("reflect_texture").eval()
-            spec = matsubnet.createNode("mtlximage", "REFLECT")
-            spec.parm("file").set(path)
-            mtlx.setInput(5, spec)
-
-        # CREATE OPACITY IF NEEDED
-        if mysel.parm("opaccolor_useTexture").eval() == 1:
-            path = mysel.parm("opaccolor_texture").eval()
-            opac = matsubnet.createNode("mtlximage", "OPACITY")
-            opac.parm("file").set(path)
-            mtlx.setInput(38, opac)
+        roughness = matsubnet.createNode("mtlximage", "roughness")
+        roughness.parm("signature").set("0")
+        mtlx.setInput(6, roughness)
 
         # CREATE NORMAL
-        if mysel.parm("baseBumpAndNormal_enable").eval() == 1:
-            path = mysel.parm("baseNormal_texture").eval()
-            normal = matsubnet.createNode("mtlximage", "NORMAL")
-            normal.parm("signature").set("vector3")
-            plugnormal = matsubnet.createNode("mtlxnormalmap")
-            normal.parm("file").set(path)
-            mtlx.setInput(40, plugnormal)
-            plugnormal.setInput(0, normal)
+        normal = matsubnet.createNode("mtlximage", "normal")
+        normal.parm("signature").set("vector3")
+        plugnormal = matsubnet.createNode("mtlxnormalmap")
+        mtlx.setInput(40, plugnormal)
+        plugnormal.setInput(0, normal)
 
         # CREATE DISPLACEMENT
-        if mysel.parm("dispTex_enable").eval() == 1:
-            # GETTING THE PARAMETERS VALUE
-            path = mysel.parm("dispTex_texture").eval()
-            offset = mysel.parm("dispTex_offset").eval()
-            scale = mysel.parm("dispTex_scale").eval()
-            # CREATING DISPLACE NODES
-            displace = matsubnet.createNode("mtlximage", "DISPLACE")
-            plugdisplace = matsubnet.createNode("mtlxdisplacement")
-            remapdisplace = matsubnet.createNode("mtlxremap", "OFFSET_DISPLACE")
-            # SETTING PARAMETERS DISPLACE
-            # set remap
-            remapdisplace.parm("outlow").set(offset)
-            remapdisplace.parm("outhigh").set(1 + offset)
-            # set scale displace
-            plugdisplace.parm("scale").set(scale)
-            # set image displace
-            displace.parm("file").set(path)
-            displace.parm("signature").set("0")
-
-            # SETTING INPUTS
-            dispoutput.setInput(0, plugdisplace)
-            plugdisplace.setInput(0, remapdisplace)
-            remapdisplace.setInput(0, displace)
+        displacement  = matsubnet.createNode("mtlximage", "displacement")
+        plugdisplace  = matsubnet.createNode("mtlxdisplacement")
+        remapdisplace = matsubnet.createNode("mtlxremap", "offset_displace")
+        # set image displace
+        displacement.parm("signature").set("0")
+        # SETTING INPUTS
+        dispoutput.setInput(0, plugdisplace)
+        plugdisplace.setInput(0, remapdisplace)
+        remapdisplace.setInput(0, displacement)
 
         matsubnet.layoutChildren()
         return matsubnet
-
 
 
     @staticmethod
@@ -326,16 +300,34 @@ class Convert():
         mtlx_subnet     = Convert.create_mtlx_shader(mat_context, input_node_name, input_tex_maps_list=[])
         return mtlx_subnet
 
+    @staticmethod
+    def mtlx_connect_textures(mtlx_subnet: hou.VopNode, textures_dictionary: Dict) -> None:
+        print(f'{textures_dictionary=}')
+        if not mtlx_subnet:
+            raise Exception(f'no mtlx subnet created, {mtlx_subnet=}')
+
+        for key, value in textures_dictionary.items():
+            print(f'{key=} , {value=}')
+            if key:
+                tex = mtlx_subnet.node(key)
+                tex.parm("file").set(value)
+            else:
+                print(f'{key=} is missing...')
+                break
+
 
 
 
 def run():
-    selected_nodes = get_selected_nodes()
-    mat_context    = hou.node('/mat')
+    selected_nodes      = get_selected_nodes()
+    mat_context         = hou.node('/mat')
     for input_node in selected_nodes:
         enabled_tex_parms = MaterialProcessor.get_enabled_texture_parms_for_principled_shader(input_node)
         # print(f'{enabled_tex_parms=}')
-        input_textures_dict = MaterialProcessor.get_texture_maps_from_parms(enabled_tex_parms)
-        normalized_input_tex_dict = MaterialProcessor.normalize_texture_map_keys(input_textures_dict)
-        # now we need to input the texture dictionary into the newly created MTLX subnet...
-        Convert.convert_to_mtlx(input_node, mat_context)
+        textures_dict = MaterialProcessor.get_texture_maps_from_parms(enabled_tex_parms)
+        textures_dict_normalized = MaterialProcessor.normalize_texture_map_keys(textures_dict)
+
+        mtlx_subnet     = Convert.convert_to_mtlx(input_node, mat_context)
+        # print(f'{mtlx_subnet=}')
+        Convert.mtlx_connect_textures(mtlx_subnet, textures_dict_normalized)
+
