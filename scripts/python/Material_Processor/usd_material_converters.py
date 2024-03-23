@@ -52,10 +52,6 @@ class USD_Shaders():
         
     # This function should be called within the context of the extract_textures_from_shaders function
 
-
-
-
-
     def find_usd_preview_surface_shader(material):
         for shader_output in material.GetOutputs():
             connection = shader_output.GetConnectedSource()
@@ -66,13 +62,7 @@ class USD_Shaders():
                 if shader_id == 'UsdPreviewSurface':
                     return connected_shader
         return None
-        
-        
-        
-        
-        
     
-
     def extract_textures_from_shaders(self):
         # Get the currently selected nodes
         selected_nodes = hou.selectedNodes()
