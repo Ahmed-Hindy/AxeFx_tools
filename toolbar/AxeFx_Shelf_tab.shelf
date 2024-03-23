@@ -770,9 +770,10 @@ classMC.create_redshift_materials_with_textures(textures)]]></script>
 
   <tool name="material_processor" label="material processor" icon="hicon:/SVGIcons.index?SHOP_material.svg">
     <script scriptType="python"><![CDATA[from importlib import reload
-import materials_processer
+from Material_Processor import materials_processer
 reload(materials_processer)
 
-materials_processer.run()]]></script>
+# materials_processer.run()
+materials_processer.test()]]></script>
   </tool>
 </shelfDocument>
