@@ -102,6 +102,8 @@ class MaterialProcessor():
                 normalized_dict['albedo'] = value
             elif any(k in key for k in ['rough', 'roughness']):
                 normalized_dict['roughness'] = value
+            elif any(k in key for k in ['metal', 'metallness']):
+                normalized_dict['metallness'] = value
             elif any(k in key for k in ['normal', 'normalmap', 'baseNormal']):
                 normalized_dict['normal'] = value
             elif any(k in key for k in ['dispTex']):
@@ -262,7 +264,7 @@ class Convert():
         mtlx.setInput(1, albedo)
 
         # CREATE METALLIC
-        metal = matsubnet.createNode("mtlximage", "metallic")
+        metal = matsubnet.createNode("mtlximage", "metallness")
         metal.parm("signature").set("0")
         mtlx.setInput(3, metal)
 
@@ -292,42 +294,95 @@ class Convert():
         matsubnet.layoutChildren()
         return matsubnet
 
+    @staticmethod
+    def create_arnold_shader(mat_context, node_name='', input_tex_maps_list=[]):
+        arnold_builder   = mat_context.createNode("arnold_materialbuilder", node_name + "_arnold")
+
+        ## DEFINE STANDARD SURFACE
+        output_node      = arnold_builder.node('OUT_material')
+        node_std_surface = arnold_builder.createNode("arnold::standard_surface")
+        output_node.setInput(0, node_std_surface)
+
+        # CREATE ALBEDO
+        image_albedo    = arnold_builder.createNode("arnold::image", "albedo")
+        node_std_surface.setInput(1, image_albedo)
+
+        # CREATE ROUGHNESS
+        image_roughness = arnold_builder.createNode("arnold::image", "roughness")
+        node_std_surface.setInput(6, image_roughness)
+
+        # CREATE NORMAL
+        image_normal    = arnold_builder.createNode("arnold::image", "normal")
+        normal_map      = arnold_builder.createNode("arnold::normal_map")
+        normal_map.setInput(0, image_normal)
+        node_std_surface.setInput(39, normal_map)
+
+        arnold_builder.layoutChildren()
+        return arnold_builder
+
 
     @staticmethod
-    def convert_to_mtlx(input_mat_node, mat_context):
+    def connect_mtlx_textures(mtlx_subnet: hou.VopNode, textures_dictionary: Dict) -> None:
+        """
+        currently this simply links the texture paths from 'textures_dictionary' to the freshly created mtlx std surface.
+        next step is to get all chnanged parameters from the principled shader and apply it here
+        """
+        # print(f'{textures_dictionary=}')
+        for key, value in textures_dictionary.items():
+            print(f'{key=} , {value=}')
+            tex = mtlx_subnet.node(key)
+            if tex:
+                tex.parm("file").set(value)
+            else:
+                print(f'node {key=} is missing...')
+                break
+
+    @staticmethod
+    def connect_arnold_textures(arnold_subnet: hou.VopNode, textures_dictionary: Dict) -> None:
+        """
+        currently this simply links the texture paths from 'textures_dictionary' to the freshly created mtlx std surface.
+        next step is to get all chnanged parameters from the principled shader and apply it here
+        """
+        # print(f'{textures_dictionary=}')
+        for key, value in textures_dictionary.items():
+            print(f'{key=} , {value=}')
+            tex = arnold_subnet.node(key)
+            if tex:
+                tex.parm("filename").set(value)
+            else:
+                print(f'node {key=} is missing...')
+                # break
+
+    @staticmethod
+    def convert_to_mtlx(input_mat_node, mat_context, textures_dict):
         """takes a material VOP node and converts it to MTLX mat builder"""
         input_node_name = input_mat_node.name()
         mtlx_subnet     = Convert.create_mtlx_shader(mat_context, input_node_name, input_tex_maps_list=[])
+        Convert.connect_mtlx_textures(mtlx_subnet, textures_dict)
         return mtlx_subnet
 
     @staticmethod
-    def mtlx_connect_textures(mtlx_subnet: hou.VopNode, textures_dictionary: Dict) -> None:
-        print(f'{textures_dictionary=}')
-        if not mtlx_subnet:
-            raise Exception(f'no mtlx subnet created, {mtlx_subnet=}')
+    def convert_to_arnold(input_mat_node, mat_context, textures_dict):
+        """takes a material VOP node and converts it to arnold mat builder"""
+        input_node_name   = input_mat_node.name()
+        arnold_subnet     = Convert.create_arnold_shader(mat_context, input_node_name, input_tex_maps_list=[])
+        Convert.connect_arnold_textures(arnold_subnet, textures_dict)
 
-        for key, value in textures_dictionary.items():
-            print(f'{key=} , {value=}')
-            if key:
-                tex = mtlx_subnet.node(key)
-                tex.parm("file").set(value)
-            else:
-                print(f'{key=} is missing...')
-                break
-
-
+        return arnold_subnet
 
 
 def run():
-    selected_nodes      = get_selected_nodes()
-    mat_context         = hou.node('/mat')
+    selected_nodes        = get_selected_nodes()
+    mat_context           = hou.node('/mat')
     for input_node in selected_nodes:
         enabled_tex_parms = MaterialProcessor.get_enabled_texture_parms_for_principled_shader(input_node)
         # print(f'{enabled_tex_parms=}')
-        textures_dict = MaterialProcessor.get_texture_maps_from_parms(enabled_tex_parms)
+        textures_dict     = MaterialProcessor.get_texture_maps_from_parms(enabled_tex_parms)
         textures_dict_normalized = MaterialProcessor.normalize_texture_map_keys(textures_dict)
 
-        mtlx_subnet     = Convert.convert_to_mtlx(input_node, mat_context)
+        # mtlx_subnet       = Convert.convert_to_mtlx(input_node, mat_context, textures_dict_normalized)
+        arnold_builder    = Convert.convert_to_arnold(input_node, mat_context, textures_dict_normalized)
+
         # print(f'{mtlx_subnet=}')
-        Convert.mtlx_connect_textures(mtlx_subnet, textures_dict_normalized)
+        # Convert.mtlx_connect_textures(mtlx_subnet, textures_dict_normalized)
 
