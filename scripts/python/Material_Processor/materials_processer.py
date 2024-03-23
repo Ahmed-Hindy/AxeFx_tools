@@ -341,7 +341,7 @@ class Convert():
     def connect_arnold_textures(arnold_subnet: hou.VopNode, textures_dictionary: Dict) -> None:
         """
         currently this simply links the texture paths from 'textures_dictionary' to the freshly created mtlx std surface.
-        next step is to get all chnanged parameters from the principled shader and apply it here
+        next step is to get all changed parameters from the principled shader and apply it here
         """
         # print(f'{textures_dictionary=}')
         for key, value in textures_dictionary.items():
