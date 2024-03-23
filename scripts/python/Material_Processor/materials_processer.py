@@ -1,5 +1,5 @@
 """
-copyright Ahmed Hindy. please mention the original author if you used this any part of this code
+copyright Ahmed Hindy. please mention the original author if you used any part of this code
 """
 
 import hou
@@ -225,16 +225,70 @@ class NotUsed():
                     purpose.set(purpose.menuItems()[-1])
 
 
-    @staticmethod
-    def convert_principled_textures_to_arnold():
-        """
-        Convert all Principled texture nodes in the current scene to Arnold Standard Surface.
-        """
-        texture_nodes = get_principled_texture_nodes()
-        for texture_node in texture_nodes:
-            convert_texture_node_to_arnold(texture_node)
+    # @staticmethod
+    # def convert_principled_textures_to_arnold():
+    #     """
+    #     Convert all Principled texture nodes in the current scene to Arnold Standard Surface.
+    #     """
+    #     texture_nodes = get_principled_texture_nodes()
+    #     for texture_node in texture_nodes:
+    #         convert_texture_node_to_arnold(texture_node)
+    #
+    # # convert_principled_textures_to_arnold()
 
-    # convert_principled_textures_to_arnold()
+
+class Traverse_Node_Connections:
+    def __init__(self) -> None:
+        pass
+    
+    def traverse_inputs(self, node, path=[]):
+        """
+        Recursively traverses the inputs of a given node, printing a tree of connections.
+        Accumulates the path traversed so far and prints it for each input node.
+        
+        Args:
+        - node: The node to traverse from.
+        - path: The accumulated path of node names from the output node to the current node.
+        """
+        # Add the current node to the path
+        # path = []
+        current_path = path + [node.name()]
+
+        # Base case: if the node has no inputs, print the accumulated path and return
+        if node.inputs() is None or len(node.inputs()) == 0:
+            print(' -> '.join(reversed(current_path)))
+            return
+        
+        # Iterate through each input of the node
+        for input_node in node.inputs():
+            if input_node is not None:
+                # Recursively traverse the input node, passing the current path
+                self.traverse_inputs(input_node, current_path)
+    
+    def execute_class(self, node):
+        """
+        this method simply runs self.traverse_inputs() using an input node.
+        tested only on materialX subnet. need to test on other nodes.
+        """
+        
+        # Identify nodes that are not inputs to any other node.
+        output_nodes = []
+        for child in node.children():
+            is_output = True
+            for other_node in node.children():
+                if child in other_node.inputs():
+                    is_output = False
+                    break
+            if is_output:
+                output_nodes.append(child)
+
+        for output_node in output_nodes:
+            print(f"Traversing from output node: {output_node.name()}")
+            self.traverse_inputs(output_node)
+            print("-" * 80)  # Print a separator for clarity
+
+
+
 
 class Convert():
     @staticmethod
@@ -385,4 +439,12 @@ def run():
 
         # print(f'{mtlx_subnet=}')
         # Convert.mtlx_connect_textures(mtlx_subnet, textures_dict_normalized)
+
+
+def test():
+    selected_node = hou.selectedNodes()[0] if hou.selectedNodes() else None
+    if not selected_node:
+        raise Exception("Please select a node.")
+    traverse_class = Traverse_Node_Connections()
+    traverse_class.execute_class(selected_node)
 
