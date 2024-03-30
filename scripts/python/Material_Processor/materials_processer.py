@@ -60,57 +60,76 @@ class MaterialProcessor():
         return texture_nodes
 
     @staticmethod
-    def get_texture_parms_from_principled_shader(input_node) -> Dict[str, hou.parm]:
+    def convert_parm_list_to_dict(input_parm_list):
+        """
+        input  -> list of hou.parm objects, e.g., [<hou.Parm basecolor_texture in /mat/principledshader2>]
+        output <- dict containing {parm_name: parm_obj}
+                  e.g. {'basecolor_texture': <hou.Parm basecolor_texture in /mat/principledshader2>}
+        """
+        parm_dict = {}
+        for parm in input_parm_list:
+            parm_name = parm.name()
+            parm_dict[parm_name] = parm
+        return parm_dict
+
+    @staticmethod
+    def get_texture_parms_from_principled_shader(input_node) -> list[hou.parm]:
         """
         input  -> hou.node() of type 'principledshader::2.0'
         process: returns dict of parameters on a node that have '<tex_name>_useTexture' enabled
                  basically get all enabled texture parameters.
-        output <- dictionary containing all enabled texture parameters on the principled shader.
-                  e.g. {'basecolor_texture': <hou.Parm basecolor_texture in /mat/principledshader2>}
+        output <- list containing all enabled texture parameters on the principled shader.
+                  # e.g. {'basecolor_texture': <hou.Parm basecolor_texture in /mat/principledshader2>}
         """
-        input_tex_parm_dict ={}
+        input_tex_parm_dict = {}
+        input_tex_parm_list = []
         for parm in input_node.parms():
             if '_useTexture' in parm.name():
                 if parm.eval() == 1:
                     input_tex_str  = parm.name().split('_useTexture')[0] + '_texture'
                     input_tex_parm = input_node.parm(input_tex_str)
                     # print(f'{input_tex_parm=}')
-                    input_tex_parm_dict[input_tex_str] = input_tex_parm
+                    # input_tex_parm_dict[input_tex_str] = input_tex_parm
+                    input_tex_parm_list.append(input_tex_parm)
 
         # special case for getting displacement
         if input_node.parm('dispTex_enable'):
             input_tex_str = 'displacement' + '_texture'
             input_tex_parm = input_node.parm('dispTex_texture')
-            input_tex_parm_dict[input_tex_str] = input_tex_parm
+            # input_tex_parm_dict[input_tex_str] = input_tex_parm
+            input_tex_parm_list.append(input_tex_parm)
 
-        print(f'{input_tex_parm_dict=}')
-        return input_tex_parm_dict
+        print(f'{input_tex_parm_list=}')
+        return input_tex_parm_list
 
     @staticmethod
-    def get_texture_parms_from_arnold_shader(input_node) -> Dict[str, hou.parm]:
+    def get_texture_parms_from_arnold_shader(input_node: hou.node) -> list[hou.parm]:
         """
         input  -> hou.node() of type 'arnold_materialbuilder'
-        process: returns dict of parameters on nodes 'arnold::image' that are connected to the shader
-        output <- dictionary containing all enabled texture parameters on the principled shader.
+        process: 1. Traverses the shader network to find all 'arnold::image' nodes connected
+                 2. returns dict of parameters on nodes 'arnold::image' that are connected to the shader
+        output <- list of parameters on nodes 'arnold::image' that are connected to the shader
                   e.g. {'basecolor_texture': <hou.Parm basecolor_texture in /mat/principledshader2>}
         """
-        input_tex_parm_dict ={}
-        for parm in input_node.parms():
-            if '_useTexture' in parm.name():
-                if parm.eval() == 1:
-                    input_tex_str  = parm.name().split('_useTexture')[0] + '_texture'
-                    input_tex_parm = input_node.parm(input_tex_str)
-                    # print(f'{input_tex_parm=}')
-                    input_tex_parm_dict[input_tex_str] = input_tex_parm
+        traverse_class   = Traverse_Node_Connections()
+        node_tree_dict   = traverse_class.traverse_children_nodes(input_node)
+        found_nodes      = traverse_class.find_nodes_of_type(node_dict=node_tree_dict, node_type='arnold::image')
+        found_parms      = [node.parm('filename') for node in found_nodes]
 
-        # special case for getting displacement
-        if input_node.parm('dispTex_enable'):
-            input_tex_str = 'displacement' + '_texture'
-            input_tex_parm = input_node.parm('dispTex_texture')
-            input_tex_parm_dict[input_tex_str] = input_tex_parm
+        print(f' ---->>> {found_parms=}\n')
+        return found_parms
 
-        print(f'{input_tex_parm_dict=}')
-        return input_tex_parm_dict
+    @staticmethod
+    def get_texture_parms_from_all_shader_types(input_node: hou.node) -> list[hou.parm]:
+        input_tex_parm_list = []
+        node_type = input_node.type().name()
+        if node_type == 'principled_shader::2.0':
+            input_tex_parm_list.extend(MaterialProcessor.get_texture_parms_from_principled_shader(input_node))
+        if node_type == 'arnold_materialbuilder':
+            input_tex_parm_list.extend(MaterialProcessor.get_texture_parms_from_arnold_shader(input_node))
+        if node_type == 'subnet':
+            pass
+        return input_tex_parm_list
 
     @staticmethod
     def get_texture_maps_from_parms(input_parms_dict: Dict[str, hou.parm]) -> Dict[str, str]:
@@ -124,7 +143,7 @@ class MaterialProcessor():
             parm_value = value.unexpandedString()
             textures_dict[key] = parm_value
 
-        print(f'{textures_dict=}')
+        print(f'get_texture_maps_from_parms()-----{textures_dict=}')
         return textures_dict
     
 
@@ -137,6 +156,7 @@ class MaterialProcessor():
                  e.g. dict['basecolor_texture'] = value -> dict['albedo'] = value
         output <- dict with same value but keys are named differently (normalized)
         note:   not all textures are added for now
+        note:   CRITICAL: only works for principled shader, for Arnold/mtlx we need to get the connection hierarchy
         """
         normalized_dict = {}
 
@@ -152,7 +172,7 @@ class MaterialProcessor():
             elif any(k in key for k in ['dispTex']):
                 normalized_dict['displacement'] = value
             else:
-                print(f'/// {key=} is {value=}')
+                print(f"normalize_texture_map_keys()----- a texture_map_key wasn't processed:{key=} is {value=}")
                 normalized_dict[key] = value
 
         return normalized_dict
@@ -195,14 +215,26 @@ class Traverse_Node_Connections:
             return node_dict
 
         # Iterate through each input of the node
-        for input_index, input_node in enumerate(node.inputs()):
+        for input_node in node.inputs():
             if input_node is not None:
+                # Find the input index for the connection
+                input_index = None
+                for idx, input in enumerate(node.inputConnections()):
+                    if input.inputNode() == input_node:
+                        input_index = input.inputIndex()
+                        # print(f'{input_index=}')
+
+                        break
+
                 # Recursively traverse the input node, building the dictionary
                 input_node_dict = self.traverse_node_tree(input_node, path + [node])
-                node_dict[node].update(input_node_dict)
+
+                # Use a tuple (input_node, input_index) as key to include input index information
+                node_dict[node][(input_node, input_index)] = input_node_dict[input_node]
 
         return node_dict
-    
+
+
     def traverse_children_nodes(self, parent_node):
         """
         Executes the traversal and builds a nested dictionary of node connections starting from output nodes.
@@ -212,7 +244,7 @@ class Traverse_Node_Connections:
         A nested dictionary representing all node connection branches from the output nodes.
         """
         output_nodes = []
-        ### Identify nodes that are not inputs to any other node. if no output detected then is_output=True
+
         for child in parent_node.children():
             is_output = True
             for other_node in parent_node.children():
@@ -224,14 +256,42 @@ class Traverse_Node_Connections:
 
         all_branches = {}
         for output_node in output_nodes:
-            ### Build and add the branch dictionary for each output node
             branch_dict = self.traverse_node_tree(output_node, [])
             all_branches.update(branch_dict)
 
+        print(f'{all_branches=}')
         return all_branches
 
     @staticmethod
-    def find_nodes_of_type(node_dict, node_type, found_nodes=None):
+    def find_input_index_in_dict(node_dict: dict, target_node: hou.node) -> int:
+        """
+        Searches through a nested dictionary for a specific node and returns its output index to the next connected node
+        by finding the tuple that contains the node as the first item.
+        input  -> - node_dict  : The nested dictionary that includes tuples of (node, input_index).
+                  - target_node: The target node for which the input index is sought.
+        output <- - int input index if the target node is found, None otherwise.
+        note: this method can be used to look 'arnold::image' is connected where on a standard surface
+              to do: 1- there might be intermediate nodes, we need to extend the function to look for a distance node
+                        e.g., 'standard_surface1' for example
+        """
+        for key, value in node_dict.items():
+            # Check if the key is a tuple (node, input_index), then compare node
+            if isinstance(key, tuple) and key[0] == target_node:
+                return key[1]
+            # If the key itself is the node, we're looking at a parent node with no interest in input_index
+            elif key == target_node:
+                return None
+            # If the value is a dict, recursively search this next level of the tree
+            if isinstance(value, dict):
+                result = Traverse_Node_Connections.find_input_index_in_dict(value, target_node)
+                if result is not None:
+                    return result
+        # Node not found in this branch of the dictionary
+        return None
+
+
+    @staticmethod
+    def find_nodes_of_type(node_dict, node_type: str, found_nodes=None) -> list[hou.node]:
         """
         A Recursive function that loops over a nested dictionary of hou.node objects. it filters a specific node type.
         takes node_dict from traverse_children_nodes()
@@ -433,7 +493,7 @@ class Convert():
         """
         # print(f'{textures_dictionary=}')
         for key, value in textures_dictionary.items():
-            print(f'{key=} , {value=}')
+            print(f'connect_arnold_textures()-----{key=} , {value=}')
             tex = arnold_subnet.node(key)
             if tex:
                 tex.parm("filename").set(value)
@@ -464,9 +524,10 @@ def run(convert_to='arnold'):
     selected_nodes        = hou.selectedNodes()
     mat_context           = hou.node('/mat')
     for input_node in selected_nodes:
-        enabled_tex_parms = MaterialProcessor.get_texture_parms_from_principled_shader(input_node)
-        # print(f'{input_node=}, {enabled_tex_parms=}')
-        textures_dict     = MaterialProcessor.get_texture_maps_from_parms(enabled_tex_parms)
+        enabled_tex_parms = MaterialProcessor.get_texture_parms_from_all_shader_types(input_node=input_node)
+        print(f'{input_node=}, {enabled_tex_parms=}')
+        enabled_tex_parms_dict = MaterialProcessor.convert_parm_list_to_dict(enabled_tex_parms)
+        textures_dict          = MaterialProcessor.get_texture_maps_from_parms(enabled_tex_parms_dict)
         textures_dict_normalized = MaterialProcessor.normalize_texture_map_keys(textures_dict)
 
         if convert_to == 'mtlx':
@@ -483,8 +544,10 @@ def test():
     selected_node = hou.selectedNodes()[0] if hou.selectedNodes() else None
     if not selected_node:
         raise Exception("Please select a node.")
+    # MaterialProcessor.get_texture_parms_from_arnold_shader(selected_node)
     traverse_class = Traverse_Node_Connections()
-    node_tree_dict = traverse_class.traverse_children_nodes(selected_node)
-    found_nodes    = traverse_class.find_nodes_of_type(node_dict=node_tree_dict, node_type='arnold::image')
+    traverse_tree  = traverse_class.traverse_children_nodes(selected_node)
 
-    pprint(found_nodes)
+    node_normal_map = hou.node('/mat/principledshader2_arnold1/roughness')
+    input_index    = traverse_class.find_input_index_in_dict(traverse_tree, node_normal_map)
+    print(input_index)
