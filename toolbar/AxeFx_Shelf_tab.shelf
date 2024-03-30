@@ -744,7 +744,7 @@ main()
 
   <tool name="live_renamer" label="live_renamer" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[from importlib import reload
-import live_renamer as lr
+from my_scripts import live_renamer as lr
 
 reload(lr)
 
@@ -756,7 +756,7 @@ renamer.show()
 
   <tool name="usdPreviewSurface_converter" label="usdPreviewSurface Converter" icon="hicon:/SVGIcons.index?VOP_usdpreviewsurface.svg">
     <script scriptType="python"><![CDATA[from importlib import reload
-import usd_material_converters as mc
+from Material_Processor import plugin_usd as mc
 reload(mc)
 
 
