@@ -7,7 +7,7 @@ from typing import Dict
 from pprint import pprint
 
 
-class MaterialProcessor():
+class MaterialProcessor:
     """
     note: rename it to 'Ingest'
     """
@@ -178,7 +178,7 @@ class MaterialProcessor():
         return normalized_dict
 
 
-# class NotUsed():
+# class NotUsed:
     # @staticmethod
     # def convert_principled_textures_to_arnold():
     #     """
@@ -259,8 +259,11 @@ class Traverse_Node_Connections:
             branch_dict = self.traverse_node_tree(output_node, [])
             all_branches.update(branch_dict)
 
-        print(f'{all_branches=}')
+        print(f'traverse_children_nodes()-----{all_branches=}\n')
         return all_branches
+
+
+
 
     @staticmethod
     def find_input_index_in_dict(node_dict: dict, target_node: hou.node) -> int:
@@ -273,6 +276,7 @@ class Traverse_Node_Connections:
         note: this method can be used to look 'arnold::image' is connected where on a standard surface
               to do: 1- there might be intermediate nodes, we need to extend the function to look for a distance node
                         e.g., 'standard_surface1' for example
+        note: currently unused, if not useful then delete
         """
         for key, value in node_dict.items():
             # Check if the key is a tuple (node, input_index), then compare node
@@ -288,6 +292,81 @@ class Traverse_Node_Connections:
                     return result
         # Node not found in this branch of the dictionary
         return None
+
+    @staticmethod
+    def get_input_index_to_target_node_type(node_dict: dict, node_a: hou.node, node_b_type: str) -> int:
+        """
+        generated from gpt4,
+        process: given a connection from node_a all the way to a node_b with intermediate nodes, this method attempts
+                to get the input connection index to node_b. method is currently limited to node_b.type().name(),
+                 but I plan to extend it in the future. node_b_type can be the standard surface node for
+                 Arnold, MTLX, RS_material builder and other Uber shaders.
+                 e.g., would be: node_a= hou.node(/mat/ar_shd_net/image_albedo), node_b_type='arnold::standard_surface'
+        """
+
+        # Flatten the dictionary to a simpler structure that directly maps children to their parent and index
+        def flatten_dict(d, flat_dict=None, parent=None):
+            if flat_dict is None:
+                flat_dict = {}
+            for key, value in d.items():
+                if isinstance(key, tuple):  # Node is in a tuple with its input index
+                    node, index = key
+                    flat_dict[node] = (parent, index)  # Map child node to its parent and index
+                    flatten_dict(value, flat_dict, parent=node)
+                else:
+                    flatten_dict(value, flat_dict, parent=key)
+            return flat_dict
+
+        flat_dict = flatten_dict(node_dict)
+        current_node = node_a
+
+        while current_node:
+            parent_info = flat_dict.get(current_node)
+            if parent_info is None:
+                # print(f"No further parent found for {current_node}.")
+                break  # Break the loop if no parent info is available
+
+            parent, index = parent_info
+            if parent is None or parent.type().name() != node_b_type:
+                # print(f"Moving up from {current_node} to its parent.")
+                current_node = parent  # Move to the next parent in the hierarchy
+                continue  # Continue traversing up the tree
+
+            print(f"Connection to {node_b_type} found at index {index}.")
+            return index  # Desired node type found, return the connection index
+
+        # print(f"No connection from {node_a} to a node of type {node_b_type} found.")
+        return None  # No connection to the specified node type found
+
+    @staticmethod
+    def map_all_nodes_to_target_input_index(node_dict, node_b_type='arnold::standard_surface'):
+        """
+        generated from gpt4,
+        Iterates over each node in the nested dictionary, attempting to find the connection index
+        to a node named 'standard_surface1' using the find_connection_to_surface function.
+
+        Args:
+        - node_dict: The nested dictionary representing node connections.
+        - surface_name: The name of the surface node to find connections to.
+
+        Returns:
+        A dictionary mapping each node to its input index for the connection to 'standard_surface1',
+        or None if no such connection is found for a particular node.
+        """
+        connection_indices = {}
+
+        def iterate_nodes(d):
+            for key, value in d.items():
+                if isinstance(key, tuple):  # Check if the key is a tuple (node, input_index)
+                    node, _ = key
+                    index = Traverse_Node_Connections.get_input_index_to_target_node_type(node_dict, node, node_b_type)
+                    connection_indices[node] = index
+                    iterate_nodes(value)  # Recursively search in sub-dictionaries
+                elif isinstance(value, dict):  # If the value is a dict, continue searching
+                    iterate_nodes(value)
+
+        iterate_nodes(node_dict)
+        return connection_indices
 
 
     @staticmethod
@@ -314,10 +393,33 @@ class Traverse_Node_Connections:
 
         return found_nodes
 
+    @staticmethod
+    def map_connection_input_index_to_texture_type(input_dict: dict, renderer='Arnold'):
+        """
+        takes in a filtered input dictof only 'image' nodes, maps the connection_index to corresponding map type,
+        then return a new dict:  {texture_type e.g. 'roughness': image_node e.g. '<hou.VopNode of type arnold::image>'}.
+        e.g., of in_dict: {<hou.VopNode of type arnold::image at /mat/arnold_materialbuilder1/image_albedo>: 1,
+                              <hou.VopNode of type arnold::image at /mat/arnold_materialbuilder1/image_rough>: 6}
+        e.g., of out_dict:{'albedo': <hou.VopNode of type arnold::image at /mat/arnold_materialbuilder1/image_albedo>,
+                           'roughness': <hou.VopNode of type arnold::image at /mat/arnold_materialbuilder1/image_rough>}
+        """
+        # Mapping of connection_index to map name
+        if renderer == 'Arnold':
+            index_map = {
+                1: 'albedo',
+                6: 'roughness',
+                10: 'transmission',
+                38: 'opacity',
+                39: 'normal'}
+        node_map_dict = {index_map[value]: key for key, value in input_dict.items() if value in index_map}
+
+        print(f'{node_map_dict=}')
+        return node_map_dict
 
 
 
-class Convert():
+
+class Convert:
     """
     this class creates material shading networks.
     input  -> dict? with list of all textures and shader attributes . Usually comes from another function that ingests input textures
@@ -457,7 +559,7 @@ class Convert():
         return mtlx_subnet
 
     @staticmethod
-    def create_arnold_shader(mat_context, node_name=''):
+    def create_arnold_shader(mat_context: hou.node, node_name: str) -> hou.node:
         arnold_builder   = mat_context.createNode("arnold_materialbuilder", node_name + "_arnold")
 
         ## DEFINE STANDARD SURFACE
@@ -494,9 +596,8 @@ class Convert():
         # print(f'{textures_dictionary=}')
         for key, value in textures_dictionary.items():
             print(f'connect_arnold_textures()-----{key=} , {value=}')
-            tex = arnold_subnet.node(key)
-            if tex:
-                tex.parm("filename").set(value)
+            if key == 'albedo':
+                value.parm("filename").set(value)
             else:
                 print(f'node {key=} is missing...')
                 # break
@@ -540,14 +641,33 @@ def run(convert_to='arnold'):
         # print(f'{mtlx_subnet=}')
 
 
+
+
+
 def test():
     selected_node = hou.selectedNodes()[0] if hou.selectedNodes() else None
     if not selected_node:
         raise Exception("Please select a node.")
-    # MaterialProcessor.get_texture_parms_from_arnold_shader(selected_node)
     traverse_class = Traverse_Node_Connections()
     traverse_tree  = traverse_class.traverse_children_nodes(selected_node)
 
-    node_normal_map = hou.node('/mat/principledshader2_arnold1/roughness')
-    input_index    = traverse_class.find_input_index_in_dict(traverse_tree, node_normal_map)
-    print(input_index)
+    target_node = hou.node('/mat/arnold_materialbuilder1')
+    all_connections = traverse_class.map_all_nodes_to_target_input_index(traverse_tree, node_b_type='arnold::standard_surface')
+    filtered_dict = {k: v for k, v in all_connections.items() if k.type().name() == 'arnold::image'}
+    print(f"\n{filtered_dict=}\n")
+    mapped_nodes_dict = traverse_class.map_connection_input_index_to_texture_type(input_dict=filtered_dict)
+    """
+    now we have a standardized dictionary {'normal':texture_node}, we can input those into the convert class to create 
+    new material. sadly the connect_<renderer>_textures() functions are using an old dictionary which has the textures
+    file paths strings which we currently dont have. maybe I need a new function after
+    'map_connection_input_index_to_texture_type()' which will take all hou.node() items in dict and get their
+    unExpandedString() in the same dict or another dict.
+    """
+    mat_context = hou.node('/mat')
+    new_shader = Convert.create_arnold_shader(mat_context, 'X')
+    Convert.connect_arnold_textures(new_shader, mapped_nodes_dict)
+
+
+
+
+
