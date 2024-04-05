@@ -657,11 +657,14 @@ def test():
     print(f"\n{filtered_dict=}\n")
     mapped_nodes_dict = traverse_class.map_connection_input_index_to_texture_type(input_dict=filtered_dict)
     """
-    now we have a standardized dictionary {'normal':texture_node}, we can input those into the convert class to create 
+    now we have a standardized tex_node dictionary {'normal':texture_node}, we can input those into the convert class to create 
     new material. sadly the connect_<renderer>_textures() functions are using an old dictionary which has the textures
-    file paths strings which we currently dont have. maybe I need a new function after
-    'map_connection_input_index_to_texture_type()' which will take all hou.node() items in dict and get their
-    unExpandedString() in the same dict or another dict.
+    file paths strings which we currently dont have.
+    maybe I need a new function after 'map_connection_input_index_to_texture_type()' which will take all
+    hou.node() items in dict and get their unExpandedString() in the same dict or another dict.
+    dict1 is standardized tex_node  dictionary,
+    dict2 is standardized tex_paths dictionary, now lets create it!
+    
     """
     mat_context = hou.node('/mat')
     new_shader = Convert.create_arnold_shader(mat_context, 'X')
