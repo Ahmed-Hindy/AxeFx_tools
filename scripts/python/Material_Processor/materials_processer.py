@@ -99,7 +99,7 @@ class MaterialProcessor:
             # input_tex_parm_dict[input_tex_str] = input_tex_parm
             input_tex_parm_list.append(input_tex_parm)
 
-        print(f'{input_tex_parm_list=}')
+        # print(f'{input_tex_parm_list=}\n')
         return input_tex_parm_list
 
     @staticmethod
@@ -123,12 +123,14 @@ class MaterialProcessor:
     def get_texture_parms_from_all_shader_types(input_node: hou.node) -> list[hou.parm]:
         input_tex_parm_list = []
         node_type = input_node.type().name()
-        if node_type == 'principled_shader::2.0':
+        if node_type == 'principledshader::2.0':
             input_tex_parm_list.extend(MaterialProcessor.get_texture_parms_from_principled_shader(input_node))
-        if node_type == 'arnold_materialbuilder':
+        elif node_type == 'arnold_materialbuilder':
             input_tex_parm_list.extend(MaterialProcessor.get_texture_parms_from_arnold_shader(input_node))
-        if node_type == 'subnet':
+        elif node_type == 'subnet':
             pass
+        else:
+            raise Exception(f'Unknown Node Type: {node_type}')
         return input_tex_parm_list
 
     @staticmethod
@@ -143,37 +145,42 @@ class MaterialProcessor:
             parm_value = value.unexpandedString()
             textures_dict[key] = parm_value
 
-        print(f'get_texture_maps_from_parms()-----{textures_dict=}')
+        print(f'get_texture_maps_from_parms()-----{textures_dict=}\n')
         return textures_dict
     
 
     @staticmethod
     def normalize_texture_map_keys(texture_dict: Dict[str, str]) -> Dict[str, str]:
         """
-        input  -> takes a dict from 'get_texture_maps_from_parms()'
-        process: Normalizes the dict keys related to the names of the texture parameters,
-                 because every render engine has its set of names. example for principledshader::2.0:
-                 e.g. dict['basecolor_texture'] = value -> dict['albedo'] = value
-        output <- dict with same value but keys are named differently (normalized)
-        note:   not all textures are added for now
-        note:   CRITICAL: only works for principled shader, for Arnold/mtlx we need to get the connection hierarchy
+        :param texture_dict: takes a dict of texture images, e.g. {'basecolor_texture': 'xxxbase.exr',
+                             'rough_texture': 'rough.<UDIM>.jpeg', 'dispTex_texture': ''}'
+        process: Normalizes the dict keys which is texture type e.g. 'albedo, and removes empty dict items.
+                 because every render engine has its set of names. e.g. for principledshader::2.0:
+                 dict['basecolor_texture'] = value -> dict['albedo'] = value
+        :return:  dict with same value but keys are named differently (normalized)
+        note:   not all textures are added for now.
+        note:   CRITICAL: only works for principled shader, for Arnold/mtlx we need to get the connection hierarchy.
         """
+
         normalized_dict = {}
 
         for key, value in texture_dict.items():
-            if any(k in key for k in ['albedo', 'diffuse', 'basecolor']):
-                normalized_dict['albedo'] = value
-            elif any(k in key for k in ['rough', 'roughness']):
-                normalized_dict['roughness'] = value
-            elif any(k in key for k in ['metal', 'metallness']):
-                normalized_dict['metallness'] = value
-            elif any(k in key for k in ['normal', 'normalmap', 'baseNormal']):
-                normalized_dict['normal'] = value
-            elif any(k in key for k in ['dispTex']):
-                normalized_dict['displacement'] = value
-            else:
-                print(f"normalize_texture_map_keys()----- a texture_map_key wasn't processed:{key=} is {value=}")
-                normalized_dict[key] = value
+            if value:
+                if any(k in key for k in ['albedo', 'diffuse', 'basecolor']):
+                    normalized_dict['albedo'] = value
+                elif any(k in key for k in ['rough', 'roughness']):
+                    normalized_dict['roughness'] = value
+                elif any(k in key for k in ['metal', 'metallness']):
+                    normalized_dict['metallness'] = value
+                elif any(k in key for k in ['opacity']):
+                    normalized_dict['opacity'] = value
+                elif any(k in key for k in ['normal', 'normalmap', 'baseNormal']):
+                    normalized_dict['normal'] = value
+                elif any(k in key for k in ['dispTex']):
+                    normalized_dict['displacement'] = value
+                else:
+                    print(f"normalize_texture_map_keys()----- a texture_map_key wasn't processed:{key=} is {value=}")
+                    normalized_dict[key] = value
 
         return normalized_dict
 
@@ -559,58 +566,82 @@ class Convert:
         return mtlx_subnet
 
     @staticmethod
-    def create_arnold_shader(mat_context: hou.node, node_name: str) -> hou.node:
-        arnold_builder   = mat_context.createNode("arnold_materialbuilder", node_name + "_arnold")
+    def create_arnold_shader(mat_context: hou.node, node_name: str, textures_dictionary) -> dict:
+        """ creates an Arnold material Builder VOP, and inside it creates a standard surface and multiple arnold::image
+            for each EXISTING texture type e.g. 'albedo' or 'roughness' then connects all nodes together.
 
-        ## DEFINE STANDARD SURFACE
+            :param mat_context: mat library node to create the new arnold_materialbuilder in
+            :param node_name: name of arnold_materialbuilder to create, will suffix it with '_arnold'.
+            :param textures_dictionary: a dict of normalized texture names like 'albedo', this is used to create
+                                        arnold::image nodes for only existing textures.
+            :return: dict of all created Arnold nodes
+        """
+
+        arnold_builder   = mat_context.createNode("arnold_materialbuilder", node_name + "_arnold")
+        arnold_image_dict = {}
+
+        # DEFINE STANDARD SURFACE
         output_node      = arnold_builder.node('OUT_material')
         node_std_surface = arnold_builder.createNode("arnold::standard_surface")
         output_node.setInput(0, node_std_surface)
+        arnold_image_dict['materialbuilder']  = arnold_builder.path()
+        arnold_image_dict['standard_surface'] = node_std_surface.path()
 
         # CREATE ALBEDO
-        image_albedo    = arnold_builder.createNode("arnold::image", "albedo")
-        node_std_surface.setInput(1, image_albedo)
+        if textures_dictionary['albedo']:
+            image_albedo    = arnold_builder.createNode("arnold::image", "albedo")
+            node_std_surface.setInput(1, image_albedo)
+            arnold_image_dict['image_albedo'] = image_albedo.path()
 
         # CREATE ROUGHNESS
-        image_roughness = arnold_builder.createNode("arnold::image", "roughness")
-        node_std_surface.setInput(6, image_roughness)
+        if textures_dictionary['roughness']:
+            image_roughness = arnold_builder.createNode("arnold::image", "roughness")
+            node_std_surface.setInput(6, image_roughness)
+            arnold_image_dict['image_roughness'] = image_roughness.path()
 
         # CREATE NORMAL
-        image_normal    = arnold_builder.createNode("arnold::image", "normal")
-        normal_map      = arnold_builder.createNode("arnold::normal_map")
-        normal_map.setInput(0, image_normal)
-        node_std_surface.setInput(39, normal_map)
+        if textures_dictionary['normal']:
+            image_normal    = arnold_builder.createNode("arnold::image", "normal")
+            normal_map      = arnold_builder.createNode("arnold::normal_map")
+            normal_map.setInput(0, image_normal)
+            node_std_surface.setInput(39, normal_map)
+            arnold_image_dict['image_normal'] = image_normal.path()
+            arnold_image_dict['normal_map'] = normal_map.path()
 
         arnold_builder.layoutChildren()
-        return arnold_builder
 
-
+        return arnold_image_dict
 
 
     @staticmethod
-    def connect_arnold_textures(arnold_subnet: hou.VopNode, textures_dictionary: Dict) -> None:
+    def connect_arnold_textures(arnold_nodes_dict: Dict, textures_dictionary: Dict) -> None:
         """
-        currently this simply links the texture paths from 'textures_dictionary' to the freshly created mtlx std surface.
+        currently this simply sets the texture paths strings from 'textures_dictionary' to the freshly created arnold std surface.
         next step is to get all changed parameters from the principled shader and apply it here
         """
-        # print(f'{textures_dictionary=}')
+        print(f'{arnold_nodes_dict=}\n')
         for key, value in textures_dictionary.items():
             print(f'connect_arnold_textures()-----{key=} , {value=}')
             if key == 'albedo':
-                value.parm("filename").set(value)
+                hou.node(arnold_nodes_dict['image_albedo']).parm("filename").set(value)
+            if key == 'roughness':
+                hou.node(arnold_nodes_dict['image_roughness']).parm("filename").set(value)
+            if key == 'normal':
+                hou.node(arnold_nodes_dict['image_normal']).parm("filename").set(value)
             else:
                 print(f'node {key=} is missing...')
                 # break
 
 
     @staticmethod
-    def convert_to_arnold(input_mat_node, mat_context, textures_dict):
+    def convert_to_arnold(input_mat_node, mat_context, normalized_textures_dict):
         """takes a material VOP node and converts it to arnold mat builder"""
+        print(f'{normalized_textures_dict=}\n')
         input_node_name   = input_mat_node.name()
-        arnold_subnet     = Convert.create_arnold_shader(mat_context, input_node_name)
-        Convert.connect_arnold_textures(arnold_subnet, textures_dict)
+        arnold_nodes_dict = Convert.create_arnold_shader(mat_context, input_node_name, textures_dictionary=normalized_textures_dict)
+        Convert.connect_arnold_textures(arnold_nodes_dict=arnold_nodes_dict, textures_dictionary=normalized_textures_dict)
 
-        return arnold_subnet
+        # return arnold_subnet
 
 
 def run(convert_to='arnold'):
@@ -626,7 +657,7 @@ def run(convert_to='arnold'):
     mat_context           = hou.node('/mat')
     for input_node in selected_nodes:
         enabled_tex_parms = MaterialProcessor.get_texture_parms_from_all_shader_types(input_node=input_node)
-        print(f'{input_node=}, {enabled_tex_parms=}')
+        # print(f'{input_node=}, {enabled_tex_parms=}\n')
         enabled_tex_parms_dict = MaterialProcessor.convert_parm_list_to_dict(enabled_tex_parms)
         textures_dict          = MaterialProcessor.get_texture_maps_from_parms(enabled_tex_parms_dict)
         textures_dict_normalized = MaterialProcessor.normalize_texture_map_keys(textures_dict)
