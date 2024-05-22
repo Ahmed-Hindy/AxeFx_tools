@@ -16,5 +16,6 @@
     <memberToolshelf name="aelib_shelf"/>
     <memberToolshelf name="AxeFx_Shelf_tab"/>
     <memberToolshelf name="sparse_pyro_dynamics"/>
+    <memberToolshelf name="RenderMan26"/>
   </shelfSet>
 </shelfDocument>
