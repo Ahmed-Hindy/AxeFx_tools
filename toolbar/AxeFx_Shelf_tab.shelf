@@ -67,8 +67,12 @@ for node in nodes:
 from my_scripts import KB3D_change_res
 reload(KB3D_change_res)
 
-KB3D_change_res.changeRes(kwargs)
-KB3D_change_res.changeRough(kwargs)
+nodes = hou.selectedNodes()
+for node in nodes:
+    KB3D_change_res.add_str_res_parm_to_node(node, param_name='res', label='res', default_value="4k")
+    KB3D_change_res.changeRes(kwargs, node)
+    KB3D_change_res.changeRough(kwargs, node)
+
 
 ]]></script>
   </tool>
@@ -773,7 +777,8 @@ classMC.create_redshift_materials_with_textures(textures)]]></script>
 from Material_Processor import materials_processer
 reload(materials_processer)
 
-# materials_processer.run()
-materials_processer.test()]]></script>
+materials_processer.run(convert_to='arnold')
+# materials_processer.test()
+]]></script>
   </tool>
 </shelfDocument>
