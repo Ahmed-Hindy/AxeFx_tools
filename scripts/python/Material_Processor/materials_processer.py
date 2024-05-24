@@ -207,6 +207,27 @@ class MaterialIngest:
 
         return normalized_dict
 
+    @staticmethod
+    def get_shader_parameters_from_principled_shader(input_node) -> Dict:
+        """
+        given a principledshader::2.0 node, will attempt to get all shader parameters like basecolor, albedo_mult, rough ,ior
+        :return: a normalized dict containing  shader parameters.
+        """
+        shader_parameters_dict = {
+            # 'base_color': input_node.evalParm('basecolor'),  # that's a tupleparm, fix it!
+            'base': input_node.evalParm('albedomult'),
+            'metalness': input_node.evalParm('metallic'),
+            'specular': input_node.evalParm('reflect'),
+            'specular_color': input_node.evalParm('albedomult'),
+            'specular_roughness': input_node.evalParm('rough'),
+            'specular_IOR': input_node.evalParm('ior'),
+        }
+
+        print(f'{shader_parameters_dict=}')
+        return shader_parameters_dict
+
+
+
 
 class TraverseNodeConnections:
     def __init__(self) -> None:
@@ -458,7 +479,7 @@ class Convert:
         mtlx_image_dict['standard_surface'] = mtlx.path()
 
         # CREATE ALBEDO
-        if textures_dictionary['albedo']:
+        if textures_dictionary.get('albedo'): 
             albedo = mtlx_subnet.createNode("mtlximage", "albedo")
             mtlx.setInput(1, albedo)
             mtlx_image_dict['image_albedo'] = albedo.path()
@@ -558,19 +579,19 @@ class Convert:
         arnold_image_dict['standard_surface'] = node_std_surface.path()
 
         # CREATE ALBEDO
-        if textures_dictionary['albedo']:
+        if textures_dictionary.get('albedo'): 
             image_albedo    = arnold_builder.createNode("arnold::image", "albedo")
             node_std_surface.setInput(1, image_albedo)
             arnold_image_dict['image_albedo'] = image_albedo.path()
 
         # CREATE ROUGHNESS
-        if textures_dictionary['roughness']:
+        if textures_dictionary.get('roughness'): 
             image_roughness = arnold_builder.createNode("arnold::image", "roughness")
             node_std_surface.setInput(6, image_roughness)
             arnold_image_dict['image_roughness'] = image_roughness.path()
 
         # CREATE NORMAL
-        if textures_dictionary['normal']:
+        if textures_dictionary.get('normal'):
             image_normal    = arnold_builder.createNode("arnold::image", "normal")
             normal_map      = arnold_builder.createNode("arnold::normal_map")
             normal_map.setInput(0, image_normal)
@@ -619,7 +640,7 @@ class Convert:
         return hou.node(arnold_nodes_dict['materialbuilder'])
 
 
-def run(convert_to='arnold'):
+def run(selected_nodes:list[hou.node], convert_to='arnold'):
     """
     function creates Arnold, MTLX and usdpreview textures successfully.
     to do:  - create usdpreview                                                           // DONE
@@ -629,7 +650,7 @@ def run(convert_to='arnold'):
             - create usd with usd-core lib so the usd creation can happen outside houdini.
     """
 
-    selected_nodes        = hou.selectedNodes()
+    # selected_nodes        = hou.selectedNodes()
     if not selected_nodes:
         raise Exception("Please select a node.")
     mat_context           = hou.node('/mat')
@@ -639,6 +660,7 @@ def run(convert_to='arnold'):
         input_tex_parms_dict = MaterialIngest.get_texture_parms_from_all_shader_types(input_node=input_node)
         textures_dict        = MaterialIngest.get_texture_maps_from_parms(input_tex_parms_dict)
         textures_dict_normalized = MaterialIngest.normalize_texture_map_keys(textures_dict)
+        shader_parms_dict = MaterialIngest.get_shader_parameters_from_principled_shader(input_node=input_node)
 
         print(f'///{textures_dict=}\n')
 
