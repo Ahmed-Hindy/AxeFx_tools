@@ -1,9 +1,21 @@
 import hou
+import logging
 from PySide2.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-                               QTextEdit, QListWidget, QMenuBar, QMenu, QAction, QMessageBox, QDialog, QCheckBox)
+                               QTextEdit, QListWidget, QMenuBar, QMenu, QAction, QMessageBox, QDialog, QCheckBox,
+                               QComboBox)
 from PySide2 import QtCore, QtGui
 
 from Material_Processor import materials_processer
+
+
+class QTextEditLogger(logging.Handler):
+    def __init__(self, log_area):
+        super().__init__()
+        self.log_area = log_area
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.log_area.append(msg)
 
 
 # Define a custom QMainWindow
@@ -68,9 +80,25 @@ class MyMainWindow(QMainWindow):
         about_action.triggered.connect(self.show_about_dialog)
         about_menu.addAction(about_action)
 
+        # Configure logger to use QTextEditLogger
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+
+        # Remove default handlers
+        self.logger.handlers = []
+
+        text_edit_handler = QTextEditLogger(self.log_area)
+        text_edit_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        self.logger.addHandler(text_edit_handler)
+
+        # Store preferences
+        self.preferences = {
+            'log_level': 'DEBUG'
+        }
+
     def convert_materials(self):
         selected_nodes = [self.node_list.item(i).text() for i in range(self.node_list.count())]
-        self.log_area.append(f"Converting materials for nodes: {selected_nodes}")
+        self.logger.info(f"Converting materials for nodes: {selected_nodes}")
         conversion_successful = True  # Assuming conversion is successful initially
         for node_path in selected_nodes:
             node = hou.node(node_path)
@@ -78,28 +106,37 @@ class MyMainWindow(QMainWindow):
                 try:
                     # Add your material conversion logic here
                     materials_processer.run(selected_node=node, convert_to='arnold')
-                    self.log_area.append(f"Converted materials for node: {node_path}")
+                    self.logger.info(f"Converted materials for node: {node_path}")
                 except Exception as e:
-                    self.log_area.append(f"Error converting node {node_path}: {str(e)}")
+                    self.logger.error(f"Error converting node {node_path}: {str(e)}")
                     conversion_successful = False
             else:
-                self.log_area.append(f"Node not found: {node_path}")
+                self.logger.warning(f"Node not found: {node_path}")
                 conversion_successful = False
 
         if conversion_successful:
             self.node_list.clear()
+            self.logger.info("Cleared node list after successful conversion.")
 
     def show_about_dialog(self):
         QMessageBox.about(self, "About Material Processor",
                           "Material Processor\n\nAuthor: Ahmed Hindy\nEmail: ahmed.hindy96@gmail.com")
+        self.logger.info("Displayed 'About' dialog.")
 
     def show_preferences_dialog(self):
-        dialog = PreferencesDialog(self)
-        dialog.exec_()
+        dialog = PreferencesDialog(self, self.preferences)
+        if dialog.exec_():
+            # Update preferences based on user selection
+            log_level = dialog.log_level_combobox.currentText()
+            numeric_level = getattr(logging, log_level, logging.INFO)
+            self.logger.setLevel(numeric_level)
+            self.preferences['log_level'] = log_level
+            self.logger.info(f"Log level set to {log_level}")
+        self.logger.info("Displayed 'Preferences' dialog.")
 
 
 class PreferencesDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, preferences=None):
         super(PreferencesDialog, self).__init__(parent)
         self.setWindowTitle("Preferences")
         self.setGeometry(400, 400, 300, 200)
@@ -109,7 +146,13 @@ class PreferencesDialog(QDialog):
         self.replace_material_checkbox = QCheckBox("Replace material assignment on linked geometry")
         layout.addWidget(self.replace_material_checkbox)
 
-        # Add more settings here if needed
+        # Log level selection
+        self.log_level_label = QLabel("Log Level:")
+        layout.addWidget(self.log_level_label)
+
+        self.log_level_combobox = QComboBox()
+        self.log_level_combobox.addItems(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
+        layout.addWidget(self.log_level_combobox)
 
         button_box = QHBoxLayout()
         ok_button = QPushButton("OK")
@@ -121,6 +164,12 @@ class PreferencesDialog(QDialog):
         button_box.addWidget(cancel_button)
 
         layout.addLayout(button_box)
+        logger = logging.getLogger(__name__)
+        logger.info("Initialized PreferencesDialog.")
+
+        # Set current log level from preferences
+        if preferences:
+            self.log_level_combobox.setCurrentText(preferences['log_level'])
 
 
 class NodeListWidget(QListWidget):
@@ -130,10 +179,14 @@ class NodeListWidget(QListWidget):
         self.setDragEnabled(True)
         self.setDefaultDropAction(QtCore.Qt.MoveAction)
         self.parent = parent
+        logger = logging.getLogger(__name__)
+        logger.info("Initialized NodeListWidget.")
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasText():
             event.acceptProposedAction()
+            logger = logging.getLogger(__name__)
+            logger.debug("Drag enter event accepted.")
 
     def dragMoveEvent(self, event):
         if event.mimeData().hasText():
@@ -142,24 +195,25 @@ class NodeListWidget(QListWidget):
     def dropEvent(self, event):
         mime = event.mimeData()
         if mime.hasText():
-            node_paths = mime.text().split('\t')  # Split the incoming text by newline to handle multiple nodes
+            node_paths = mime.text().split('\t')  # Split the text on tab character
+            logger = logging.getLogger(__name__)
             for node_path in node_paths:
-                node_path = node_path.strip()
-                if node_path:
-                    # Check if the node is already in the list
-                    if not self.findItems(node_path, QtCore.Qt.MatchExactly):
-                        self.addItem(node_path)
-                        self.parent.log_area.append(f"Node dropped: {node_path}")
-                    else:
-                        self.parent.log_area.append(f"Node already in list: {node_path}")
+                # Check if the node is already in the list
+                if not self.findItems(node_path, QtCore.Qt.MatchExactly):
+                    self.addItem(node_path)
+                    logger.info(f"Node dropped: {node_path}")
+                else:
+                    logger.info(f"Node already in list: {node_path}")
         else:
-            self.parent.log_area.append(f'Unsupported object for drag and drop, {mime.formats()}\n')
+            logger = logging.getLogger(__name__)
+            logger.warning(f'Unsupported object for drag and drop, {mime.formats()}\n')
 
     def keyPressEvent(self, event):
+        logger = logging.getLogger(__name__)
         if event.key() == QtCore.Qt.Key_Delete:
             for item in self.selectedItems():
                 self.takeItem(self.row(item))
-                self.parent.log_area.append(f"Node deleted: {item.text()}")
+                logger.info(f"Node deleted: {item.text()}")
         else:
             super(NodeListWidget, self).keyPressEvent(event)
 
@@ -173,4 +227,5 @@ def show_my_main_window():
     # Create and show the main window
     main_window = MyMainWindow(hou.ui.mainQtWindow())
     main_window.show()
-
+    logger = logging.getLogger(__name__)
+    logger.info("Main window displayed.")
