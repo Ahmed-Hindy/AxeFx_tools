@@ -11,7 +11,7 @@ class MyMainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MyMainWindow, self).__init__(parent)
         self.setWindowTitle("Material Processor")
-        self.setGeometry(300, 300, 600, 400)
+        self.setFixedSize(400, 600)  # Set fixed size (width, height)
 
         # Create a central widget and set it
         central_widget = QWidget()
@@ -112,9 +112,9 @@ class PreferencesDialog(QDialog):
         # Add more settings here if needed
 
         button_box = QHBoxLayout()
-        save_button = QPushButton("Save")
-        save_button.clicked.connect(self.accept)
-        button_box.addWidget(save_button)
+        ok_button = QPushButton("OK")
+        ok_button.clicked.connect(self.accept)
+        button_box.addWidget(ok_button)
 
         cancel_button = QPushButton("Cancel")
         cancel_button.clicked.connect(self.reject)
@@ -142,14 +142,16 @@ class NodeListWidget(QListWidget):
     def dropEvent(self, event):
         mime = event.mimeData()
         if mime.hasText():
-            node_path = mime.text()
-
-            # Check if the node is already in the list
-            if not self.findItems(node_path, QtCore.Qt.MatchExactly):
-                self.addItem(node_path)
-                self.parent.log_area.append(f"Node dropped: {node_path}")
-            else:
-                self.parent.log_area.append(f"Node already in list: {node_path}")
+            node_paths = mime.text().split('\t')  # Split the incoming text by newline to handle multiple nodes
+            for node_path in node_paths:
+                node_path = node_path.strip()
+                if node_path:
+                    # Check if the node is already in the list
+                    if not self.findItems(node_path, QtCore.Qt.MatchExactly):
+                        self.addItem(node_path)
+                        self.parent.log_area.append(f"Node dropped: {node_path}")
+                    else:
+                        self.parent.log_area.append(f"Node already in list: {node_path}")
         else:
             self.parent.log_area.append(f'Unsupported object for drag and drop, {mime.formats()}\n')
 
@@ -171,5 +173,4 @@ def show_my_main_window():
     # Create and show the main window
     main_window = MyMainWindow(hou.ui.mainQtWindow())
     main_window.show()
-
 
