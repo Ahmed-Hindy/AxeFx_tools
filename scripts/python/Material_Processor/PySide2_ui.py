@@ -1,10 +1,10 @@
-import hou
 import logging
 from PySide2.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                                QTextEdit, QListWidget, QMenuBar, QMenu, QAction, QMessageBox, QDialog, QCheckBox,
                                QComboBox)
 from PySide2 import QtCore, QtGui
 
+import hou
 from Material_Processor import materials_processer
 
 
@@ -23,7 +23,7 @@ class MyMainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MyMainWindow, self).__init__(parent)
         self.setWindowTitle("Material Processor")
-        self.setFixedSize(400, 600)  # Set fixed size (width, height)
+        self.setFixedSize(600, 400)  # Set fixed size (width, height)
 
         # Create a central widget and set it
         central_widget = QWidget()
@@ -84,8 +84,9 @@ class MyMainWindow(QMainWindow):
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.DEBUG)
 
-        # Remove default handlers
-        self.logger.handlers = []
+        # Remove all handlers associated with the root logger object
+        for handler in logging.root.handlers[:]:
+            logging.root.removeHandler(handler)
 
         text_edit_handler = QTextEditLogger(self.log_area)
         text_edit_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
@@ -179,8 +180,7 @@ class NodeListWidget(QListWidget):
         self.setDragEnabled(True)
         self.setDefaultDropAction(QtCore.Qt.MoveAction)
         self.parent = parent
-        logger = logging.getLogger(__name__)
-        logger.info("Initialized NodeListWidget.")
+        # logger = logging.getLogger(__name__)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasText():
