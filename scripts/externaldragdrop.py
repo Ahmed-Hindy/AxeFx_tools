@@ -7,10 +7,10 @@ import hou, re, os, sys, platform
 #decode urlpath on windows
 
 def dropAccept(files):
-    print(f'---dropping new file')
-    pane = hou.ui.paneTabUnderCursor() 
+    pane = hou.ui.paneTabUnderCursor()
     if (pane.type().name() != "NetworkEditor"):
         return False
+    print(f'externaldragdrop.py ---dropping new file: {files} into {pane.type().name()}')
     hversion = hou.applicationVersion()
     
     for i, file in enumerate(files):
