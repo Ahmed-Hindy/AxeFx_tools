@@ -640,7 +640,7 @@ class Convert:
         return hou.node(arnold_nodes_dict['materialbuilder'])
 
 
-def run(selected_nodes:list[hou.node], convert_to='arnold'):
+def run(selected_node: hou.node, convert_to='arnold'):
     """
     function creates Arnold, MTLX and usdpreview textures successfully.
     to do:  - create usdpreview                                                           // DONE
@@ -650,31 +650,29 @@ def run(selected_nodes:list[hou.node], convert_to='arnold'):
             - create usd with usd-core lib so the usd creation can happen outside houdini.
     """
 
-    # selected_nodes        = hou.selectedNodes()
-    if not selected_nodes:
+    if not selected_node:
         raise Exception("Please select a node.")
     mat_context           = hou.node('/mat')
 
-    for input_node in selected_nodes:
 
-        input_tex_parms_dict = MaterialIngest.get_texture_parms_from_all_shader_types(input_node=input_node)
-        textures_dict        = MaterialIngest.get_texture_maps_from_parms(input_tex_parms_dict)
-        textures_dict_normalized = MaterialIngest.normalize_texture_map_keys(textures_dict)
-        shader_parms_dict = MaterialIngest.get_shader_parameters_from_principled_shader(input_node=input_node)
+    input_tex_parms_dict = MaterialIngest.get_texture_parms_from_all_shader_types(input_node=selected_node)
+    textures_dict        = MaterialIngest.get_texture_maps_from_parms(input_tex_parms_dict)
+    textures_dict_normalized = MaterialIngest.normalize_texture_map_keys(textures_dict)
+    shader_parms_dict = MaterialIngest.get_shader_parameters_from_principled_shader(input_node=selected_node)
 
-        print(f'///{textures_dict=}\n')
+    print(f'///{textures_dict=}\n')
 
-        if convert_to == 'mtlx':
-            new_shader  = Convert.convert_to_mtlx(input_node, mat_context, textures_dict_normalized)
-        elif convert_to == 'arnold':
-            new_shader  = Convert.convert_to_arnold(input_node, mat_context, textures_dict_normalized)
-        elif convert_to == 'usdpreview':
-            new_shader  = Convert.convert_to_usdpreview(input_node, mat_context, textures_dict_normalized)
-        else:
-            raise Exception(f"Wrong format to convert to, choose either 'mtlx', 'arnold', 'usdpreview'")
+    if convert_to == 'mtlx':
+        new_shader  = Convert.convert_to_mtlx(selected_node, mat_context, textures_dict_normalized)
+    elif convert_to == 'arnold':
+        new_shader  = Convert.convert_to_arnold(selected_node, mat_context, textures_dict_normalized)
+    elif convert_to == 'usdpreview':
+        new_shader  = Convert.convert_to_usdpreview(selected_node, mat_context, textures_dict_normalized)
+    else:
+        raise Exception(f"Wrong format to convert to, choose either 'mtlx', 'arnold', 'usdpreview'")
 
-        new_shader.moveToGoodPosition()
-        # print(f'{mtlx_subnet=}')
+    new_shader.moveToGoodPosition()
+    # print(f'{mtlx_subnet=}')
 
 
 def test():
