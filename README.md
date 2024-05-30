@@ -6,13 +6,20 @@ this repo is in active development. Will be constantly updated by any new tools
 
 
 ### Material Processor
-a WIP Houdini tool that can ingest most materials -Principled, Arnold and MTLX for now- then convert them to any chosen render engine.
-The tool has it's logging mechanism that's seperate from Houdini. The code adheres to pip-standard clean code as much as possible.
-I do have big plans to extend it's functionality to .usd files and other apps like Substance Painter, Maya and blender.
+a WIP Houdini tool for all your needs for material conversions. Universal support for other dccs and .usd file format will be added in near future.
+
+#### Features
+- [ ] Drag and drop mat nodes into dropping area on the Application.
+- [ ] Ingests Most Materials -Principled, Arnold and MTLX for now-.
+- [ ] Convert all kinds of materials into any chosen render engine.
+- [ ] has it's own logging mechanisms.
+- [ ] pip-standard coding practices as much as possible.
+
 
 #### Roadmap
-- [ ] Add Changelog
-- [ ] Fix Ingestion for Arnold and MTLX
-- [ ] Add usd conversions
+- [ ] Add Changelog.
+- [ ] Fix Ingestion for Arnold and MTLX.
+- [ ] Add support for .usd files and usd stage in Solaris.
+- [ ] Extend functionality to other apps like Substance Painter, Maya and blender.
 
 ![Material_processor_v004](https://github.com/Ahmed-Hindy/AxeFx_tools/assets/23151881/0a330312-8809-44bf-b6a9-35e233c57eda)
