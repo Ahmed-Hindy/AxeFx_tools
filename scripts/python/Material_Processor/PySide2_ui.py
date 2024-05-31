@@ -1,4 +1,5 @@
 import logging
+from importlib import reload
 from PySide2.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                                QTextEdit, QListWidget, QMenuBar, QMenu, QAction, QMessageBox, QDialog, QCheckBox,
                                QComboBox)
@@ -98,6 +99,7 @@ class MyMainWindow(QMainWindow):
         }
 
     def convert_materials(self):
+        reload(materials_processer)
         selected_nodes = [self.node_list.item(i).text() for i in range(self.node_list.count())]
         self.logger.info(f"Converting materials for nodes: {selected_nodes}")
         conversion_successful = True  # Assuming conversion is successful initially
