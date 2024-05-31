@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/AxeFx_tools.iml" filepath="$PROJECT_DIR$/.idea/AxeFx_tools.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Private-Scripts/.idea/Private-Scripts.iml" filepath="$PROJECT_DIR$/../Private-Scripts/.idea/Private-Scripts.iml" />
       <module fileurl="file://$USER_HOME$/AppData/Local/Temp/.idea/Temp.iml" filepath="$USER_HOME$/AppData/Local/Temp/.idea/Temp.iml" />
     </modules>
   </component>
