@@ -131,6 +131,41 @@ class MaterialIngest:
 
         return standard_surface, mapped_nodes_dict
 
+
+    @staticmethod
+    def get_texture_nodes_from_mtlx_shader(input_node: hou.node) -> [hou.VopNode, Dict[str, hou.node]]:
+        """
+        mtlx subnet networks need traversing to detect which mtlximage node corresponds to which texture_type
+        e.g. 'albedo', this function will get this data as a dictionary.
+        NEW: this function will also add the mtlxstandard_surface node to the dictionary
+
+        :param input_node: hou.node() of type 'subnet' containing the mtlx network
+        :process: 1. Traverses the shader network to find all 'mtlximage' nodes connected
+                  2. returns dict of parameters on nodes 'mtlximage' that are connected to the shader
+        :return:  1. <hou.VopNode of type arnold::standard_surface at /mat/x/standard_surface1>                     #FIX THIS
+                  2. a dict of {'texture_type': hou.VopNode} e.g. {'albedo': <hou.VopNode of type arnold::image at  #FIX THIS
+                 /mat/arnold_mat/albedo_node>, 'normal': <hou.VopNode of type arnold::image at                      #FIX THIS
+                 /mat/arnold_mat/normal_node>}                                                                      #FIX THIS
+        """
+        filtered_dict     = {}
+        mapped_nodes_dict = {}
+        traverse_class  = TraverseNodeConnections()
+        traverse_tree   = traverse_class.traverse_children_nodes(input_node)
+        all_connections = traverse_class.map_all_nodes_to_target_input_index(traverse_tree,
+                                                                             node_b_type='mtlxstandard_surface')
+        # print(f'{all_connections=}')
+
+        # we will get the arnold::standard_surface
+        standard_surface = [k for k, v in all_connections.items() if k.type().name() == 'mtlxstandard_surface'][0]
+
+        # we will filter a dictionary to include only 'arnold::image'
+        filtered_dict.update({k: v for k, v in all_connections.items() if k.type().name() == 'mtlximage'})
+        mapped_nodes_dict.update(traverse_class.map_connection_input_index_to_texture_type(input_dict=filtered_dict))
+
+        print(f"\n get_texture_nodes_from_mtlx_shader-----{mapped_nodes_dict=}\n")
+
+        return standard_surface, mapped_nodes_dict
+
     @staticmethod
     def get_texture_parms_from_arnold_shader(tex_node_dict: Dict) -> Dict[str, hou.parm]:
         """
@@ -146,13 +181,32 @@ class MaterialIngest:
                 continue
             dicta[key] = value.parm('filename')
 
-        print(f'{tex_node_dict=},\n{dicta=}')
+        # print(f'{tex_node_dict=},\n{dicta=}')
+        return dicta
+
+
+    @staticmethod
+    def get_texture_parms_from_mtlx_shader(tex_node_dict: Dict) -> Dict[str, hou.parm]:
+        """
+        :param tex_node_dict: dict of {'texture_type': hou.VopNode}                                     #FIX THIS
+                              e.g. {'albedo': <hou.VopNode of type arnold::image at /mat/x/albedo>},    #FIX THIS
+        :return: will get the hou.parm containing image file path                                       #FIX THIS
+                 e.g. {'albedo': <hou.VopNode of type arnold::image at /mat/arnold3/albedo>,            #FIX THIS
+                 'normal': <hou.VopNode of type arnold::image at /mat/arnold3/normal>}                  #FIX THIS
+        """
+        dicta = {}
+        for key, value in tex_node_dict.items():
+            if key == 'standard_surface':
+                continue
+            dicta[key] = value.parm('file')
+
+        # print(f'{tex_node_dict=},\n{dicta=}')
         return dicta
 
     @staticmethod
     def get_texture_parms_from_all_shader_types(input_node: hou.node) -> [hou.VopNode, Dict[str, hou.parm]]:
-        """ [DOCSTRING WIP] this method needs to be reworked, should return dict of {'texture_type':hou.parm} instead of a list
-
+        """
+        [DOCSTRING WIP]
         """
         input_tex_parm_dict = {}
         standard_surface = None
@@ -163,7 +217,10 @@ class MaterialIngest:
         elif node_type == 'arnold_materialbuilder':
             standard_surface, input_tex_nodes_dict = MaterialIngest.get_texture_nodes_from_arnold_shader(input_node)
             input_tex_parm_dict = MaterialIngest.get_texture_parms_from_arnold_shader(input_tex_nodes_dict)
-        elif node_type != 'subnet':
+        elif node_type == 'subnet': # need a check if its mtlx or usdpreview
+            standard_surface, input_tex_nodes_dict = MaterialIngest.get_texture_nodes_from_mtlx_shader(input_node)
+            input_tex_parm_dict = MaterialIngest.get_texture_parms_from_mtlx_shader(input_tex_nodes_dict)
+        else:
             raise Exception(f'Unknown Node Type: {node_type}')
 
         print(f'//{input_tex_parm_dict=}\n')
@@ -310,7 +367,7 @@ class MaterialIngest:
         emissiveColor, roughness, etc.
         :return: A normalized dictionary containing shader parameters.
         """
-        print(f'get_shader_parameters_from_materialx_shader()-----{input_node=}')
+        print(f'get_shader_parameters_from_usdpreview_shader()-----{input_node=}')
         shader_parameters_dict = {
             'base_color': input_node.parmTuple('diffuseColor').eval(),
             'metalness': input_node.evalParm('metalness'),
