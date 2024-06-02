@@ -90,7 +90,7 @@ class MyMainWindow(QMainWindow):
             logging.root.removeHandler(handler)
 
         text_edit_handler = QTextEditLogger(self.log_area)
-        text_edit_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        text_edit_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         self.logger.addHandler(text_edit_handler)
 
         # Store preferences
@@ -111,7 +111,7 @@ class MyMainWindow(QMainWindow):
                     materials_processer.run(selected_node=node, convert_to='arnold')
                     self.logger.info(f"Converted materials for node: {node_path}")
                 except Exception as e:
-                    self.logger.error(f"Error converting node {node_path}: {str(e)}")
+                    self.logger.exception(f"Error converting node {node_path}: {str(e)}")
                     conversion_successful = False
             else:
                 self.logger.warning(f"Node not found: {node_path}")

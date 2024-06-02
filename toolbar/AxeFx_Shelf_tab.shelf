@@ -15,7 +15,6 @@
     <memberTool name="File_Loader"/>
     <memberTool name="attribmantut"/>
     <memberTool name="XOP_SP_Linker"/>
-    <memberTool name="Shader_Converter_echopr"/>
     <memberTool name="Shader Converter"/>
     <memberTool name="Principled_to_MTLX_v4"/>
     <memberTool name="principled_from_pat"/>
@@ -62,9 +61,12 @@ for node in nodes:
   </tool>
 
   <tool name="KB3D_change_mat_res" label="KB3D change material resolution" icon="PLASMA_App">
-    <script scriptType="python"><![CDATA[from importlib import reload
+    <script scriptType="python"><![CDATA[""" run this script on the matnet in a KB3D provided hipfile """
+
+from importlib import reload
 from my_scripts import KB3D_change_res
 reload(KB3D_change_res)
+
 
 nodes = hou.selectedNodes()
 for node in nodes:

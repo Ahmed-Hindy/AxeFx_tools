@@ -4,6 +4,10 @@ origVar = "4k"  # orig string to replace
 newVar  = """`chs("../../res")`"""  # replace with this
 obj     = hou.node("/obj")
 
+
+# def
+
+
 def add_str_res_parm_to_node(node, param_name='parm_name', label='parm_label', default_value="4k") -> None:
     """
     function: adds a string parameter for a node.
