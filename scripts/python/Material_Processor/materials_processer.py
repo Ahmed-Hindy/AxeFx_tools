@@ -184,7 +184,7 @@ class MaterialIngest:
 
         print(f'get_texture_maps_from_parms()-----{textures_dict=}\n')
         return textures_dict
-    
+
 
     @staticmethod
     def normalize_texture_map_keys(textures_dict: Dict[str, str]) -> Dict[str, str]:
@@ -266,6 +266,7 @@ class MaterialIngest:
             'subsurface_color': input_node.parmTuple('subsurface_color').eval(),
             'emission'      : input_node.evalParm('emission'),
             'emission_color': input_node.parmTuple('emission_color').eval(),
+            'opacity'       : input_node.parmTuple('opacity').eval(),
         }
 
 
@@ -296,6 +297,27 @@ class MaterialIngest:
             'subsurface_color': input_node.parmTuple('subsurface_color').eval(),
             'emission': input_node.evalParm('emission'),
             'emission_color': input_node.parmTuple('emission_color').eval(),
+            'opacity'       : input_node.parmTuple('opacity').eval(),
+        }
+
+        print(f'{shader_parameters_dict=}')
+        return shader_parameters_dict
+
+    @staticmethod
+    def get_shader_parameters_from_usdpreview_shader(input_node: hou.node) -> Dict:
+        """
+        Given a usdpreview shader node, this function attempts to get all shader parameters like diffuseColor,
+        emissiveColor, roughness, etc.
+        :return: A normalized dictionary containing shader parameters.
+        """
+        print(f'get_shader_parameters_from_materialx_shader()-----{input_node=}')
+        shader_parameters_dict = {
+            'base_color': input_node.parmTuple('diffuseColor').eval(),
+            'metalness': input_node.evalParm('metalness'),
+            'specular_roughness': input_node.evalParm('roughness'),
+            'specular_IOR': input_node.evalParm('ior'),
+            'emission_color': input_node.parmTuple('emissiveColor').eval(),
+            'opacity': (input_node.evalParm('opacity'), 0, 0),  # opacity should be a tuple like in arnold and mtlx.
         }
 
         print(f'{shader_parameters_dict=}')
@@ -309,14 +331,14 @@ class MaterialIngest:
             input_shader_parm_dict = MaterialIngest.get_shader_parameters_from_principled_shader(input_node)
         elif node_type == 'arnold_materialbuilder':
             input_shader_parm_dict = MaterialIngest.get_shader_parameters_from_arnold_shader(old_standard_surface)
-        elif node_type == 'subnet':
+        elif node_type == 'subnet':  # need a check for mtlx vs usdpreview
             input_shader_parm_dict = MaterialIngest.get_shader_parameters_from_materialx_shader(old_standard_surface)
         else:
             raise Exception(f'Unknown Node Type: {node_type}')
 
         print(f'//{input_shader_parm_dict=}\n')
         return input_shader_parm_dict
-    
+
 
 class TraverseNodeConnections:
     def __init__(self) -> None:
@@ -471,10 +493,10 @@ class Convert:
 
         usdpreview_image_dict = {}
 
-        usdpreview_subnet  = mat_context.createNode("subnet", node_name + "_usdpreview")
-        usd_previewsurface = usdpreview_subnet.createNode("usdpreviewsurface", node_name + "_usdpreview")
-        usdpreview_image_dict['materialbuilder'] = usdpreview_subnet.path()
-        usdpreview_image_dict['preview_surface'] = usd_previewsurface.path()
+        usdpreview_subnet  = mat_context.createNode("subnet", f"{node_name}_usdpreview")
+        usd_previewsurface = usdpreview_subnet.createNode("usdpreviewsurface", f"{node_name}_usdpreview")
+        usdpreview_image_dict['materialbuilder']  = usdpreview_subnet.path()
+        usdpreview_image_dict['standard_surface'] = usd_previewsurface.path()
 
 
         primvar_st = usdpreview_subnet.createNode("usdprimvarreader", "usd_primvar_ST")
@@ -518,16 +540,43 @@ class Convert:
 
 
     @staticmethod
-    def convert_to_usdpreview(input_mat_node, standard_surface: hou.VopNode, mat_context, normalized_textures_dict):
+    def apply_shader_parameters_to_usdpreview_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
+        """
+        Apply shader parameters to a newly created usdpreview shader node.
+        :param new_standard_surface: hou.VopNode the newly created usdpreview shader
+        :param shader_parameters: A dictionary containing shader parameter values.
+        """
+        print(
+            f'apply_shader_parameters_to_usdpreview_shader()-----{new_standard_surface=}\n{shader_parameters=}\n')
+
+        new_standard_surface.parmTuple('diffuseColor').set(shader_parameters.get('base_color', (1.0, 1.0, 1.0)))
+        new_standard_surface.parm('metallic').set(shader_parameters.get('metalness', 0.0))
+        new_standard_surface.parm('roughness').set(shader_parameters.get('specular_roughness', 0.2))
+        new_standard_surface.parm('ior').set(shader_parameters.get('specular_IOR', 1.5))
+        new_standard_surface.parmTuple('emissiveColor').set(shader_parameters.get('emission_color', (0.0, 0.0, 0.0)))
+        new_standard_surface.parm('opacity').set(shader_parameters.get('opacity', 1))
+
+        print(f'Shader parameters applied to {new_standard_surface.name()}')
+
+
+    @staticmethod
+    def convert_to_usdpreview(input_mat_node, mat_context, normalized_textures_dict, shader_parms_dict):
         """ Main function to run for creating new usdpreview material
             :param input_mat_node: input material node to convert from.
             :param mat_context: mat context to create the material in, e.g. '/mat'
             :param normalized_textures_dict: a dict of gathered data about all texture images to be re-created.
             :return: new hou.VopNode of the material subnet.
         """
-        input_node_name = input_mat_node.name()
-        usdpreview_nodes_dict = Convert.create_usdpreview_shader(mat_context, input_node_name, textures_dictionary=normalized_textures_dict)
-        Convert.connect_usdpreview_textures(usdpreview_nodes_dict=usdpreview_nodes_dict, textures_dictionary=normalized_textures_dict)
+        # print(f'{normalized_textures_dict=}\n')
+        input_node_name   = input_mat_node.name()
+        usdpreview_nodes_dict = Convert.create_usdpreview_shader(mat_context, input_node_name,
+                                                                 textures_dictionary=normalized_textures_dict)
+        new_standard_surface = hou.node(usdpreview_nodes_dict['standard_surface'])
+        Convert.connect_usdpreview_textures(usdpreview_nodes_dict=usdpreview_nodes_dict,
+                                            textures_dictionary=normalized_textures_dict)
+        Convert.apply_shader_parameters_to_usdpreview_shader(new_standard_surface=new_standard_surface,
+                                                             shader_parameters=shader_parms_dict)
+
         return hou.node(usdpreview_nodes_dict['materialbuilder'])
 
 
@@ -568,7 +617,7 @@ class Convert:
         mtlx_image_dict['standard_surface'] = mtlx.path()
 
         # CREATE ALBEDO
-        if textures_dictionary.get('albedo'): 
+        if textures_dictionary.get('albedo'):
             albedo = mtlx_subnet.createNode("mtlximage", "albedo")
             mtlx.setInput(1, albedo)
             mtlx_image_dict['image_albedo'] = albedo.path()
@@ -674,8 +723,8 @@ class Convert:
         new_standard_surface = hou.node(mtlx_nodes_dict['standard_surface'])
         Convert.connect_mtlx_textures(mtlx_nodes_dict=mtlx_nodes_dict,
                                       textures_dictionary=normalized_textures_dict)
-        Convert.apply_shader_parameters_to_mtlx_shader(standard_surface=new_standard_surface,
-                                                         shader_parameters=shader_parms_dict)
+        Convert.apply_shader_parameters_to_mtlx_shader(new_standard_surface=new_standard_surface,
+                                                       shader_parameters=shader_parms_dict)
 
         return hou.node(mtlx_nodes_dict['materialbuilder'])
 
@@ -703,13 +752,13 @@ class Convert:
         arnold_image_dict['standard_surface'] = node_std_surface.path()
 
         # CREATE ALBEDO
-        if textures_dictionary.get('albedo'): 
+        if textures_dictionary.get('albedo'):
             image_albedo    = arnold_builder.createNode("arnold::image", "albedo")
             node_std_surface.setInput(1, image_albedo)
             arnold_image_dict['image_albedo'] = image_albedo.path()
 
         # CREATE ROUGHNESS
-        if textures_dictionary.get('roughness'): 
+        if textures_dictionary.get('roughness'):
             image_roughness = arnold_builder.createNode("arnold::image", "roughness")
             node_std_surface.setInput(6, image_roughness)
             arnold_image_dict['image_roughness'] = image_roughness.path()
@@ -817,7 +866,7 @@ def run(selected_node: hou.node, convert_to='arnold'):
     shader_parms_dict = MaterialIngest.get_shader_parameters_from_all_shader_types(input_node=selected_node,
                                                                                    old_standard_surface=old_standard_surface)
 
-    print(f'{textures_dict=}\n{shader_parms_dict=}\n')
+    print(f'{textures_dict=}\n{shader_parms_dict=}\n{convert_to=}\n')
 
     # Convert:
     if convert_to == 'mtlx':
