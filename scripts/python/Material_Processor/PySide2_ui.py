@@ -48,6 +48,13 @@ class MyMainWindow(QMainWindow):
         self.log_area.setReadOnly(True)
         layout.addWidget(self.log_area)
 
+        # Add the format selection combo box
+        format_label = QLabel("Select Material Format:")
+        layout.addWidget(format_label)
+        self.format_combobox = QComboBox()
+        self.format_combobox.addItems(["principled_shader", "arnold", "mtlx", "usdpreview"])  # Add your formats here
+        layout.addWidget(self.format_combobox)
+
         # Add the convert materials button and close button at the bottom
         bottom_bar = QHBoxLayout()
         layout.addLayout(bottom_bar)
@@ -101,17 +108,18 @@ class MyMainWindow(QMainWindow):
     def convert_materials(self):
         reload(materials_processer)
         selected_nodes = [self.node_list.item(i).text() for i in range(self.node_list.count())]
-        self.logger.info(f"Converting materials for nodes: {selected_nodes}")
+        selected_format = self.format_combobox.currentText()
+        self.logger.info(f"Converting materials for nodes: {selected_nodes} to format: {selected_format}")
         conversion_successful = True  # Assuming conversion is successful initially
         for node_path in selected_nodes:
             node = hou.node(node_path)
             if node:
                 try:
                     # Add your material conversion logic here
-                    materials_processer.run(selected_node=node, convert_to='arnold')
-                    self.logger.info(f"Converted materials for node: {node_path}")
+                    materials_processer.run(selected_node=node, convert_to=selected_format)
+                    self.logger.info(f"Converted materials for node: {node_path} to format: {selected_format}")
                 except Exception as e:
-                    self.logger.exception(f"Error converting node {node_path}: {str(e)}")
+                    self.logger.exception(f"Error converting node {node_path} to format {selected_format}: {str(e)}")
                     conversion_successful = False
             else:
                 self.logger.warning(f"Node not found: {node_path}")
