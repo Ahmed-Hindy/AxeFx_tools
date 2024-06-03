@@ -2,7 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/scripts/python/package1/MaterialsPackage" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/scripts/python/legacy_scripts/MaterialsPackage" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Private-Scripts" vcs="Git" />
   </component>
 </project>
