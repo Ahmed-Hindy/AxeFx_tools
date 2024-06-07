@@ -1,13 +1,24 @@
+"""
+Copyright Ahmed Hindy. Please mention the author if you found any part of this code useful.
+
+"""
+
+
 import pxr
 import hou
+import json
 
 
 class USD_Shaders():
     def __init__(self):
         pass
 
-    def get_connected_file_path(self, shader_input):
-        """ Recursively follow shader input connections to find the actual file path. """
+    def _get_connected_file_path(self, shader_input):
+        """
+        Recursively follow shader input connections to find the actual file path.
+        :param shader_input: <pxr.UsdShade.Input object>. which we get from <UsdShade.Shader object>.GetInput('file')
+        """
+        # print(f'///{shader_input=}')
         connection = shader_input.GetConnectedSource()
         while connection:
             connected_shader_api, connected_input_name, _ = connection
@@ -20,9 +31,16 @@ class USD_Shaders():
                 return connected_input.Get()
 
     def traverse_shader_network(self, shader, material_name, texture_data, path=[], connected_param=""):
+        """
+        main traversal function.
+        :param shader: <UsdShade.Shader object> e.g. Usd.Prim(</root/material/_03_Base/UsdPreviewSurface/ShaderUsdPreviewSurface>)
+        :param material_name: str material name. e.g. '_01_Head', '_02_Body', or '_03_Base'
+        :param texture_data: recursive texture data that is gotten from same function. left empty when run from outside.
+        :param path: left empty when run from outside.
+        :param connected_param: left empty when run from outside.
+        """
         if shader is None:
             return
-
         shader_prim = shader.GetPrim()
         # print(f'{shader=}, {shader_prim=}')
         shader_id = shader_prim.GetAttribute('info:id').Get()
@@ -35,7 +53,7 @@ class USD_Shaders():
                 print(f'UsdUVTexture found: {shader_prim}, file_path_attr: {file_path_attr}')
 
                 # Get the actual file path by following connections
-                attr_value = self.get_connected_file_path(file_path_attr)
+                attr_value = self._get_connected_file_path(file_path_attr)
 
                 if isinstance(attr_value, pxr.Sdf.AssetPath):
                     file_path = attr_value.resolvedPath if attr_value.resolvedPath else attr_value.path
@@ -48,7 +66,7 @@ class USD_Shaders():
                             'traversal_path': ' -> '.join(path),
                             'connected_input': connected_param
                         })
-                        # print(f'Texture data appended: {texture_data[-1]}')
+                        # print(f'Texture data appended: {texture_data[-1]}')   # debug print
                     else:
                         print(f'Empty file path for asset: {attr_value}')
                 else:
@@ -111,13 +129,56 @@ class USD_Shaders():
                 # Find the UsdPreviewSurface shader and start traversal from its inputs
                 surface_shader = self.find_usd_preview_surface_shader(material)
                 if surface_shader:
-                    print(f"Found UsdPreviewSurface Shader: {surface_shader}")
+                    # print(f"Found UsdPreviewSurface Shader: {surface_shader=}\n{material_name=}\n{texture_data=}\n\n")
                     for input in surface_shader.GetInputs():
                         self.traverse_shader_network(surface_shader, material_name, texture_data)
                 else:
                     print(f"No UsdPreviewSurface Shader found for material: {material_name}")
 
         return texture_data
+
+    def standardize_textures_format(self, texture_data):
+        """standardizes the extracted texture data into my own standardized format for all materials."""
+        materials_dict = {}
+        for texture in texture_data:
+            material_name = texture['material_name']
+            if material_name not in materials_dict:
+                materials_dict[material_name] = {
+                    'albedo': '',
+                    'rough': '',
+                    'metallic': '',
+                    'normal': '',
+                    'displacement': '',
+                    'occlusion': ''
+                }
+            connected_input = texture['connected_input']
+            file_path = texture['file_path']
+            if connected_input == 'diffuseColor':
+                materials_dict[material_name]['albedo'] = file_path
+            elif connected_input == 'roughness':
+                materials_dict[material_name]['rough'] = file_path
+            elif connected_input == 'metallic':
+                materials_dict[material_name]['metallic'] = file_path
+            elif connected_input == 'normal':
+                materials_dict[material_name]['normal'] = file_path
+            elif connected_input == 'occlusion':
+                materials_dict[material_name]['occlusion'] = file_path
+        return materials_dict
+
+
+    def save_textures_to_file(self, texture_data, file_path):
+        """Pretty print the texture data dictionary to a text file."""
+        with open(file_path, 'w') as file:
+            json.dump(texture_data, file, indent=4)
+            print(f"Texture data successfully written to {file_path}")
+
+
+    def save_textures_to_file(self, texture_data, file_path):
+        """ Pretty print the texture data dictionary to a text file. """
+        with open(file_path, 'w') as file:
+            # Pretty print the dictionary with indent
+            json.dump(texture_data, file, indent=4)
+            print(f"Texture data successfully written to {file_path}")
 
     def create_principled_shaders_with_textures(self, texture_data):
         mat_context = hou.node("/mat")
@@ -170,6 +231,8 @@ def run():
     # Example usage
     classMC = USD_Shaders()
     textures = classMC.extract_textures_from_shaders()
+    transformed_textures = classMC.standardize_textures_format(textures)
+    classMC.save_textures_to_file(transformed_textures, r'F:\Users\Ahmed Hindy\Documents\Adobe\Adobe Substance 3D Painter\export/file.txt')
 
     # print(f"Extracted Textures: {textures}")  # Debug print
 
