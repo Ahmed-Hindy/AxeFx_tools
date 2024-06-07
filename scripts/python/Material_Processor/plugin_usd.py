@@ -5,33 +5,56 @@ import hou
 class USD_Shaders():
     def __init__(self):
         pass
-        # self.stage = stage
 
+    def get_connected_file_path(self, shader_input):
+        """ Recursively follow shader input connections to find the actual file path. """
+        connection = shader_input.GetConnectedSource()
+        while connection:
+            connected_shader_api, connected_input_name, _ = connection
+            connected_shader = pxr.UsdShade.Shader(connected_shader_api.GetPrim())
+            connected_input = connected_shader.GetInput(connected_input_name)
 
-    def traverse_shader_network(shader, material_name, texture_data, path=[], connected_param=""):
+            if connected_input and connected_input.HasConnectedSource():
+                connection = connected_input.GetConnectedSource()
+            else:
+                return connected_input.Get()
+
+    def traverse_shader_network(self, shader, material_name, texture_data, path=[], connected_param=""):
         if shader is None:
             return
 
         shader_prim = shader.GetPrim()
+        # print(f'{shader=}, {shader_prim=}')
         shader_id = shader_prim.GetAttribute('info:id').Get()
         path.append(shader_id or shader_prim.GetPath().GetName())
 
-        # Handle UsdUvTexture nodes (texture nodes)
+        # Handle UsdUVTexture nodes (texture nodes)
         if shader_id == 'UsdUVTexture':
             file_path_attr = shader.GetInput('file')
-            if file_path_attr and not file_path_attr.HasConnectedSource():
-                asset_path = file_path_attr.Get()
-                if isinstance(asset_path, pxr.Sdf.AssetPath):
-                    file_path = asset_path.resolvedPath if asset_path.resolvedPath else asset_path.path
-                    texture_data.append({
-                        'material_name': material_name,
-                        'texture_type': shader_id,
-                        'file_path': file_path,
-                        'traversal_path': ' -> '.join(path),
-                        'connected_input': connected_param
-                    })
-                    # Print the connected parameter name
-                    # print(f"Texture: {shader_id}, Connected to: {connected_param}")
+            if file_path_attr and isinstance(file_path_attr, pxr.UsdShade.Input):
+                print(f'UsdUVTexture found: {shader_prim}, file_path_attr: {file_path_attr}')
+
+                # Get the actual file path by following connections
+                attr_value = self.get_connected_file_path(file_path_attr)
+
+                if isinstance(attr_value, pxr.Sdf.AssetPath):
+                    file_path = attr_value.resolvedPath if attr_value.resolvedPath else attr_value.path
+                    # print(f'Resolved file path: {file_path}')
+                    if file_path:
+                        texture_data.append({
+                            'material_name': material_name,
+                            'texture_type': shader_id,
+                            'file_path': file_path,
+                            'traversal_path': ' -> '.join(path),
+                            'connected_input': connected_param
+                        })
+                        # print(f'Texture data appended: {texture_data[-1]}')
+                    else:
+                        print(f'Empty file path for asset: {attr_value}')
+                else:
+                    print(f'Invalid asset path type: {type(attr_value)}')
+            else:
+                print(f'File path attribute is not found or not connected for {shader_prim}')
             path.pop()
             return
 
@@ -46,13 +69,12 @@ class USD_Shaders():
                 if shader_id == 'UsdPreviewSurface':
                     connected_param = input.GetBaseName()
 
-                USD_Shaders.traverse_shader_network(connected_shader, material_name, texture_data, path.copy(), connected_param)
+                # Use self to call the method recursively
+                self.traverse_shader_network(connected_shader, material_name, texture_data, path, connected_param)
 
         path.pop()
-        
-    # This function should be called within the context of the extract_textures_from_shaders function
 
-    def find_usd_preview_surface_shader(material):
+    def find_usd_preview_surface_shader(self, material):
         for shader_output in material.GetOutputs():
             connection = shader_output.GetConnectedSource()
             if connection:
@@ -62,7 +84,7 @@ class USD_Shaders():
                 if shader_id == 'UsdPreviewSurface':
                     return connected_shader
         return None
-    
+
     def extract_textures_from_shaders(self):
         # Get the currently selected nodes
         selected_nodes = hou.selectedNodes()
@@ -83,23 +105,28 @@ class USD_Shaders():
                 material = pxr.UsdShade.Material(prim)
                 material_name = material.GetPath().name
 
+                # Debug print for each material
+                # print(f"Found Material: {material_name}")
+
                 # Find the UsdPreviewSurface shader and start traversal from its inputs
-                surface_shader = find_usd_preview_surface_shader(material)
+                surface_shader = self.find_usd_preview_surface_shader(material)
                 if surface_shader:
+                    print(f"Found UsdPreviewSurface Shader: {surface_shader}")
                     for input in surface_shader.GetInputs():
-                        traverse_shader_network(surface_shader, material_name, texture_data)
+                        self.traverse_shader_network(surface_shader, material_name, texture_data)
+                else:
+                    print(f"No UsdPreviewSurface Shader found for material: {material_name}")
 
         return texture_data
 
-
-
-
-
-        
     def create_principled_shaders_with_textures(self, texture_data):
         mat_context = hou.node("/mat")
         if not mat_context:
             raise ValueError("'/mat' context not found in Houdini.")
+
+        if not texture_data:
+            print("No texture data found to create shaders.")  # Debug print
+            return
 
         for texture_info in texture_data:
             material_name = texture_info['material_name']
@@ -110,24 +137,23 @@ class USD_Shaders():
             shader_node = mat_context.node(material_name)
             if not shader_node:
                 shader_node = mat_context.createNode('principledshader::2.0', node_name=material_name)
+                print(f"Created shader node: {shader_node}")  # Debug print
 
             # Map textures based on the connected input
             if connected_input == 'diffuseColor':
                 shader_node.parm('basecolor_texture').set(file_path)
                 shader_node.parm('basecolor_useTexture').set(True)
                 shader_node.parm('basecolor_usePointColor').set(0)
-                shader_node.parmTuple('basecolor').set((1,1,1))
+                shader_node.parmTuple('basecolor').set((1, 1, 1))
             elif connected_input == 'normal':
                 shader_node.parm('baseNormal_texture').set(file_path)
                 shader_node.parm('baseNormal_useTexture').set(True)
                 shader_node.parm('baseBumpAndNormal_enable').set(True)
             elif connected_input == 'metallic':
-                # Set the metallic texture parameter (assuming it exists)
                 shader_node.parm('metallic_texture').set(file_path)
                 shader_node.parm('metallic_useTexture').set(True)
                 shader_node.parm('metallic').set(1)
             elif connected_input == 'occlusion':
-                # Set the occlusion texture parameter (assuming it exists)
                 shader_node.parm('occlusion_texture').set(file_path)
                 shader_node.parm('occlusion_useTexture').set(True)
             elif connected_input == 'roughness':
@@ -140,42 +166,12 @@ class USD_Shaders():
             mat_context.layoutChildren()
 
 
-    def create_redshift_materials_with_textures(self, texture_data):
-        mat_context = hou.node("/mat")
-        if not mat_context:
-            raise ValueError("'/mat' context not found in Houdini.")
+def run():
+    # Example usage
+    classMC = USD_Shaders()
+    textures = classMC.extract_textures_from_shaders()
 
-        for texture_info in texture_data:
-            material_name = texture_info['material_name']
-            file_path = texture_info['file_path']
-            connected_input = texture_info['connected_input']
+    # print(f"Extracted Textures: {textures}")  # Debug print
 
-            # Create or find the Redshift material node
-            rs_material_node = mat_context.node(material_name)
-            if not rs_material_node:
-                rs_material_node = mat_context.createNode('rs_usd_material_builder', node_name=material_name)
-
-            # Find or create the Redshift Standard Material inside the builder
-            rs_standard_material = rs_material_node.node('StandardMaterial1')
-            
-            # Create a TextureSampler for each texture
-            texture_sampler = rs_material_node.createNode('redshift::TextureSampler')
-            print(f"==>> texture_sampler: {texture_sampler}")
-            texture_sampler.parm('tex0').set(file_path)
-
-            # Connect the TextureSampler to the StandardMaterial based on the connected input
-            if connected_input == 'diffuseColor':
-                texture_sampler.outputConnectors()[0].connectToInput(rs_standard_material.inputConnectors()['diffuse_color'])
-            elif connected_input == 'normal':
-                texture_sampler.outputConnectors()[0].connectToInput(rs_standard_material.inputConnectors()['bump_input'])
-            elif connected_input == 'roughness':
-                texture_sampler.outputConnectors()[0].connectToInput(rs_standard_material.inputConnectors()['refl_roughness'])
-            # Add more conditions as needed for other textures
-
-            # Layout nodes for better visualization
-            mat_context.layoutChildren()
-
-
-
-
-
+    # classMC.create_principled_shaders_with_textures(textures)
+    classMC.create_principled_shaders_with_textures(textures)
