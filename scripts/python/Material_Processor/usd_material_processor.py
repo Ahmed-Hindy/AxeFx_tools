@@ -2,11 +2,16 @@
 Copyright Ahmed Hindy. Please mention the author if you found any part of this code useful.
 
 """
-
-
-import pxr
-import hou
+from importlib import reload
 import json
+if not hou:
+    import materials_processer
+else:
+    from Material_Processor import materials_processer  # why do we have to do this in Houdini if they both exist in the same directoy!!!
+
+reload(materials_processer)
+import hou
+import pxr
 
 
 class USD_Shaders():
@@ -142,27 +147,27 @@ class USD_Shaders():
         materials_dict = {}
         for texture in texture_data:
             material_name = texture['material_name']
-            if material_name not in materials_dict:
-                materials_dict[material_name] = {
-                    'albedo': '',
-                    'rough': '',
-                    'metallic': '',
-                    'normal': '',
-                    'displacement': '',
-                    'occlusion': ''
-                }
+            # if material_name not in materials_dict:
+            #     materials_dict = {
+            #         'albedo': '',
+            #         'rough': '',
+            #         'metallic': '',
+            #         'normal': '',
+            #         'displacement': '',
+            #         'occlusion': ''
+            #     }
             connected_input = texture['connected_input']
             file_path = texture['file_path']
             if connected_input == 'diffuseColor':
-                materials_dict[material_name]['albedo'] = file_path
+                materials_dict['albedo'] = file_path
             elif connected_input == 'roughness':
-                materials_dict[material_name]['rough'] = file_path
+                materials_dict['roughness'] = file_path
             elif connected_input == 'metallic':
-                materials_dict[material_name]['metallic'] = file_path
+                materials_dict['metallness'] = file_path
             elif connected_input == 'normal':
-                materials_dict[material_name]['normal'] = file_path
+                materials_dict['normal'] = file_path
             elif connected_input == 'occlusion':
-                materials_dict[material_name]['occlusion'] = file_path
+                materials_dict['occlusion'] = file_path
         return materials_dict
 
 
@@ -230,11 +235,16 @@ class USD_Shaders():
 def run():
     # Example usage
     classMC = USD_Shaders()
-    textures = classMC.extract_textures_from_shaders()
-    transformed_textures = classMC.standardize_textures_format(textures)
+    textures_dict = classMC.extract_textures_from_shaders()
+    transformed_textures = classMC.standardize_textures_format(textures_dict)
     classMC.save_textures_to_file(transformed_textures, r'F:\Users\Ahmed Hindy\Documents\Adobe\Adobe Substance 3D Painter\export/file.txt')
 
     # print(f"Extracted Textures: {textures}")  # Debug print
 
     # classMC.create_principled_shaders_with_textures(textures)
-    classMC.create_principled_shaders_with_textures(textures)
+
+    # following materials_processor stuff needs dicts provided to be PER MATERIAL.
+    # I need to make sure all textures are passed to arnold in the end
+    mat_context = hou.node('/mat')
+    new_dict = materials_processer.Convert.create_usdpreview_shader(mat_context=mat_context, node_name='test_node', textures_dictionary=transformed_textures)
+    materials_processer.Convert.connect_usdpreview_textures(usdpreview_nodes_dict=new_dict, textures_dictionary=transformed_textures)

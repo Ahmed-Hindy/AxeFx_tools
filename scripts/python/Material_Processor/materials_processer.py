@@ -1,5 +1,5 @@
 """
-copyright Ahmed Hindy. please mention the original author if you used any part of this code
+copyright Ahmed Hindy. Please mention the original author if you used any part of this code
 """
 
 import hou
@@ -537,7 +537,7 @@ class Convert:
     note: rename to 'Create'
     """
     @staticmethod
-    def create_usdpreview_shader(mat_context: hou.node, node_name: str, textures_dictionary: Dict) -> Dict:
+    def create_usdpreview_shader(mat_context: hou.VopNode, node_name: str, textures_dictionary: Dict) -> Dict:
         """ creates an usdpreview subnet VOP, and inside it creates a usdpreviewsurface and multiple 'usduvtexture::2.0'
             nodes for each EXISTING texture type e.g. 'albedo' or 'roughness' then connects all nodes together.
 
@@ -587,9 +587,9 @@ class Convert:
         for key, value in textures_dictionary.items():
             print(f'connect_usdpreview_textures()-----{key=} , {value=}')
             if key == 'albedo':
-                hou.node(usdpreview_nodes_dict['image_albedo']).parm("file").set(value)
+                hou.node(usdpreview_nodes_dict.get('image_albedo')).parm("file").set(value)
             elif key == 'roughness':
-                hou.node(usdpreview_nodes_dict['image_roughness']).parm("file").set(value)
+                hou.node(usdpreview_nodes_dict.get('image_roughness')).parm("file").set(value)
             # if key == 'normal':
             #     hou.node(usdpreview_nodes_dict['image_normal']).parm("file").set(value)
             else:
