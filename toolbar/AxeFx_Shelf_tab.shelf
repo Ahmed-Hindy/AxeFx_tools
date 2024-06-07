@@ -519,11 +519,11 @@ renamer.show()
 
   <tool name="usdPreviewSurface_converter" label="usdPreviewSurface Converter" icon="hicon:/SVGIcons.index?VOP_usdpreviewsurface.svg">
     <script scriptType="python"><![CDATA[from importlib import reload
-from Material_Processor import plugin_usd
-reload(plugin_usd)
+from Material_Processor import usd_material_processor
+reload(usd_material_processor)
 
 
-classMC  = plugin_usd.run()
+classMC  = usd_material_processor.run()
 ]]></script>
   </tool>
 
