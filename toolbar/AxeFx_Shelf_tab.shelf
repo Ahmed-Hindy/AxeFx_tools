@@ -519,16 +519,12 @@ renamer.show()
 
   <tool name="usdPreviewSurface_converter" label="usdPreviewSurface Converter" icon="hicon:/SVGIcons.index?VOP_usdpreviewsurface.svg">
     <script scriptType="python"><![CDATA[from importlib import reload
-from Material_Processor import plugin_usd as mc
-reload(mc)
+from Material_Processor import plugin_usd
+reload(plugin_usd)
 
 
-# Example usage
-classMC  = mc.USD_Shaders()
-textures = classMC.extract_textures_from_shaders() 
-
-# classMC.create_principled_shaders_with_textures(textures)
-classMC.create_redshift_materials_with_textures(textures)]]></script>
+classMC  = plugin_usd.run()
+]]></script>
   </tool>
 
   <tool name="material_processor" label="material processor" icon="hicon:/SVGIcons.index?COMMON_houdinimaterialx.svg">
