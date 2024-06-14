@@ -11,16 +11,16 @@ Universal support for other dccs and .usd file format will be added in near futu
 
 
 ### Features
-- [ ] Drag and drop mat nodes into dropping area on the Application.
-- [ ] Ingests Most Materials -Principled, Arnold and MTLX for now-.
-- [ ] Convert all kinds of materials into any chosen render engine.
-- [ ] has it's own logging mechanisms.
-- [ ] pip-standard coding practices as much as possible.
+- [x] Drag and drop mat nodes into dropping area on the Application.
+- [x] Ingests Most Materials -Principled, Arnold and MTLX for now-.
+- [x] Convert to any chosen render engine.
+- [x] has it's own logging mechanisms.
+- [x] pip-standard coding practices as much as possible.
 
 
 ### Roadmap
+- [x] Fix Ingestion for Arnold and MTLX.
 - [ ] Add Changelog.
-- [ ] Fix Ingestion for Arnold and MTLX.
 - [ ] Add support for .usd files and usd stage in Solaris.
 - [ ] Extend functionality to other apps like Substance Painter, Maya and blender.
 
