@@ -4,13 +4,13 @@ Copyright Ahmed Hindy. Please mention the author if you found any part of this c
 """
 from importlib import reload
 import json
-if not hou:
-    import materials_processer
-else:
+try:
+    import hou
     from Material_Processor import materials_processer  # why do we have to do this in Houdini if they both exist in the same directoy!!!
+except:
+    import materials_processer
 
 reload(materials_processer)
-import hou
 import pxr
 
 
@@ -23,8 +23,8 @@ class USD_Shaders():
         Recursively follow shader input connections to find the actual file path.
         :param shader_input: <pxr.UsdShade.Input object>. which we get from <UsdShade.Shader object>.GetInput('file')
         """
-        # print(f'///{shader_input=}')
         connection = shader_input.GetConnectedSource()
+        print(f'///{shader_input.Get().path=}\n{connection=}\n')
         while connection:
             connected_shader_api, connected_input_name, _ = connection
             connected_shader = pxr.UsdShade.Shader(connected_shader_api.GetPrim())
@@ -54,28 +54,33 @@ class USD_Shaders():
         # Handle UsdUVTexture nodes (texture nodes)
         if shader_id == 'UsdUVTexture':
             file_path_attr = shader.GetInput('file')
+
             if file_path_attr and isinstance(file_path_attr, pxr.UsdShade.Input):
                 print(f'UsdUVTexture found: {shader_prim}, file_path_attr: {file_path_attr}')
 
-                # Get the actual file path by following connections
-                attr_value = self._get_connected_file_path(file_path_attr)
-
-                if isinstance(attr_value, pxr.Sdf.AssetPath):
-                    file_path = attr_value.resolvedPath if attr_value.resolvedPath else attr_value.path
-                    # print(f'Resolved file path: {file_path}')
-                    if file_path:
-                        texture_data.append({
-                            'material_name': material_name,
-                            'texture_type': shader_id,
-                            'file_path': file_path,
-                            'traversal_path': ' -> '.join(path),
-                            'connected_input': connected_param
-                        })
-                        # print(f'Texture data appended: {texture_data[-1]}')   # debug print
-                    else:
-                        print(f'Empty file path for asset: {attr_value}')
-                else:
+                # get the sdf.AssetPath if it already exists on prim
+                attr_value = file_path_attr.Get()
+                if not attr_value:
+                    # if no sdf.AssetPath, then get it from connected inputs
+                    attr_value = self._get_connected_file_path(file_path_attr)
+                # print(f'{attr_value=}')
+                if not isinstance(attr_value, pxr.Sdf.AssetPath):
                     print(f'Invalid asset path type: {type(attr_value)}')
+                    return
+
+                file_path = attr_value.resolvedPath if attr_value.resolvedPath else attr_value.path
+                print(f'Resolved file path: {file_path}')
+                if file_path:
+                    texture_data.append({
+                        'material_name': material_name,
+                        'texture_type': shader_id,
+                        'file_path': file_path,
+                        'traversal_path': ' -> '.join(path),
+                        'connected_input': connected_param
+                    })
+                    # print(f'Texture data appended: {texture_data[-1]}')   # debug print
+                else:
+                    print(f'Empty file path for asset: {attr_value}')
             else:
                 print(f'File path attribute is not found or not connected for {shader_prim}')
             path.pop()
@@ -100,6 +105,7 @@ class USD_Shaders():
     def find_usd_preview_surface_shader(self, material):
         for shader_output in material.GetOutputs():
             connection = shader_output.GetConnectedSource()
+            print(f'///{connection=}')
             if connection:
                 connected_shader_api, _, _ = connection
                 connected_shader = pxr.UsdShade.Shader(connected_shader_api.GetPrim())
@@ -108,37 +114,27 @@ class USD_Shaders():
                     return connected_shader
         return None
 
-    def extract_textures_from_shaders(self):
-        # Get the currently selected nodes
-        selected_nodes = hou.selectedNodes()
 
-        # Check if there is at least one selected node and it's a LOP node
-        if not selected_nodes or not isinstance(selected_nodes[0], hou.LopNode):
-            raise ValueError("Please select a LOP node.")
-
-        # Get the stage from the selected LOP node
-        stage = selected_nodes[0].stage()
-        if not stage:
-            raise ValueError("Failed to access USD stage from the selected node.")
-
-        texture_data = []
-
+    def get_all_usdpreview_mats_from_stage(self, stage):
+        materials_found = []
         for prim in stage.Traverse():
             if prim.IsA(pxr.UsdShade.Material):
                 material = pxr.UsdShade.Material(prim)
-                material_name = material.GetPath().name
+                materials_found.append(material)
+        return materials_found
 
-                # Debug print for each material
-                # print(f"Found Material: {material_name}")
+    def extract_textures_from_shaders(self, material, surface_shader):
+        material_name = material.GetPath().name
+        # Find the UsdPreviewSurface shader and start traversal from its inputs
 
-                # Find the UsdPreviewSurface shader and start traversal from its inputs
-                surface_shader = self.find_usd_preview_surface_shader(material)
-                if surface_shader:
-                    # print(f"Found UsdPreviewSurface Shader: {surface_shader=}\n{material_name=}\n{texture_data=}\n\n")
-                    for input in surface_shader.GetInputs():
-                        self.traverse_shader_network(surface_shader, material_name, texture_data)
-                else:
-                    print(f"No UsdPreviewSurface Shader found for material: {material_name}")
+
+        texture_data = []
+        if surface_shader:
+            # print(f"Found UsdPreviewSurface Shader: {surface_shader=}\n{material_name=}\n{texture_data=}\n\n")
+            for input in surface_shader.GetInputs():
+                self.traverse_shader_network(surface_shader, material_name, texture_data)
+        else:
+            print(f"No UsdPreviewSurface Shader found for material: {material_name}")
 
         return texture_data
 
@@ -234,17 +230,29 @@ class USD_Shaders():
 
 def run():
     # Example usage
+    selected_nodes = hou.selectedNodes()
+
+    if not selected_nodes or not isinstance(selected_nodes[0], hou.LopNode):
+        raise ValueError("Please select a LOP node.")
+
+    # Get the stage from the selected LOP node
+    stage = selected_nodes[0].stage()
+    if not stage:
+        raise ValueError("Failed to access USD stage from the selected node.")
+
     classMC = USD_Shaders()
-    textures_dict = classMC.extract_textures_from_shaders()
-    transformed_textures = classMC.standardize_textures_format(textures_dict)
-    classMC.save_textures_to_file(transformed_textures, r'F:\Users\Ahmed Hindy\Documents\Adobe\Adobe Substance 3D Painter\export/file.txt')
+    found_usdpreview_mats = classMC.get_all_usdpreview_mats_from_stage(stage)
+    for material in found_usdpreview_mats:
+        surface_shader = classMC.find_usd_preview_surface_shader(material)
+        textures_dict  = classMC.extract_textures_from_shaders(material, surface_shader)
+        print(f'\n\n{textures_dict=}\n')
+        transformed_textures = classMC.standardize_textures_format(textures_dict)
+        classMC.save_textures_to_file(transformed_textures, r'F:\Users\Ahmed Hindy\Documents\Adobe\Adobe Substance 3D Painter\export/file.txt')
+        # print(f"Extracted Textures: {textures}")  # Debug print
+        # classMC.create_principled_shaders_with_textures(textures)
 
-    # print(f"Extracted Textures: {textures}")  # Debug print
-
-    # classMC.create_principled_shaders_with_textures(textures)
-
-    # following materials_processor stuff needs dicts provided to be PER MATERIAL.
-    # I need to make sure all textures are passed to arnold in the end
-    mat_context = hou.node('/mat')
-    new_dict = materials_processer.Convert._create_usdpreview_shader(mat_context=mat_context, node_name='test_node', textures_dictionary=transformed_textures)
-    materials_processer.Convert._connect_usdpreview_textures(usdpreview_nodes_dict=new_dict, textures_dictionary=transformed_textures)
+        # following materials_processor stuff needs dicts provided to be PER MATERIAL.
+        # I need to make sure all textures are passed to arnold in the end
+        mat_context = hou.node('/mat')
+        new_dict = materials_processer.Convert._create_usdpreview_shader(mat_context=mat_context, node_name='test_node', textures_dictionary=transformed_textures)
+        materials_processer.Convert._connect_usdpreview_textures(usdpreview_nodes_dict=new_dict, textures_dictionary=transformed_textures)
