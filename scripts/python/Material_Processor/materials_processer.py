@@ -537,7 +537,7 @@ class Convert:
     note: rename to 'Create'
     """
     @staticmethod
-    def create_usdpreview_shader(mat_context: hou.VopNode, node_name: str, textures_dictionary: Dict) -> Dict:
+    def _create_usdpreview_shader(mat_context: hou.VopNode, node_name: str, textures_dictionary: Dict) -> Dict:
         """ creates an usdpreview subnet VOP, and inside it creates a usdpreviewsurface and multiple 'usduvtexture::2.0'
             nodes for each EXISTING texture type e.g. 'albedo' or 'roughness' then connects all nodes together.
 
@@ -579,7 +579,7 @@ class Convert:
         return usdpreview_image_dict
 
     @staticmethod
-    def connect_usdpreview_textures(usdpreview_nodes_dict: Dict, textures_dictionary: Dict) -> None:
+    def _connect_usdpreview_textures(usdpreview_nodes_dict: Dict, textures_dictionary: Dict) -> None:
         """
         currently this simply links the texture paths from 'textures_dictionary' to the freshly created usdpreviewsurface.
         next step is to get all changed parameters from the principled shader and apply it here
@@ -597,7 +597,7 @@ class Convert:
 
 
     @staticmethod
-    def apply_shader_parameters_to_usdpreview_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
+    def _apply_shader_parameters_to_usdpreview_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
         """
         Apply shader parameters to a newly created usdpreview shader node.
         :param new_standard_surface: hou.VopNode the newly created usdpreview shader
@@ -611,34 +611,33 @@ class Convert:
         new_standard_surface.parm('roughness').set(shader_parameters.get('specular_roughness', 0.2))
         new_standard_surface.parm('ior').set(shader_parameters.get('specular_IOR', 1.5))
         new_standard_surface.parmTuple('emissiveColor').set(shader_parameters.get('emission_color', (0.0, 0.0, 0.0)))
-        new_standard_surface.parm('opacity').set(shader_parameters.get('opacity', 1))
+        new_standard_surface.parm('opacity').set(shader_parameters.get('opacity', 1)[0])
 
         print(f'Shader parameters applied to {new_standard_surface.name()}')
 
 
     @staticmethod
-    def convert_to_usdpreview(input_mat_node, mat_context, normalized_textures_dict, shader_parms_dict):
+    def convert_to_usdpreview(input_mat_node_name, mat_context, normalized_textures_dict, shader_parms_dict):
         """ Main function to run for creating new usdpreview material
-            :param input_mat_node: input material node to convert from.
+            :param input_mat_node_name: input material node to convert from.
             :param mat_context: mat context to create the material in, e.g. '/mat'
             :param normalized_textures_dict: a dict of gathered data about all texture images to be re-created.
             :return: new hou.VopNode of the material subnet.
         """
         # print(f'{normalized_textures_dict=}\n')
-        input_node_name   = input_mat_node.name()
-        usdpreview_nodes_dict = Convert.create_usdpreview_shader(mat_context, input_node_name,
-                                                                 textures_dictionary=normalized_textures_dict)
+        usdpreview_nodes_dict = Convert._create_usdpreview_shader(mat_context, input_mat_node_name,
+                                                                  textures_dictionary=normalized_textures_dict)
         new_standard_surface = hou.node(usdpreview_nodes_dict['standard_surface'])
-        Convert.connect_usdpreview_textures(usdpreview_nodes_dict=usdpreview_nodes_dict,
-                                            textures_dictionary=normalized_textures_dict)
-        Convert.apply_shader_parameters_to_usdpreview_shader(new_standard_surface=new_standard_surface,
-                                                             shader_parameters=shader_parms_dict)
+        Convert._connect_usdpreview_textures(usdpreview_nodes_dict=usdpreview_nodes_dict,
+                                             textures_dictionary=normalized_textures_dict)
+        Convert._apply_shader_parameters_to_usdpreview_shader(new_standard_surface=new_standard_surface,
+                                                              shader_parameters=shader_parms_dict)
 
         return hou.node(usdpreview_nodes_dict['materialbuilder'])
 
 
     @staticmethod
-    def create_mtlx_shader(mat_context: hou.node, node_name: str, textures_dictionary: Dict) -> Dict:  # fix the docstrings
+    def _create_mtlx_shader(mat_context: hou.node, node_name: str, textures_dictionary: Dict) -> Dict:  # fix the docstrings
         """ creates an MTLX subnet VOP, and inside it creates a mtlx standard surface and multiple mtlx image
             for each EXISTING texture type e.g. 'albedo' or 'roughness' then connects all nodes together.
 
@@ -720,7 +719,7 @@ class Convert:
 
 
     @staticmethod
-    def connect_mtlx_textures(mtlx_nodes_dict: Dict, textures_dictionary: Dict) -> None:
+    def _connect_mtlx_textures(mtlx_nodes_dict: Dict, textures_dictionary: Dict) -> None:
         """
         currently this simply links the texture paths from 'textures_dictionary' to the freshly created mtlx std surface.
         next step is to get all chnanged parameters from the principled shader and apply it here
@@ -737,7 +736,7 @@ class Convert:
                 print(f'node {key=} is missing...')
 
     @staticmethod
-    def apply_shader_parameters_to_mtlx_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
+    def _apply_shader_parameters_to_mtlx_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
         """
         Apply shader parameters to a newly created MaterialX shader node.
         :param new_standard_surface: hou.VopNode the newly created MaterialX shader
@@ -766,28 +765,130 @@ class Convert:
 
 
     @staticmethod
-    def convert_to_mtlx(input_mat_node, mat_context, normalized_textures_dict, shader_parms_dict):
+    def convert_to_mtlx(input_mat_node_name, mat_context, normalized_textures_dict, shader_parms_dict):
         """ Main function to run for creating new MTLX material
-            :param input_mat_node: input material node to convert from.
+            :param input_mat_node_name: input material node to convert from.
             :param mat_context: mat context to create the material in, e.g. '/mat'
             :param normalized_textures_dict: a dict of gathered data about all texture images to be re-created.
             :return: new hou.VopNode of the material subnet.
         """
         # print(f'{normalized_textures_dict=}\n')
-        input_node_name   = input_mat_node.name()
-        mtlx_nodes_dict = Convert.create_mtlx_shader(mat_context, input_node_name,
-                                                         textures_dictionary=normalized_textures_dict)
+        mtlx_nodes_dict = Convert._create_mtlx_shader(mat_context, input_mat_node_name,
+                                                      textures_dictionary=normalized_textures_dict)
         new_standard_surface = hou.node(mtlx_nodes_dict['standard_surface'])
-        Convert.connect_mtlx_textures(mtlx_nodes_dict=mtlx_nodes_dict,
-                                      textures_dictionary=normalized_textures_dict)
-        Convert.apply_shader_parameters_to_mtlx_shader(new_standard_surface=new_standard_surface,
-                                                       shader_parameters=shader_parms_dict)
+        Convert._connect_mtlx_textures(mtlx_nodes_dict=mtlx_nodes_dict,
+                                       textures_dictionary=normalized_textures_dict)
+        Convert._apply_shader_parameters_to_mtlx_shader(new_standard_surface=new_standard_surface,
+                                                        shader_parameters=shader_parms_dict)
 
         return hou.node(mtlx_nodes_dict['materialbuilder'])
 
 
+    #### principled ####
     @staticmethod
-    def create_arnold_shader(mat_context: hou.node, node_name: str, textures_dictionary) -> dict:
+    def _create_principled_shader(mat_context: hou.VopNode, node_name: str, textures_dictionary: Dict) -> Dict:  # fix the docstrings
+        """ creates a principled mat VOP, and links all texture images for each EXISTING texture type e.g. 'albedo' or
+            'roughness' then connects all nodes together.
+
+            :param mat_context: mat library node to create the new mtlx subnet in.
+            :param node_name: name of principled subnet to create, will suffix it with '_materialX'.
+            :param textures_dictionary: a dict of normalized texture names like 'albedo', this is used to enable
+                            texture parameters on the principled shader
+            :return: dict of created principled nodes (just one entry)
+        """
+        principled_shader = mat_context.createNode("principledshader::2.0", node_name + "_principled")
+
+        principled_image_dict = {}
+        principled_image_dict['materialbuilder']  = principled_shader.path()
+
+        if textures_dictionary.get('albedo'):
+            principled_shader.parm('basecolor_useTexture').set(1)
+
+        if textures_dictionary.get('rough'):
+            principled_shader.parm('rough_useTexture').set(1)
+
+        if textures_dictionary.get('metal'):
+            principled_shader.parm('metallic_useTexture').set(1)
+
+        if textures_dictionary.get('normal'):
+            principled_shader.parm('baseBumpAndNormal_enable').set(1)
+
+        if textures_dictionary.get('displacement'):
+            principled_shader.parm('dispTex_enable').set(1)
+
+        return principled_image_dict
+
+
+    @staticmethod
+    def _connect_principled_textures(principled_nodes_dict: Dict, textures_dictionary: Dict) -> None:
+        """
+        links the texture paths from 'textures_dictionary' to the freshly created principled shader.
+        """
+        principled_shader = hou.node(principled_nodes_dict['materialbuilder'])
+        for key, value in textures_dictionary.items():
+            print(f'connect_principled_textures()-----{key=} , {value=}')
+            if key == 'albedo':
+                principled_shader.parm("basecolor_texture").set(value)
+            elif key == 'roughness':
+                principled_shader.parm("rough_texture").set(value)
+            elif key == 'normal':
+                principled_shader.parm("baseNormal_texture").set(value)
+            elif key == 'displacement':
+                principled_shader.parm("dispTex_texture").set(value)
+            else:
+                print(f'node {key=} is missing...')
+
+    @staticmethod
+    def _apply_shader_parameters_to_principled_shader(principled_node: hou.VopNode, shader_parameters: Dict) -> None:
+        """
+        Apply shader parameters to a newly created principled shader node.
+        :param principled_node: hou.VopNode the newly created MaterialX shader
+        :param shader_parameters: A dictionary containing shader parameter values.
+        """
+        print(
+            f'apply_shader_parameters_to_materialx_shader()-----{principled_node=}\n{shader_parameters=}\n{principled_node.parm("base")=}')
+
+        principled_node.parm('albedomult').set(shader_parameters.get('base', 1.0))
+        principled_node.parmTuple('basecolor').set(shader_parameters.get('base_color', (1.0, 1.0, 1.0)))
+        # principled_node.parm('diffuse_roughness').set(shader_parameters.get('diffuse_roughness', 0.0))
+        principled_node.parm('metallic').set(shader_parameters.get('metalness', 0.0))
+        principled_node.parm('reflect').set(shader_parameters.get('specular', 1.0))
+        # principled_node.parmTuple('specular_color').set(shader_parameters.get('specular_color', (1.0, 1.0, 1.0)))
+        principled_node.parm('rough').set(shader_parameters.get('specular_roughness', 0.2))
+        principled_node.parm('ior').set(shader_parameters.get('specular_IOR', 1.5))
+        principled_node.parm('transparency').set(shader_parameters.get('transmission', 0.0))
+        principled_node.parmTuple('transcolor').set(
+            shader_parameters.get('transmission_color', (1.0, 1.0, 1.0)))
+        principled_node.parm('sss').set(shader_parameters.get('subsurface', 0.0))
+        principled_node.parmTuple('ssscolor').set(shader_parameters.get('subsurface_color', (1.0, 1.0, 1.0)))
+        principled_node.parm('emitint').set(shader_parameters.get('emission', 0.0))
+        principled_node.parmTuple('emitcolor').set(shader_parameters.get('emission_color', (0.0, 0.0, 0.0)))
+
+        print(f'Shader parameters applied to {principled_node.name()}')
+
+
+    @staticmethod
+    def convert_to_principled_shader(input_mat_node_name, mat_context, normalized_textures_dict, shader_parms_dict):
+        """ Main function to run for creating new principled shader material
+            :param input_mat_node_name: input material node to convert from.
+            :param mat_context: mat context to create the material in, e.g. '/mat'
+            :param normalized_textures_dict: a dict of gathered data about all texture images to be re-created.
+            :return: new hou.VopNode of the material subnet.
+        """
+        # print(f'{normalized_textures_dict=}\n')
+        principled_nodes_dict = Convert._create_principled_shader(mat_context, input_mat_node_name,
+                                                                  textures_dictionary=normalized_textures_dict)
+        principled_shader = hou.node(principled_nodes_dict['materialbuilder'])
+        Convert._connect_principled_textures(principled_nodes_dict=principled_nodes_dict,
+                                             textures_dictionary=normalized_textures_dict)
+        Convert._apply_shader_parameters_to_principled_shader(principled_node=principled_shader,
+                                                              shader_parameters=shader_parms_dict)
+
+        return hou.node(principled_nodes_dict['materialbuilder'])
+
+
+    @staticmethod
+    def _create_arnold_shader(mat_context: hou.node, node_name: str, textures_dictionary) -> dict:
         """ creates an Arnold material Builder VOP, and inside it creates a standard surface and multiple arnold::image
             for each EXISTING texture type e.g. 'albedo' or 'roughness' then connects all nodes together.
 
@@ -835,7 +936,7 @@ class Convert:
 
 
     @staticmethod
-    def connect_arnold_textures(arnold_nodes_dict: Dict, textures_dictionary: Dict) -> None:
+    def _connect_arnold_textures(arnold_nodes_dict: Dict, textures_dictionary: Dict) -> None:
         """
         currently this simply sets the texture paths strings from 'textures_dictionary' to the freshly created arnold std surface.
         next step is to get all changed parameters from the principled shader and apply it here
@@ -854,7 +955,7 @@ class Convert:
                 # break
 
     @staticmethod
-    def apply_shader_parameters_to_arnold_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
+    def _apply_shader_parameters_to_arnold_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
         """
         Apply shader parameters to a newly created Arnold shader node.
         :param new_standard_surface: hou.VopNode the newly created Arnold Standard Surface
@@ -882,32 +983,31 @@ class Convert:
 
 
     @staticmethod
-    def convert_to_arnold(input_mat_node, mat_context, normalized_textures_dict, shader_parms_dict):
+    def convert_to_arnold(input_mat_node_name, mat_context, normalized_textures_dict, shader_parms_dict):
         """ Main function to run for creating new arnold material
-            :param input_mat_node: input material node to convert from.
+            :param input_mat_node_name: name of input material node to convert from.
             :param mat_context: mat context to create the material in, e.g. '/mat'
             :param normalized_textures_dict: a dict of gathered data about all texture images to be re-created.
             :return: new hou.VopNode of the material subnet.
         """
         # print(f'{normalized_textures_dict=}\n')
-        input_node_name   = input_mat_node.name()
-        arnold_nodes_dict = Convert.create_arnold_shader(mat_context, input_node_name,
-                                                         textures_dictionary=normalized_textures_dict)
+        arnold_nodes_dict = Convert._create_arnold_shader(mat_context, input_mat_node_name,
+                                                          textures_dictionary=normalized_textures_dict)
         new_standard_surface = hou.node(arnold_nodes_dict['standard_surface'])
-        Convert.connect_arnold_textures(arnold_nodes_dict=arnold_nodes_dict,
-                                        textures_dictionary=normalized_textures_dict)
-        Convert.apply_shader_parameters_to_arnold_shader(new_standard_surface=new_standard_surface,
-                                                         shader_parameters=shader_parms_dict)
+        Convert._connect_arnold_textures(arnold_nodes_dict=arnold_nodes_dict,
+                                         textures_dictionary=normalized_textures_dict)
+        Convert._apply_shader_parameters_to_arnold_shader(new_standard_surface=new_standard_surface,
+                                                          shader_parameters=shader_parms_dict)
         return hou.node(arnold_nodes_dict['materialbuilder'])
 
 
 def run(selected_node: hou.node, convert_to='arnold'):
     """
-    function creates Arnold, MTLX and usdpreview textures successfully.
+    Main function to run, creates Principledshader, usdpreview, Arnold, and MTLX textures successfully.
     to do:  - create usdpreview                                                           // DONE
             - only add image nodes for existing textures                                  // DONE
-            - currently only ingests principledshader::2.0, add arnold/ mtlx to the list  // IN PROGRESS
-            - create usd with 'python' lop node
+            - currently only ingests principledshader::2.0, add arnold/ mtlx to the list  // DONE
+            - create usd with 'python' lop node                                           // IN PROGRESS
             - create usd with usd-core lib so the usd creation can happen outside houdini.
     """
 
@@ -926,17 +1026,23 @@ def run(selected_node: hou.node, convert_to='arnold'):
     print(f'{textures_dict=}\n{shader_parms_dict=}\n{convert_to=}\n')
 
     # Convert:
-    if convert_to == 'mtlx':
-        new_shader  = Convert.convert_to_mtlx(selected_node, mat_context,
+    # NOTE: need to remove dependency on 'selected_node', I should get the needed dicts then discard the old node.
+    #       this is to make sure it can work with usd/ json extracted data.
+    old_mat_name = selected_node.name()
+    if convert_to == 'principled_shader':
+        new_shader  = Convert.convert_to_principled_shader(old_mat_name, mat_context,
+                                                           textures_dict_normalized, shader_parms_dict)
+    elif convert_to == 'mtlx':
+        new_shader  = Convert.convert_to_mtlx(old_mat_name, mat_context,
                                               textures_dict_normalized, shader_parms_dict)
     elif convert_to == 'arnold':
-        new_shader  = Convert.convert_to_arnold(selected_node, mat_context,
+        new_shader  = Convert.convert_to_arnold(old_mat_name, mat_context,
                                                 textures_dict_normalized, shader_parms_dict)
     elif convert_to == 'usdpreview':
-        new_shader  = Convert.convert_to_usdpreview(selected_node, mat_context,
+        new_shader  = Convert.convert_to_usdpreview(old_mat_name, mat_context,
                                                     textures_dict_normalized, shader_parms_dict)
     else:
-        raise Exception("Wrong format to convert to, choose either 'mtlx', 'arnold', 'usdpreview'")
+        raise Exception(f"Wrong format to convert to: {convert_to}")
 
     new_shader.moveToGoodPosition()
     # print(f'// DONE CONVERSION //')
@@ -964,8 +1070,8 @@ def test():
     
     """
     mat_context = hou.node('/mat')
-    new_shader = Convert.create_arnold_shader(mat_context, node_name='X')
-    Convert.connect_arnold_textures(new_shader, mapped_nodes_dict)
+    new_shader = Convert._create_arnold_shader(mat_context, node_name='X')
+    Convert._connect_arnold_textures(new_shader, mapped_nodes_dict)
 
 
 

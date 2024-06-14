@@ -113,16 +113,15 @@ class MyMainWindow(QMainWindow):
         conversion_successful = True  # Assuming conversion is successful initially
         for node_path in selected_nodes:
             node = hou.node(node_path)
-            if node:
-                try:
-                    # Add your material conversion logic here
-                    materials_processer.run(selected_node=node, convert_to=selected_format)
-                    self.logger.info(f"Converted materials for node: {node_path} to format: {selected_format}")
-                except Exception as e:
-                    self.logger.exception(f"Error converting node {node_path} to format {selected_format}: {str(e)}")
-                    conversion_successful = False
-            else:
+            if not node:
                 self.logger.warning(f"Node not found: {node_path}")
+                conversion_successful = False
+            try:
+                # Add your material conversion logic here
+                materials_processer.run(selected_node=node, convert_to=selected_format)
+                self.logger.info(f"Converted materials for node: {node_path} to format: {selected_format}")
+            except Exception as e:
+                self.logger.exception(f"Error converting node {node_path} to format {selected_format}: {str(e)}")
                 conversion_successful = False
 
         if conversion_successful:
