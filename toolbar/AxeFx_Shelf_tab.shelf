@@ -21,7 +21,6 @@
     <memberTool name="convert_from_relative_absolute"/>
     <memberTool name="live_renamer"/>
     <memberTool name="material_processor"/>
-    <memberTool name="trend_reference_window_dev"/>
   </toolshelf>
 
   <tool name="batchChangePaths_1.1" label="Batch Change Paths 1.1" icon="PLASMA_App">
