@@ -246,5 +246,5 @@ def run():
     # following materials_processor stuff needs dicts provided to be PER MATERIAL.
     # I need to make sure all textures are passed to arnold in the end
     mat_context = hou.node('/mat')
-    new_dict = materials_processer.Convert.create_usdpreview_shader(mat_context=mat_context, node_name='test_node', textures_dictionary=transformed_textures)
-    materials_processer.Convert.connect_usdpreview_textures(usdpreview_nodes_dict=new_dict, textures_dictionary=transformed_textures)
+    new_dict = materials_processer.Convert._create_usdpreview_shader(mat_context=mat_context, node_name='test_node', textures_dictionary=transformed_textures)
+    materials_processer.Convert._connect_usdpreview_textures(usdpreview_nodes_dict=new_dict, textures_dictionary=transformed_textures)
