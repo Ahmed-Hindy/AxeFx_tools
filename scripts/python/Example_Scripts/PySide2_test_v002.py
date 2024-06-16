@@ -77,7 +77,7 @@ class MyMainWindow(QMainWindow):
             if node:
                 try:
                     # Add your material conversion logic here
-                    materials_processer.run(selected_node=node, convert_to='arnold')
+                    materials_processer.create_mat_from_usdpreview_shader_in_stage(selected_node=node, convert_to='arnold')
                     self.log_area.append(f"Converted materials for node: {node_path}")
                 except Exception as e:
                     self.log_area.append(f"Error converting node {node_path}: {str(e)}")
