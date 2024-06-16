@@ -6,16 +6,18 @@ from importlib import reload
 import json
 try:
     import hou
-    from Material_Processor import materials_processer  # why do we have to do this in Houdini if they both exist in the same directoy!!!
+    from Material_Processor import materials_processer  # why do we have to do this in Houdini if they both exist in the same directory!!!
 except:
     import materials_processer
 
 reload(materials_processer)
-import pxr
 from pxr import Usd, UsdShade, Sdf
 
 
-class USD_Shaders():
+class USD_Shaders_Ingest():
+    """
+    [WIP] this will ingest usd stage, traverse it for all usdPreview materials and return found data.
+    """
     def __init__(self):
         pass
 
@@ -28,7 +30,7 @@ class USD_Shaders():
         # print(f'///{shader_input.Get().path=}\n{connection=}\n')
         while connection:
             connected_shader_api, connected_input_name, _ = connection
-            connected_shader = pxr.UsdShade.Shader(connected_shader_api.GetPrim())
+            connected_shader = UsdShade.Shader(connected_shader_api.GetPrim())
             connected_input = connected_shader.GetInput(connected_input_name)
 
             if connected_input and connected_input.HasConnectedSource():
@@ -57,7 +59,7 @@ class USD_Shaders():
         if shader_id == 'UsdUVTexture':
             file_path_attr = shader.GetInput('file')
 
-            if file_path_attr and isinstance(file_path_attr, pxr.UsdShade.Input):
+            if file_path_attr and isinstance(file_path_attr, UsdShade.Input):
                 print(f'UsdUVTexture found: {shader_prim}, file_path_attr: {file_path_attr}')
 
                 # get the sdf.AssetPath if it already exists on prim
@@ -66,7 +68,7 @@ class USD_Shaders():
                 if not attr_value:
                     # if no sdf.AssetPath, then get it from connected inputs
                     attr_value = self._get_connected_file_path(file_path_attr)
-                if not isinstance(attr_value, pxr.Sdf.AssetPath):
+                if not isinstance(attr_value, Sdf.AssetPath):
                     print(f'Invalid asset path type: {type(attr_value)}')
                     return
 
@@ -93,7 +95,7 @@ class USD_Shaders():
             connection_info = input.GetConnectedSource()
             if connection_info:
                 connected_shader_api, source_name, _ = connection_info
-                connected_shader = pxr.UsdShade.Shader(connected_shader_api.GetPrim())
+                connected_shader = UsdShade.Shader(connected_shader_api.GetPrim())
 
                 # If it's connected to a UsdPreviewSurface, track the input name
                 if shader_id == 'UsdPreviewSurface':
@@ -110,7 +112,7 @@ class USD_Shaders():
             print(f'///{connection=}')
             if connection:
                 connected_shader_api, _, _ = connection
-                connected_shader = pxr.UsdShade.Shader(connected_shader_api.GetPrim())
+                connected_shader = UsdShade.Shader(connected_shader_api.GetPrim())
                 shader_id = connected_shader.GetPrim().GetAttribute('info:id').Get()
                 if shader_id == 'UsdPreviewSurface':
                     return connected_shader
@@ -120,8 +122,8 @@ class USD_Shaders():
     def get_all_usdpreview_mats_from_stage(self, stage):
         materials_found = []
         for prim in stage.Traverse():
-            if prim.IsA(pxr.UsdShade.Material):
-                material = pxr.UsdShade.Material(prim)
+            if prim.IsA(UsdShade.Material):
+                material = UsdShade.Material(prim)
                 materials_found.append(material)
         return materials_found
 
@@ -166,6 +168,9 @@ class USD_Shaders():
                 materials_dict['normal'] = file_path
             elif connected_input == 'occlusion':
                 materials_dict['occlusion'] = file_path
+            else:
+                print(f"Unknown texture type: {connected_input}")
+
         return materials_dict
 
 
@@ -245,7 +250,7 @@ class USD_Shaders():
         if not stage:
             raise ValueError("Failed to access USD stage from the selected node.")
 
-        classMC = USD_Shaders()
+        classMC = USD_Shaders_Ingest()
         found_usdpreview_mats = classMC.get_all_usdpreview_mats_from_stage(stage)
         for material in found_usdpreview_mats:
             surface_shader = classMC.find_usd_preview_surface_shader(material)
@@ -254,7 +259,6 @@ class USD_Shaders():
             transformed_textures = classMC.standardize_textures_format(textures_dict)
             classMC.save_textures_to_file(transformed_textures, r'F:\Users\Ahmed Hindy\Documents\Adobe\Adobe Substance 3D Painter\export/file.txt')
             # print(f"Extracted Textures: {textures}")  # Debug print
-            # classMC.create_principled_shaders_with_textures(textures)
 
             # following materials_processor stuff needs dicts provided to be PER MATERIAL.
             # I need to make sure all textures are passed to arnold in the end
@@ -263,13 +267,17 @@ class USD_Shaders():
             materials_processer.Convert._connect_usdpreview_textures(usdpreview_nodes_dict=new_dict, textures_dictionary=transformed_textures)
 
 
-class USDMaterialCreator:
+class USD_Shader_create:
+    """
+    [WIP] will create USDPreview Material and/ or Arnold material  in stage. this class must be run from a python
+    LOP node.
+    """
     def __init__(self, stage, material_name, texture_dict):
         self.material_name = material_name
         self.texture_dict = texture_dict
         self.stage = stage
 
-    def create_usd_preview_material(self, parent_path):
+    def _create_usd_preview_material(self, parent_path):
         material_path = f'{parent_path}/UsdPreviewMaterial'
         material = UsdShade.Material.Define(self.stage, material_path)
 
@@ -284,37 +292,39 @@ class USDMaterialCreator:
 
         # Create textures for USD Preview Shader
         texture_types_to_inputs = {
-            'basecolor': 'diffuseColor',
-            'metallic': 'metallic',
+            'albedo': 'diffuseColor',
+            'metallness': 'metallic',
             'roughness': 'roughness',
             'normal': 'normal',
             'opacity': 'opacity'
         }
-
+        # print(f"{self.texture_dict=}")
         for tex_type, tex_path in self.texture_dict.items():
-            if tex_type in texture_types_to_inputs:
-                input_name = texture_types_to_inputs[tex_type]
-                texture_prim_path = f'{nodegraph_path}/{tex_type}Texture'
-                texture_prim = UsdShade.Shader.Define(self.stage, texture_prim_path)
-                texture_prim.CreateIdAttr("UsdUVTexture")
-                file_input = texture_prim.CreateInput("file", Sdf.ValueTypeNames.Asset)
-                file_input.Set(tex_path)
+            if tex_type not in texture_types_to_inputs:
+                continue
 
-                # Create Primvar Reader for ST coordinates
-                st_reader_path = f'{nodegraph_path}/stReader_{tex_type}'
-                st_reader = UsdShade.Shader.Define(self.stage, st_reader_path)
-                st_reader.CreateIdAttr("UsdPrimvarReader_float2")
-                st_input = st_reader.CreateInput("varname", Sdf.ValueTypeNames.Token)
-                st_input.Set("st")
-                texture_prim.CreateInput("st", Sdf.ValueTypeNames.Float2).ConnectToSource(st_reader.ConnectableAPI(),
-                                                                                          "result")
+            input_name = texture_types_to_inputs[tex_type]
+            texture_prim_path = f'{nodegraph_path}/{tex_type}Texture'
+            texture_prim = UsdShade.Shader.Define(self.stage, texture_prim_path)
+            texture_prim.CreateIdAttr("UsdUVTexture")
+            file_input = texture_prim.CreateInput("file", Sdf.ValueTypeNames.Asset)
+            file_input.Set(tex_path)
 
-                shader.CreateInput(input_name, Sdf.ValueTypeNames.Float3).ConnectToSource(texture_prim.ConnectableAPI(),
+            # Create Primvar Reader for ST coordinates
+            st_reader_path = f'{nodegraph_path}/stReader_{tex_type}'
+            st_reader = UsdShade.Shader.Define(self.stage, st_reader_path)
+            st_reader.CreateIdAttr("UsdPrimvarReader_float2")
+            st_input = st_reader.CreateInput("varname", Sdf.ValueTypeNames.Token)
+            st_input.Set("st")
+            texture_prim.CreateInput("st", Sdf.ValueTypeNames.Float2).ConnectToSource(st_reader.ConnectableAPI(),
+                                                                                      "result")
+
+            shader.CreateInput(input_name, Sdf.ValueTypeNames.Float3).ConnectToSource(texture_prim.ConnectableAPI(),
                                                                                           "rgb")
 
         return material
 
-    def create_arnold_material(self, parent_path):
+    def _create_arnold_material(self, parent_path):
         shader_path = f'{parent_path}/standard_surface1'
         shader = UsdShade.Shader.Define(self.stage, shader_path)
         shader.CreateIdAttr("arnold:standard_surface")
@@ -324,12 +334,12 @@ class USDMaterialCreator:
                                                                                           "surface")
 
         # Use the existing method to initialize Arnold shader parameters
-        self.initialize_arnold_shader(shader)
+        self._initialize_arnold_shader(shader)
 
         # Create textures for Arnold Shader
         texture_types_to_inputs = {
-            'basecolor': 'base_color',
-            'metallic': 'metalness',
+            'albedo': 'base_color',
+            'metallness': 'metalness',
             'roughness': 'specular_roughness',
             'normal': 'normal',
             'opacity': 'opacity'
@@ -348,7 +358,7 @@ class USDMaterialCreator:
 
         return material
 
-    def initialize_arnold_shader(self, shader):
+    def _initialize_arnold_shader(self, shader):
         shader.CreateInput('base', Sdf.ValueTypeNames.Float).Set(1.0)
         shader.CreateInput('base_color', Sdf.ValueTypeNames.Float3).Set((0.8, 0.8, 0.8))
         shader.CreateInput('metalness', Sdf.ValueTypeNames.Float).Set(0.0)
@@ -399,10 +409,10 @@ class USDMaterialCreator:
         shader.CreateInput('aov_id8', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
         shader.CreateInput('transmit_aovs', Sdf.ValueTypeNames.Bool).Set(False)
 
-    def create_textures(self, stage, material_prim, shader, is_arnold=False):
+    def _create_textures(self, stage, material_prim, shader, is_arnold=False):
         texture_types_to_inputs = {
-            'basecolor': 'base_color' if is_arnold else 'diffuseColor',
-            'metallic': 'metalness' if is_arnold else 'metallic',
+            'albedo': 'base_color' if is_arnold else 'diffuseColor',
+            'metallness': 'metalness' if is_arnold else 'metallic',
             'roughness': 'specular_roughness' if is_arnold else 'roughness',
             'normal': 'normal' if is_arnold else 'normal',
             'opacity': 'opacity'
@@ -445,44 +455,50 @@ class USDMaterialCreator:
             else:
                 print(f"Texture type '{tex_type}' not recognized and will be ignored.")
 
-    def create_collect_prim(self):
+    def _create_collect_prim(self, create_usd_preview=True, create_arnold=True):
         collect_path = f'/root/material_py/{self.material_name}_collect'
         collect_material = UsdShade.Material.Define(self.stage, collect_path)
-        collect_material.CreateInput("inputenum", Sdf.ValueTypeNames.Int).Set(2)
+        collect_material.CreateInput("inputnum", Sdf.ValueTypeNames.Int).Set(2)
 
-        # Create the USD Preview Shader under the collect material
-        usd_preview_material = self.create_usd_preview_material(collect_path)
-        usd_preview_shader = usd_preview_material.GetSurfaceOutput().GetConnectedSource()[0]
+        if create_usd_preview:
+            # Create the USD Preview Shader under the collect material
+            usd_preview_material = self._create_usd_preview_material(collect_path)
+            usd_preview_shader = usd_preview_material.GetSurfaceOutput().GetConnectedSource()[0]
+            collect_material.CreateOutput("surface", Sdf.ValueTypeNames.Token).ConnectToSource(
+                usd_preview_shader, "surface")
 
-        # Create the Arnold Shader under the collect material
-        arnold_material = self.create_arnold_material(collect_path)
-        arnold_shader = arnold_material.GetOutput("arnold:surface").GetConnectedSource()[0]
-
-        # Connect both shaders to the collect material
-        collect_material.CreateOutput("arnold:surface", Sdf.ValueTypeNames.Token).ConnectToSource(
-            arnold_shader, "surface")
-        collect_material.CreateOutput("surface", Sdf.ValueTypeNames.Token).ConnectToSource(
-            usd_preview_shader, "surface")
+        if create_arnold:
+            # Create the Arnold Shader under the collect material
+            arnold_material = self._create_arnold_material(collect_path)
+            arnold_shader = arnold_material.GetOutput("arnold:surface").GetConnectedSource()[0]
+            collect_material.CreateOutput("arnold:surface", Sdf.ValueTypeNames.Token).ConnectToSource(
+                arnold_shader, "surface")
 
         return collect_material.GetPrim()
 
     @staticmethod
-    def run():
+    def run(create_usd_preview=True, create_arnold=True):
+        """
+        Main function to run. will create a collect material with Arnold and usdPreview shaders in stage.
+        """
+        tex_dir = r"F:\Users\Ahmed Hindy\Documents\Adobe\Adobe Substance 3D Painter\export\MeetMat_textures"
         texture_dict = {
-            'basecolor': r'f:\My Folder\wallpapers\akin-cakiner-nkUFXi0JSX8-unsplash.jpg',
-            # 'metallic': '/path/to/metallic.jpg',
-            # 'roughness': '/path/to/roughness.jpg',
-            # 'normal': '/path/to/normal.jpg',
+            'albedo': tex_dir + r"\02_Body_Base_color.png",
+            'metallness': tex_dir + r"\02_Body_Metallic.png",
+            'roughness': tex_dir + r"\02_Body_Roughness.png",
+            'normal': tex_dir + r"\02_Body_Normal_DirectX.png",
             # 'opacity': '/path/to/opacity.jpg'
         }
 
         node = hou.pwd()
         stage = node.editableStage()
 
-        material_creator = USDMaterialCreator(stage, 'MyMaterial', texture_dict)
-        collect_prim = material_creator.create_collect_prim()
+        # create_usd_preview = False ###
+        material_creator = USD_Shader_create(stage, 'MyMaterial', texture_dict)
+        collect_prim = material_creator._create_collect_prim(create_usd_preview, create_arnold)
         print(f"Collect Material created at: {collect_prim.GetPath()}")
 
+        # temp assign to geo
         geo_prim = stage.GetPrimAtPath('/root/Mesh_01_Head/Mesh_01_Head')
         if geo_prim:
             UsdShade.MaterialBindingAPI(geo_prim).Bind(UsdShade.Material(collect_prim))
