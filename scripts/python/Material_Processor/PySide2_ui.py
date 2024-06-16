@@ -118,7 +118,7 @@ class MyMainWindow(QMainWindow):
                 conversion_successful = False
             try:
                 # Add your material conversion logic here
-                materials_processer.run(selected_node=node, convert_to=selected_format)
+                materials_processer.create_mat_from_usdpreview_shader_in_stage(selected_node=node, convert_to=selected_format)
                 self.logger.info(f"Converted materials for node: {node_path} to format: {selected_format}")
             except Exception as e:
                 self.logger.exception(f"Error converting node {node_path} to format {selected_format}: {str(e)}")

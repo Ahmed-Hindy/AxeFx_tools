@@ -522,7 +522,9 @@ from Material_Processor import usd_material_processor
 reload(usd_material_processor)
 
 
-classMC  = usd_material_processor.run()
+# classMC  = usd_material_processor.USD_Shaders().create_mat_from_usdpreview_shader_in_stage()
+
+a = usd_material_processor.USDPreviewMaterialCreator.run()
 ]]></script>
   </tool>
 

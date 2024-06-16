@@ -585,7 +585,7 @@ class Convert:
         next step is to get all changed parameters from the principled shader and apply it here
         """
         for key, value in textures_dictionary.items():
-            print(f'connect_usdpreview_textures()-----{key=} , {value=}')
+            # print(f'connect_usdpreview_textures()-----{key=} , {value=}')
             if key == 'albedo':
                 hou.node(usdpreview_nodes_dict.get('image_albedo')).parm("file").set(value)
             elif key == 'roughness':
