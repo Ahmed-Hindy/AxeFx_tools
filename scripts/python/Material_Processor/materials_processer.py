@@ -4,7 +4,6 @@ copyright Ahmed Hindy. Please mention the original author if you used any part o
 
 import hou
 from typing import Dict
-from pprint import pprint
 
 
 class MaterialIngest:
@@ -401,7 +400,9 @@ class TraverseNodeConnections:
     def __init__(self) -> None:
         pass
 
-    def traverse_node_tree(self, node: hou.Node, path=[]) -> Dict[hou.Node, Dict]:
+    def traverse_node_tree(self, node: hou.Node, path=None) -> Dict[hou.Node, Dict]:
+        if path is None:
+            path = []
         node_dict = {node: {}}
 
         if not node.inputs():
@@ -828,7 +829,7 @@ class MaterialCreate:
         """
         principled_shader = hou.node(principled_nodes_dict['materialbuilder'])
         for key, value in textures_dictionary.items():
-            print(f'connect_principled_textures()-----{key=} , {value=}')
+            # print(f'connect_principled_textures()-----{key=} , {value=}')
             if key == 'albedo':
                 principled_shader.parm("basecolor_texture").set(value)
             elif key == 'roughness':
@@ -877,7 +878,10 @@ class MaterialCreate:
             :param normalized_textures_dict: a dict of gathered data about all texture images to be re-created.
             :return: new hou.VopNode of the material subnet.
         """
-        # print(f'{normalized_textures_dict=}\n')
+        if not normalized_textures_dict:
+            raise Exception(f"Cant create a material when {normalized_textures_dict=}")
+
+        # print(f'{input_mat_node_name=}\n{normalized_textures_dict=}\n')
         principled_nodes_dict = MaterialCreate._create_principled_shader(mat_context, input_mat_node_name,
                                                                          textures_dictionary=normalized_textures_dict)
         principled_shader = hou.node(principled_nodes_dict['materialbuilder'])

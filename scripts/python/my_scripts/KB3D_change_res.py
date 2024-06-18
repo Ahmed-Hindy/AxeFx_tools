@@ -1,86 +1,72 @@
 import hou
-
-origVar = "4k"  # orig string to replace
-newVar  = """`chs("../../res")`"""  # replace with this
-obj     = hou.node("/obj")
+""" execute KB3DProcessor().run() on the matnet in a KB3D provided hipfile """
 
 
-# def
+class KB3DProcessor:
+    def __init__(self):
+        self.orig_string = "4k"  # orig string to replace
+        self.new_string  = r'`chs("../../res")`'  # replace with this
+        self.obj = hou.node("/obj")
+        self.matnet_node = hou.selectedNodes()[0]
+        if not isinstance(self.matnet_node, hou.ShopNode):
+            raise Exception("Please select a valid Material Network")
+
+    def add_str_res_parm_to_node(self, param_name='parm_name', label='parm_label', default_value="4k") -> None:
+        """
+        function: adds a string parameter for a node.
+        need to make sure the input is a valid node object and not a list, currently this is hardcoded in the next 3 lines,
+        maybe a seperate validator function?
+        """
+
+        # Create a string parameter template with a default value
+        parm_template = hou.StringParmTemplate(param_name, label, 1, default_value=[default_value])
+        # Get the existing parameter group from the node
+        parm_group = self.matnet_node.parmTemplateGroup()
+        # Append the new parameter template to the group
+        parm_group.append(parm_template)
+        # Update the node with the new parameter group
+        self.matnet_node.setParmTemplateGroup(parm_group)
 
 
-def add_str_res_parm_to_node(node, param_name='parm_name', label='parm_label', default_value="4k") -> None:
-    """
-    function: adds a string parameter for a node.
-    need to make sure the input is a valid node object and not a list, currently this is hardcoded in the next 3 lines,
-    maybe a seperate validator function?
-    """
-    print(f'//{node.type().name()=}')
-    if node.type().name() != 'matnet':
-        raise ValueError("Invalid hou.Node object provided.")
+    def get_principled_shaders(self):
+        """
+        :return: a list of all found principled shaders nested in
+                 <matnet>/<materialbuilder>nodes/<principledshader::2.0>
+        """
+        matnet_children = self.matnet_node.children()
+        material_builders_list = [child for child in matnet_children if child.type().name() == "materialbuilder"]
 
-    # Create a string parameter template with a default value
-    parm_template = hou.StringParmTemplate(param_name, label, 1, default_value=[default_value])
-    # Get the existing parameter group from the node
-    parm_group = node.parmTemplateGroup()
-    # Append the new parameter template to the group
-    parm_group.append(parm_template)
-    # Update the node with the new parameter group
-    node.setParmTemplateGroup(parm_group)
+        principled_shaders_list = []
+        for material_builder in material_builders_list:
+            material_builder_children = material_builder.children()
+            principled_shaders_list.extend([child for child in material_builder_children if child.type().name() == "principledshader::2.0"])
+
+        # print(f"\n{principled_shaders_list=}\n")
+        return principled_shaders_list
 
 
-def getPrincipledShaders(kwargs, node):
-    principledShadersList = []
-    matnetChildren = node.children()
-    for child in matnetChildren:
-        childTypeName = child.type().name()
-        if childTypeName == "materialbuilder":
-            # print(f"material builder nodes found in {matnet.name()} and it is called: {child.name()}")
-            materialbuilderChildren = child.children()
-            for materialbuilderChild in materialbuilderChildren:
-                if materialbuilderChild.type().name() == "principledshader::2.0":
-                    # print(f"I found a principled shader called {materialbuilderChild.name()}")
-                    principledShader = materialbuilderChild
-                    principledShadersList.append(principledShader)
-                    # print(f"principledShadersList: {principledShadersList}")
-    return principledShadersList
-
-
-def changeRes(kwargs, nodes):
-    for principledShader in getPrincipledShaders(kwargs, nodes):
+    def change_resolution(self, principled_shader):
         ### for each principled shader found, lets check the parameters if they contain "_texture"  ###
-        parametersAll = principledShader.parms()
-        parameterTexture = []
-        for parameter in parametersAll:
-            if parameter.name().endswith("_texture"):
-                parameterTexture.append(parameter)
-                # print(f"parameters found = {parameterTexture.name()}")
+        all_parameters = principled_shader.parms()
+        texture_parameters = [parameter for parameter in all_parameters if parameter.name().endswith("_texture")]
 
         ###  now we have all parameters in every principled shader that has a "origVar" string in it ###
         ###  we will now replace the origVar with the "newVar" ###
-        for x in parameterTexture:
-            origString = x.unexpandedString()
-            # print(f"origString before was {origString}")
-            # print(f"newvar is {newVar} and its type is")
-            if origVar in origString:
-                # print(f"origVar is {origVar}")
-                origString = origString.replace(origVar, newVar)
-                # print(f"origString after is {origString}")
-                x.set(origString)
-                # print("new String is: " + newString)
+        for x in texture_parameters:
+            original_string = x.unexpandedString()
+            if self.orig_string not in original_string:
+                continue
+            original_string = original_string.replace(self.orig_string, self.new_string)
+            x.set(original_string)
 
 
-def changeRough(kwargs, nodes):
-    for principledShader in getPrincipledShaders(kwargs, nodes):
-        # print(f"principledShader: {principledShader}")
-        parametersAll = principledShader.parms()
-        principledShader.parm("rough").set(1)
-        print(f"changed roughness !!!!!!!")
+    def change_rough(self, principled_shader):
+        principled_shader.parm("rough").set(1)
+        # print(f"changed roughness for {principled_shader.parent().path()}")
 
-
-# available functions to call from shelf tool :)
-
-if __name__ == '__main__':
-    print('name is main')
-
-# changeRes(kwargs)
-# changeRough(kwargs)
+    def run(self):
+        """Main function to run from shelf. runs on a matnet"""
+        self.add_str_res_parm_to_node(param_name='res', label='res', default_value="4k")
+        for principledShader in self.get_principled_shaders():
+            self.change_resolution(principledShader)
+            self.change_rough(principledShader)
