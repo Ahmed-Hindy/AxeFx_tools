@@ -17,9 +17,9 @@
     <memberTool name="Principled_to_MTLX_v4"/>
     <memberTool name="principled_from_pat"/>
     <memberTool name="usd_mat_override"/>
-    <memberTool name="usdPreviewSurface_converter"/>
     <memberTool name="convert_from_relative_absolute"/>
     <memberTool name="live_renamer"/>
+    <memberTool name="usdPreviewSurface_converter"/>
     <memberTool name="material_processor"/>
   </toolshelf>
 
@@ -65,14 +65,7 @@ from importlib import reload
 from my_scripts import KB3D_change_res
 reload(KB3D_change_res)
 
-
-nodes = hou.selectedNodes()
-for node in nodes:
-    KB3D_change_res.add_str_res_parm_to_node(node, param_name='res', label='res', default_value="4k")
-    KB3D_change_res.changeRes(kwargs, node)
-    KB3D_change_res.changeRough(kwargs, node)
-
-
+KB3D_change_res.KB3DProcessor().run()
 ]]></script>
   </tool>
 
