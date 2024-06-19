@@ -4,8 +4,8 @@ Copyright Ahmed Hindy. Please mention the author if you found any part of this c
 """
 from importlib import reload
 import json
-from pprint import pprint
-from dataclasses import dataclass, field
+from pprint import pprint, pformat
+from dataclasses import dataclass, field, asdict
 from typing import Dict, List, Optional
 
 try:
@@ -26,10 +26,24 @@ class TextureInfo:
     traversal_path: str
     connected_input: Optional[str] = None
 
+    def __str__(self):
+        return f"TextureInfo(file_path={self.file_path}, traversal_path={self.traversal_path}, connected_input={self.connected_input})"
+
+
 @dataclass
 class MaterialData:
     material_name: str
     textures: Dict[str, TextureInfo] = field(default_factory=dict)
+
+    def __str__(self):
+        return self._pretty_print()
+
+    def __repr__(self):
+        return self._pretty_print()
+
+    def _pretty_print(self):
+        data_dict = asdict(self)
+        return pformat(data_dict, indent=4)
 
 
 class USD_Shaders_Ingest:
@@ -226,13 +240,12 @@ class USD_Shaders_Ingest:
             return None
         return self._extract_textures_from_shaders(material)
 
-    def _create_materials_from_textures(self, mat_context, materials: List[MaterialData]):
+    def _create_materials_from_textures(self, mat_context, material: MaterialData):
         """
-        [temp] create a principled_shader VOP node.
+        [temp] create a hou.VopNode shader in a mat net.
         """
-        MC = materials_processer.MaterialCreate
-        for material in materials:
-            MC.convert_to_principled_shader('principled_test', mat_context, material)
+        MC = materials_processer.MaterialCreate()
+        MC.convert_to_mtlx('principled_test', mat_context, material)
 
     def run(self):
         """
@@ -245,7 +258,9 @@ class USD_Shaders_Ingest:
                 standardized_materials = self._standardize_textures_format(material_data)
 
                 materials.append(standardized_materials)
-        self._create_materials_from_textures(self.mat_context, materials)
+                # print(f"{standardized_materials=}\n")
+        for material in materials:
+            self._create_materials_from_textures(self.mat_context, material)
 
 
 class USD_Shader_create:
