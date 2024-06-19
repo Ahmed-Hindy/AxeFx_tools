@@ -58,7 +58,7 @@ for node in nodes:
             print(parm , "/n")]]></script>
   </tool>
 
-  <tool name="KB3D_change_mat_res" label="KB3D change material resolution" icon="PLASMA_App">
+  <tool name="KB3D_change_mat_res" label="KB3D change material resolution" icon="F:/Users/Ahmed Hindy/Downloads/k_icon_1_5f698675-1655-41df-be55-cabbec292518_1500x.jpeg">
     <script scriptType="python"><![CDATA[""" run this script on the matnet in a KB3D provided hipfile """
 
 from importlib import reload
