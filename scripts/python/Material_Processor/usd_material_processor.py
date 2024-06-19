@@ -5,7 +5,8 @@ Copyright Ahmed Hindy. Please mention the author if you found any part of this c
 from importlib import reload
 import json
 from pprint import pprint
-from typing import List, Dict
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 
 try:
     import hou
@@ -17,10 +18,25 @@ reload(materials_processer)
 from pxr import Usd, UsdShade, Sdf
 
 
-class USD_Shaders_Ingest():
+
+
+@dataclass
+class TextureInfo:
+    file_path: str
+    traversal_path: str
+    connected_input: Optional[str] = None
+
+@dataclass
+class MaterialData:
+    material_name: str
+    textures: Dict[str, TextureInfo] = field(default_factory=dict)
+
+
+class USD_Shaders_Ingest:
     """
     [WIP] this will ingest usd stage, traverse it for all usdPreview materials.
     """
+
     def __init__(self):
         self.all_materials_names = set()
         self.materials_found_in_stage = []
@@ -52,13 +68,11 @@ class USD_Shaders_Ingest():
             else:
                 return connected_input.Get()
 
-
-    def _collect_texture_data(self, shader, material_name, texture_data, path, connected_param):
+    def _collect_texture_data(self, shader, material: MaterialData, path: List[str], connected_param: str):
         """
         Collects texture data from a given shader.
         :param shader: <UsdShade.Shader object> e.g. Usd.Prim(</root/material/_03_Base/UsdPreviewSurface/ShaderUsdPreviewSurface>)
-        :param material_name: str material name. e.g. '_01_Head', '_02_Body', or '_03_Base'
-        :param texture_data: dictionary where keys are material names and values are lists of texture data.
+        :param material: MaterialData object containing material name and textures
         :param path: list representing the traversal path.
         :param connected_param: connected parameter name.
         """
@@ -67,55 +81,49 @@ class USD_Shaders_Ingest():
         path.append(shader_info_id or shader_prim.GetName())
 
         if shader_info_id != 'UsdUVTexture':
+            path.pop()
             return
 
         file_path_attr = shader.GetInput('file')
-        if not file_path_attr and not isinstance(file_path_attr, UsdShade.Input):
+        if not file_path_attr or not isinstance(file_path_attr, UsdShade.Input):
             print(f'File path attribute is not found or not connected for {shader_prim}')
-
-        attr_value = file_path_attr.Get()
-        if not attr_value:
-            attr_value = self._get_connected_file_path(file_path_attr)
-        if not isinstance(attr_value, Sdf.AssetPath):
-            print(f'Invalid asset path type: {type(attr_value)}')
+            path.pop()
             return
 
-        file_path = attr_value.resolvedPath if attr_value.resolvedPath else attr_value.path
+        attr_value = file_path_attr.Get() or self._get_connected_file_path(file_path_attr)
+        if not isinstance(attr_value, Sdf.AssetPath):
+            print(f'Invalid asset path type: {type(attr_value)}')
+            path.pop()
+            return
+
+        file_path = attr_value.resolvedPath or attr_value.path
         if not file_path:
             print(f'Empty file path for asset: {attr_value}')
+            path.pop()
+            return
 
-        if material_name not in texture_data:
-            texture_data[material_name] = {'textures': {}}
-
-        # print(f"{shader_info_id=}")
-        texture_data[material_name]['textures'][connected_param] = {
-            'file_path': file_path,
-            'traversal_path': ' -> '.join(path),
-        }
+        material.textures[connected_param] = TextureInfo(
+            file_path=file_path,
+            traversal_path=' -> '.join(path),
+            connected_input=connected_param
+        )
 
         path.pop()
-        return
 
-
-
-    def _traverse_shader_network(self, shader, material_name, texture_data=None, path=None, connected_param="") -> None:
+    def _traverse_shader_network(self, shader, material: MaterialData, path=None, connected_param="") -> None:
         """
-        Main traversal function. Will modify passed 'texture_data'.
+        Main traversal function. Will modify passed 'material'.
         :param shader: <UsdShade.Shader object> e.g. Usd.Prim(</root/material/_03_Base/UsdPreviewSurface/ShaderUsdPreviewSurface>)
-        :param material_name: str material name. e.g. '_01_Head', '_02_Body', or '_03_Base'
-        :param texture_data: given as empty list AND_GETS_MODIFIED.
-                             Recursive texture data that is gotten from same function. Left empty when run from outside.
+        :param material: MaterialData object containing material name and textures
         :param path: left empty when run from outside.
         :param connected_param: left empty when run from outside.
         """
-        if texture_data is None:
-            texture_data = {}
         if path is None:
             path = []
         if shader is None:
             return
 
-        self._collect_texture_data(shader, material_name, texture_data, path, connected_param)
+        self._collect_texture_data(shader, material, path, connected_param)
 
         shader_prim = shader.GetPrim()
         shader_id = shader_prim.GetAttribute('info:id').Get()
@@ -124,7 +132,6 @@ class USD_Shaders_Ingest():
         for input in shader.GetInputs():
             connection_info = input.GetConnectedSource()
             if connection_info:
-                # print(f"1. {connected_param=}, \n")
                 connected_shader_api, source_name, _ = connection_info
                 connected_shader = UsdShade.Shader(connected_shader_api.GetPrim())
 
@@ -133,19 +140,15 @@ class USD_Shaders_Ingest():
                     connected_param = input.GetBaseName()
 
                 # Call the method recursively
-                self._traverse_shader_network(connected_shader, material_name, texture_data, path, connected_param)
-                # print(f"2. {connected_param=}, \n")
+                self._traverse_shader_network(connected_shader, material, path, connected_param)
 
-
-
-    def _find_usd_preview_surface_shader(self, material) -> UsdShade.Shader:
+    def _find_usd_preview_surface_shader(self, material) -> Optional[UsdShade.Shader]:
         """
         :param material: usd material prim
         :return: UsdShade.Shader prim of type 'UsdPreviewSurface' inside the material if found.
         """
         for shader_output in material.GetOutputs():
             connection = shader_output.GetConnectedSource()
-            # print(f'///{connection=}')
             if not connection:
                 continue
             connected_shader_api, _, _ = connection
@@ -167,116 +170,82 @@ class USD_Shaders_Ingest():
             self.materials_found_in_stage.append(material)
         return self.materials_found_in_stage
 
-    def _extract_textures_from_shaders(self, material, surface_shader) -> Dict:
+    def _extract_textures_from_shaders(self, material) -> MaterialData:
         """
         Find the UsdPreviewSurface shader and start traversal from its inputs
-        :return: list of dictionaries, e.g. of a single dict in the list:
-                        {'material_name': '_03_Base', 'texture_type': 'UsdUVTexture',
-                        'file_path': '<path>/03_Base_Base_color.png', 'traversal_path': 'UsdPreviewSurface ->
-                                                                       UsdUVTexture', 'connected_input': 'diffuseColor'}
+        :return: MaterialData object with collected texture data
         """
         material_name = material.GetPath().name
         self.all_materials_names.add(material_name)
-        texture_data = {}
+        material_data = MaterialData(material_name=material_name)
+        surface_shader = self._find_usd_preview_surface_shader(material)
         if not surface_shader:
             print(f"WARNING: No UsdPreviewSurface Shader found for material: {material_name}")
-        print(f"{surface_shader=}")
-        # for _ in surface_shader.GetInputs():
-        self._traverse_shader_network(surface_shader, material_name, texture_data)
+        self._traverse_shader_network(surface_shader, material_data)
+        return material_data
 
-        print("\nprinting texture data:")
-        pprint(texture_data)
-        print("DONE PRINTING\n")
-
-        return texture_data
-
-    def _standardize_textures_format(self, materials_dict: Dict) -> Dict:
+    def _standardize_textures_format(self, material: MaterialData) -> MaterialData:
         """
         Standardizes the extracted texture data into my own standardized format for all materials.
-        :param materials_dict: nested dictionary containing material_name, and textures paths.
+        :param materials: List of MaterialData objects containing material name and textures.
         """
-        standardized_dict = {}
-        for material_name in self.all_materials_names:
-            standardized_dict[material_name] = {'textures': {
-                                                'albedo' : {},
-                                                'roughness' : {},
-                                                'metallness' : {},
-                                                'normal' : {},
-                                                'opacity' : {},
-                                                'displacement' : {},
-                                                        }
-                                                }
+        standardized_materials = []
+        standardized_material = MaterialData(material_name=material.material_name)
 
-            material_type = materials_dict[material_name]['textures']
-            for texture_name in material_type:
-                file_path = materials_dict[material_name]['textures'][texture_name]['file_path']
-                # print(f"\n{file_path=}, {texture_name=}")
-                if texture_name == 'diffuseColor':
-                    standardized_dict[material_name]['textures']['albedo']['file_path'] = file_path
-                elif texture_name == 'roughness':
-                    standardized_dict[material_name]['textures']['roughness']['file_path'] = file_path
-                elif texture_name == 'metallic':
-                    standardized_dict[material_name]['textures']['metallness']['file_path'] = file_path
-                elif texture_name == 'normal':
-                    standardized_dict[material_name]['textures']['normal']['file_path'] = file_path
-                elif texture_name == 'occlusion':
-                    standardized_dict[material_name]['textures']['opacity']['file_path'] = file_path
-                else:
-                    print(f"Unknown texture type: {material_type}")
+        for texture_type, texture_info in material.textures.items():
+            if texture_type == 'diffuseColor':
+                standardized_material.textures['albedo'] = texture_info
+            elif texture_type == 'roughness':
+                standardized_material.textures['roughness'] = texture_info
+            elif texture_type == 'metallic':
+                standardized_material.textures['metallness'] = texture_info
+            elif texture_type == 'normal':
+                standardized_material.textures['normal'] = texture_info
+            elif texture_type == 'occlusion':
+                standardized_material.textures['opacity'] = texture_info
+            else:
+                print(f"Unknown texture type: {texture_type}")
 
-        # print('\npprint start:')
-        # pprint(standardized_dict)
-        return standardized_dict
+        # standardized_materials.append(standardized_material)
+        return standardized_material
 
-    def _save_textures_to_file(self, texture_data, file_path):
-        """Pretty print the texture data dictionary to a text file."""
+    def _save_textures_to_file(self, materials: List[MaterialData], file_path: str):
+        """Pretty print the texture data list to a text file."""
         with open(file_path, 'w') as file:
-            json.dump(texture_data, file, indent=4)
+            json.dump([material.__dict__ for material in materials], file, indent=4, default=lambda o: o.__dict__)
             print(f"Texture data successfully written to {file_path}")
 
-
-    def _ingest_usd_stage_material(self, material):
+    def _ingest_usd_stage_material(self, material) -> Optional[MaterialData]:
         """
         given a single usd material prim, will ingest it for texture and parameter data
         :param material: UsdShade.Material prim, e.g. (Usd.Prim(</root/material/_01_Head>))
-        :return:
-        [TO DO]: need to ingest parameters, if not modified or needed then just return the defaults
+        :return: MaterialData object with collected texture data.
         """
         if not material:
             print("WARNING: No Material for method _ingest_usd_stage_material()")
-            return
-        # print(f"{material=}")
-        surface_shader = self._find_usd_preview_surface_shader(material)
-        materials_dict = self._extract_textures_from_shaders(material, surface_shader)
-        if not materials_dict:
-            print("WARNING: No Materials Found")
-            return
+            return None
+        return self._extract_textures_from_shaders(material)
 
-        # normalized_textures_dict = self._standardize_textures_format(materials_dict)
-        return materials_dict
-
-    def _create_materials_from_textures(self, mat_context, textures_dict):
+    def _create_materials_from_textures(self, mat_context, materials: List[MaterialData]):
         """
         [temp] create a principled_shader VOP node.
         """
         MC = materials_processer.MaterialCreate
-        MC.convert_to_principled_shader('principled_test', mat_context, textures_dict)
-        # MC.convert_to_usdpreview('principled_test', mat_context, textures_dict)
+        for material in materials:
+            MC.convert_to_principled_shader('principled_test', mat_context, material)
 
     def run(self):
         """
         ingests stage, for every material found will create a material in a mat context
         """
         self.found_usdpreview_mats = self._get_all_materials_from_stage(self.stage)
-        textures_dict = {}
+        materials = []
         for material in self.found_usdpreview_mats:
-            textures_dict.update(self._ingest_usd_stage_material(material))
-        normalized_textures_dict = self._standardize_textures_format(textures_dict)
-        for _ in normalized_textures_dict.values():
-            for material_dict in _.values():
-                print(f"{material_dict=}")
-                self._create_materials_from_textures(self.mat_context, material_dict)
+            if material_data := self._ingest_usd_stage_material(material):
+                standardized_materials = self._standardize_textures_format(material_data)
 
+                materials.append(standardized_materials)
+        self._create_materials_from_textures(self.mat_context, materials)
 
 
 class USD_Shader_create:
