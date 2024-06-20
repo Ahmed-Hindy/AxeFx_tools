@@ -1,13 +1,50 @@
 """
 copyright Ahmed Hindy. Please mention the original author if you used any part of this code
+
 """
+from typing import List
+from dataclasses import dataclass, field, asdict
+from pprint import pformat
+from pxr import Usd, UsdShade, Sdf
 
 import hou
-from typing import Dict
-try:
-    from usd_material_processor import MaterialData, TextureInfo
-except ModuleNotFoundError:
-    from Material_Processor.usd_material_processor import MaterialData, TextureInfo
+from typing import Dict, Optional
+# try:
+#     from usd_material_processor import MaterialData, TextureInfo
+# except ModuleNotFoundError:
+# import Material_Processor.usd_material_processor
+
+
+@dataclass
+class TextureInfo:
+    file_path: str
+    traversal_path: str
+    connected_input: Optional[str] = None
+
+    def __str__(self):
+        return f"TextureInfo(file_path={self.file_path}, traversal_path={self.traversal_path}, connected_input={self.connected_input})"
+
+
+@dataclass
+class MaterialData:
+    material_name: str
+    material_path: str
+    usd_material: UsdShade.Material
+    textures: Dict[str, TextureInfo] = field(default_factory=dict)
+    prims_assigned_to_material: List[Usd.Prim] = field(default_factory=list)
+
+
+    def __str__(self):
+        return self._pretty_print()
+
+    def __repr__(self):
+        return self._pretty_print()
+
+    def _pretty_print(self):
+        return f"MaterialData(prim_path={self.material_path})"
+        # data_dict = asdict(self)
+        # return pformat(data_dict, indent=4)
+
 
 
 class MaterialIngest:
@@ -1023,6 +1060,12 @@ class MaterialCreate:
         new_shader.moveToGoodPosition()
         # print(f'// DONE CONVERSION //')
 
+    def _create_vop_materials(self, mat_context, material_data: MaterialData):
+        """
+        [temp] create a hou.VopNode shader in a mat net.
+        """
+        self.convert_to_mtlx('principled_test', mat_context, material_data)
+
 
 def test():
     selected_node = hou.selectedNodes()[0] if hou.selectedNodes() else None
@@ -1048,8 +1091,5 @@ def test():
     mat_context = hou.node('/mat')
     new_shader = MaterialCreate._create_arnold_shader(mat_context, node_name='X')
     MaterialCreate._connect_arnold_textures(new_shader, mapped_nodes_dict)
-
-
-
 
 
