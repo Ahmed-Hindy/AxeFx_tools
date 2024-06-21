@@ -114,11 +114,15 @@ class MyMainWindow(QMainWindow):
         for node_path in selected_nodes:
             node = hou.node(node_path)
             if not node:
-                self.logger.warning(f"Node not found: {node_path}")
-                conversion_successful = False
+                self.logger.warning(f"Node not found: {node_path}, skipping...")
+                continue
             try:
-                # Add your material conversion logic here
-                materials_processer.MaterialCreate().ingest_stage_and_recreate_materials(selected_node=node, convert_to=selected_format)
+                material_ingest_instance = materials_processer.MaterialIngest(selected_node=node)
+                material_data = material_ingest_instance.material_data
+                shader_parms_dict = material_ingest_instance.shader_parms_dict
+                materials_processer.MaterialCreate(material_data=material_data, shader_parms_dict=shader_parms_dict,
+                                                   convert_to=selected_format)
+
                 self.logger.info(f"Converted materials for node: {node_path} to format: {selected_format}")
             except Exception as e:
                 self.logger.exception(f"Error converting node {node_path} to format {selected_format}: {str(e)}")
@@ -126,7 +130,7 @@ class MyMainWindow(QMainWindow):
 
         if conversion_successful:
             self.node_list.clear()
-            self.logger.info("Cleared node list after successful conversion.")
+            self.logger.info("Cleared node list after successful conversion.\n\n")
 
     def show_about_dialog(self):
         QMessageBox.about(self, "About Material Processor",
