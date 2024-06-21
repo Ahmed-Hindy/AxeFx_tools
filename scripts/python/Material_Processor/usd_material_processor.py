@@ -460,7 +460,7 @@ class USD_Shader_Create:
         self._assign_material_to_primitives(self.newly_created_usd_mat)
 
 
-def ingest_stage_and_recreate_materials(stage):
+def ingest_stage_and_recreate_usd_materials(stage):
     """
     [temp] ingests stage, creates new usd materials, and reassign it to prims which already been assigned to previous
      material_data.
@@ -471,4 +471,16 @@ def ingest_stage_and_recreate_materials(stage):
     for material_data in materialdata_list:
         # print(f"//{material_data.prims_assigned_to_material=}")
         usd_create = USD_Shader_Create(stage, material_data=material_data, create_arnold=True)
+
+
+def ingest_stage_and_recreate_vop_materials(stage):
+    """
+    [temp] ingests stage, creates new vop materials
+    """
+    # get all found materials on stage and return a list of MaterialData objects for each one.
+    materialdata_list = USD_Shaders_Ingest(stage).materialdata_list
+
+    for material_data in materialdata_list:
+        # print(f"//{material_data.prims_assigned_to_material=}")
+        MaterialCreate(material_data=material_data, mat_context=hou.node('/mat'), convert_to='arnold')
 
