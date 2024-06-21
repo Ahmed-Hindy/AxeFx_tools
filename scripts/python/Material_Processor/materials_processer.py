@@ -1075,30 +1075,3 @@ class MaterialCreate:
 
 
 
-
-def test():
-    selected_node = hou.selectedNodes()[0] if hou.selectedNodes() else None
-    if not selected_node:
-        raise Exception("Please select a node.")
-    traverse_class = TraverseNodeConnections()
-    traverse_tree  = traverse_class.traverse_children_nodes(selected_node)
-
-    all_connections = traverse_class.map_all_nodes_to_target_input_index(traverse_tree, node_b_type='arnold::standard_surface')
-    filtered_dict = {k: v for k, v in all_connections.items() if k.type().name() == 'arnold::image'}
-    print(f"\n{filtered_dict=}\n")
-    mapped_nodes_dict = traverse_class.map_connection_input_index_to_texture_type(input_dict=filtered_dict)
-    """
-    now we have a standardized tex_node dictionary {'normal':texture_node}, we can input those into the convert class to create 
-    new material. sadly the connect_<renderer>_textures() functions are using an old dictionary which has the textures
-    file paths strings which we currently dont have.
-    maybe I need a new function after 'map_connection_input_index_to_texture_type()' which will take all
-    hou.node() items in dict and get their unExpandedString() in the same dict or another dict.
-    dict1 is standardized tex_node  dictionary,
-    dict2 is standardized tex_paths dictionary, now lets create it!
-    
-    """
-    mat_context = hou.node('/mat')
-    new_shader = MaterialCreate._create_arnold_shader(mat_context, node_name='X')
-    MaterialCreate._connect_arnold_textures(new_shader, mapped_nodes_dict)
-
-
