@@ -8,10 +8,18 @@ from pprint import pprint
 from typing import List, Optional
 from pxr import Usd, UsdShade, Sdf
 
-import hou
-import Material_Processor.materials_processer
-from Material_Processor.materials_processer import MaterialCreate, TextureInfo, MaterialData
-reload(Material_Processor.materials_processer)
+try:
+    import hou
+except:
+    pass
+
+import Material_Processor.material_classes
+from Material_Processor.material_classes import TextureInfo, MaterialData
+if 'hou' in globals():
+    from Material_Processor.materials_processer import MaterialCreate
+    reload(Material_Processor.material_classes)
+else:
+    print('hou not in globals')
 
 
 
@@ -262,6 +270,11 @@ class USD_Shader_Create:
 
         self.create_usd_material()
 
+        print(f"{self.stage=}\n{self.material_data=}\n{self.prims_assigned_to_the_mat=}\n{self.create_usd_preview=}\n"
+              f"{self.create_arnold=}\n{self.newly_created_usd_mat=}\n"
+              f"{material_data.material_name=}\n{material_data.material_path=}\n{material_data.usd_material=}\n"
+              f"{material_data.textures=}\n{material_data.prims_assigned_to_material=}")
+
     def _create_usd_preview_material(self, parent_path):
         material_path = f'{parent_path}/UsdPreviewMaterial'
         material = UsdShade.Material.Define(self.stage, material_path)
@@ -309,7 +322,7 @@ class USD_Shader_Create:
             texture_prim.CreateInput("st", Sdf.ValueTypeNames.Float2).ConnectToSource(st_reader.ConnectableAPI(), "result")
 
             if tex_type in ['opacity', 'metallic', 'roughness']:
-                shader.CreateInput(input_name, Sdf.ValueTypeNames.Float3).ConnectToSource(texture_prim.ConnectableAPI(), 
+                shader.CreateInput(input_name, Sdf.ValueTypeNames.Float3).ConnectToSource(texture_prim.ConnectableAPI(),
                                                                                           "r")
             else:
                 shader.CreateInput(input_name, Sdf.ValueTypeNames.Float3).ConnectToSource(texture_prim.ConnectableAPI(),
