@@ -6,19 +6,9 @@
  a single file. -->
 
   <toolshelf name="AxeFx_Shelf_tab" label="AxeFx">
-    <memberTool name="batchChangePaths_1.1"/>
-    <memberTool name="Paragon_Importer"/>
     <memberTool name="KB3D_change_mat_res"/>
     <memberTool name="cam_bake"/>
     <memberTool name="Cam_shake"/>
-    <memberTool name="File_Loader"/>
-    <memberTool name="attribmantut"/>
-    <memberTool name="XOP_SP_Linker"/>
-    <memberTool name="Principled_to_MTLX_v4"/>
-    <memberTool name="principled_from_pat"/>
-    <memberTool name="usd_mat_override"/>
-    <memberTool name="convert_from_relative_absolute"/>
-    <memberTool name="live_renamer"/>
     <memberTool name="usdPreviewSurface_converter"/>
     <memberTool name="material_processor"/>
   </toolshelf>
@@ -516,7 +506,7 @@ reload(usd_material_processor)
 
 
 classMC  = usd_material_processor.USD_Shaders_Ingest()
-classMC.run()
+
 # classMC.create_materials_from_textures()
 ]]></script>
   </tool>

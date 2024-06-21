@@ -2,13 +2,12 @@
 copyright Ahmed Hindy. Please mention the original author if you used any part of this code
 
 """
-from typing import List
+from typing import Dict, List, Optional
 from dataclasses import dataclass, field, asdict
 from pprint import pformat
 from pxr import Usd, UsdShade, Sdf
 
 import hou
-from typing import Dict, Optional
 # try:
 #     from usd_material_processor import MaterialData, TextureInfo
 # except ModuleNotFoundError:
@@ -28,8 +27,8 @@ class TextureInfo:
 @dataclass
 class MaterialData:
     material_name: str
-    material_path: str
-    usd_material: UsdShade.Material
+    material_path: Optional[str] = None
+    usd_material: Optional[UsdShade.Material] = None
     textures: Dict[str, TextureInfo] = field(default_factory=dict)
     prims_assigned_to_material: List[Usd.Prim] = field(default_factory=list)
 
@@ -49,11 +48,20 @@ class MaterialData:
 
 class MaterialIngest:
     """
-    This class contains method to ingest materials from different render engines, currently it's working on
-    principledshader::2.0 and Arnold. I have plans for mtlx.
+    Ingests a material and gives us a materialData object
     """
-    def __init__(self):
-        pass
+    def __init__(self, selected_node : hou.node, ):
+
+        self.old_standard_surface = None
+        self.selected_node = selected_node
+        if not self.selected_node:
+            raise Exception("Please select a node.")
+
+        self.material_name = self.selected_node.name()
+        self.material_data = None
+        self.shader_parms_dict = None
+
+        self.run()
 
     @staticmethod
     def get_current_hou_context() -> str:
@@ -90,16 +98,12 @@ class MaterialIngest:
         :return: list containing all enabled texture parameters on the principled shader.
                   # e.g. [<hou.Parm basecolor_texture in /mat/principledshader2>]
         """
-        input_tex_parm_dict = {}
         input_tex_parm_list = []
         for parm in input_node.parms():
-            if '_useTexture' in parm.name():
-                if parm.eval() == 1:
-                    input_tex_str  = parm.name().split('_useTexture')[0] + '_texture'
-                    input_tex_parm = input_node.parm(input_tex_str)
-                    # print(f'{input_tex_parm=}')
-                    # input_tex_parm_dict[input_tex_str] = input_tex_parm
-                    input_tex_parm_list.append(input_tex_parm)
+            if '_useTexture' in parm.name() and parm.eval() == 1:
+                input_tex_str  = parm.name().split('_useTexture')[0] + '_texture'
+                input_tex_parm = input_node.parm(input_tex_str)
+                input_tex_parm_list.append(input_tex_parm)
 
         # special case for getting displacement
         if input_node.parm('dispTex_enable'):
@@ -279,7 +283,7 @@ class MaterialIngest:
             parm_value = value.unexpandedString()
             textures_dict[key] = parm_value
 
-        print(f'get_texture_maps_from_parms()-----{textures_dict=}\n')
+        # print(f'get_texture_maps_from_parms()-----{textures_dict=}\n')
         return textures_dict
 
 
@@ -433,11 +437,32 @@ class MaterialIngest:
         else:
             raise Exception(f'Unknown Node Type: {node_type}')
 
-        print(f'//{input_shader_parm_dict=}\n')
+        # print(f'//{input_shader_parm_dict=}\n')
         return input_shader_parm_dict
 
 
+    def run(self):
+        """ main function to run."""
+        ### Ingestion of input material
+        self.old_standard_surface, input_tex_parms_dict = self.get_texture_parms_from_all_shader_types(
+            input_node=self.selected_node)
+        textures_dict = self.get_texture_maps_from_parms(input_tex_parms_dict)
+        textures_dict_normalized = self.normalize_texture_map_keys(textures_dict)
+        self.shader_parms_dict = self.get_shader_parameters_from_all_shader_types(input_node=self.selected_node,
+                                                                                       old_standard_surface=self.old_standard_surface)
+
+        # Convert dictionaries to MaterialData
+
+        self.material_data = MaterialData(material_name=self.selected_node.name(),
+                                 textures={key: TextureInfo(file_path=value, traversal_path='', connected_input='') for
+                                           key, value in textures_dict_normalized.items()})
+        # print(f'\n{self.material_data=}\n{self.shader_parms_dict=}\n')
+
+
 class TraverseNodeConnections:
+    """
+    a helper class that traverses VOP networks. currently tested on Arnold
+    """
     def __init__(self) -> None:
         pass
 
@@ -576,8 +601,15 @@ class MaterialCreate:
     Output <- New material shading network.
     Currently, it creates multiple image nodes disregarding the input material.
     """
-    def __init__(self):
-        pass
+    def __init__(self, material_data: MaterialData, shader_parms_dict=None, mat_context=hou.node('/mat'), convert_to='arnold', ):
+        self.material_data = material_data
+        self.shader_parms_dict = shader_parms_dict
+        self.mat_context = mat_context
+        self.convert_to = convert_to
+
+        self.run()
+
+
 
     @staticmethod
     def _create_usdpreview_shader(mat_context: hou.VopNode, node_name: str, material_data: MaterialData) -> Dict:
@@ -891,12 +923,12 @@ class MaterialCreate:
         print(f'Shader parameters applied to {principled_node.name()}')
 
     @staticmethod
-    def convert_to_principled_shader(input_mat_node_name, mat_context, material_data: MaterialData,
-                                     shader_parms_dict=None):
+    def convert_to_principled_shader(input_mat_node_name, mat_context, material_data: MaterialData, shader_parms_dict=None):
         """Main function to run for creating new principled shader material
            :param input_mat_node_name: input material node to convert from.
            :param mat_context: mat context to create the material in, e.g. '/mat'
            :param material_data: MaterialData containing gathered data about all texture images to be re-created.
+           :param shader_parms_dict: standard surface parameters, e.g. {albedo:0.8}
            :return: new hou.VopNode of the material subnet.
         """
         if not material_data:
@@ -1021,50 +1053,27 @@ class MaterialCreate:
         return hou.node(arnold_nodes_dict['materialbuilder'])
 
 
-    def run(self, selected_node: hou.node, convert_to='arnold'):
+    def run(self):
         """
-        Main function to run, creates Principledshader, usdpreview, Arnold, and MTLX textures successfully.
+        Main function to run, creates Principledshader, usdpreview, Arnold, and MTLX textures.
         """
-        if not selected_node:
-            raise Exception("Please select a node.")
-        mat_context = hou.node('/mat')
-
-        # Ingestion of input material
-        # Assuming MaterialIngest is an existing module with these functions updated to use MaterialData and TextureInfo
-        old_standard_surface, input_tex_parms_dict = MaterialIngest.get_texture_parms_from_all_shader_types(input_node=selected_node)
-        textures_dict = MaterialIngest.get_texture_maps_from_parms(input_tex_parms_dict)
-        textures_dict_normalized = MaterialIngest.normalize_texture_map_keys(textures_dict)
-        shader_parms_dict = MaterialIngest.get_shader_parameters_from_all_shader_types(input_node=selected_node, old_standard_surface=old_standard_surface)
-
-        # Convert dictionaries to MaterialData
-        material_data = MaterialData(material_name=selected_node.name(), textures={
-            key: TextureInfo(file_path=value, traversal_path='', connected_input='')
-            for key, value in textures_dict_normalized.items()
-        })
-
-        print(f'{material_data=}\n{shader_parms_dict=}\n{convert_to=}\n')
 
         # Convert:
-        old_mat_name = selected_node.name()
-        if convert_to == 'principled_shader':
-            new_shader = MaterialCreate.convert_to_principled_shader(old_mat_name, mat_context, material_data, shader_parms_dict)
-        elif convert_to == 'mtlx':
-            new_shader = MaterialCreate.convert_to_mtlx(old_mat_name, mat_context, material_data, shader_parms_dict)
-        elif convert_to == 'arnold':
-            new_shader = MaterialCreate.convert_to_arnold(old_mat_name, mat_context, material_data, shader_parms_dict)
-        elif convert_to == 'usdpreview':
-            new_shader = MaterialCreate.convert_to_usdpreview(old_mat_name, mat_context, material_data, shader_parms_dict)
+        old_mat_name = self.material_data.material_name
+        if self.convert_to == 'principled_shader':
+            new_shader = MaterialCreate.convert_to_principled_shader(old_mat_name, self.mat_context, self.material_data, self.shader_parms_dict)
+        elif self.convert_to == 'mtlx':
+            new_shader = MaterialCreate.convert_to_mtlx(old_mat_name, self.mat_context, self.material_data, self.shader_parms_dict)
+        elif self.convert_to == 'arnold':
+            new_shader = MaterialCreate.convert_to_arnold(old_mat_name, self.mat_context, self.material_data, self.shader_parms_dict)
+        elif self.convert_to == 'usdpreview':
+            new_shader = MaterialCreate.convert_to_usdpreview(old_mat_name, self.mat_context, self.material_data, self.shader_parms_dict)
         else:
-            raise Exception(f"Wrong format to convert to: {convert_to}")
+            raise Exception(f"Wrong format to convert to: {self.convert_to}")
 
-        new_shader.moveToGoodPosition()
-        # print(f'// DONE CONVERSION //')
+        new_shader.moveToGoodPosition(move_unconnected=False)
 
-    def _create_vop_materials(self, mat_context, material_data: MaterialData):
-        """
-        [temp] create a hou.VopNode shader in a mat net.
-        """
-        self.convert_to_mtlx('principled_test', mat_context, material_data)
+
 
 
 def test():

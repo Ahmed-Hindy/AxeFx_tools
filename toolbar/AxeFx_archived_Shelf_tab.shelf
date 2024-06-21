@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="AxeFx_archived_Shelf_tab" label="AxeFx Archived">
+    <memberTool name="batchChangePaths_1.1"/>
+    <memberTool name="Paragon_Importer"/>
+    <memberTool name="File_Loader"/>
+    <memberTool name="attribmantut"/>
+    <memberTool name="XOP_SP_Linker"/>
+    <memberTool name="Principled_to_MTLX_v4"/>
+    <memberTool name="principled_from_pat"/>
+    <memberTool name="usd_mat_override"/>
+    <memberTool name="convert_from_relative_absolute"/>
+    <memberTool name="live_renamer"/>
+  </toolshelf>
+</shelfDocument>
