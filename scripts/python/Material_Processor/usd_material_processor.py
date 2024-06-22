@@ -257,12 +257,11 @@ class USD_Shader_Create:
     """
     Creates a collect usd material on stage with Arnold and/or UsdPreview materials. Assigns material to prims
     """
-    def __init__(self, stage, material_data: MaterialData,
-                 create_usd_preview=True, create_arnold=True):
+    def __init__(self, stage, material_data: MaterialData, parent_prim='/scene/material_py/', create_usd_preview=True,
+                 create_arnold=True, create_mtlx=False):
         self.stage = stage
         self.material_data = material_data
-        # if prims_assigned_to_the_mat is None:
-        #     prims_assigned_to_the_mat = []
+        self.parent_prim = parent_prim
         self.prims_assigned_to_the_mat = material_data.prims_assigned_to_material
         self.create_usd_preview = create_usd_preview
         self.create_arnold = create_arnold
@@ -338,12 +337,8 @@ class USD_Shader_Create:
         material = UsdShade.Material.Define(self.stage, material_prim.GetPath())
         material.CreateOutput("arnold:surface", Sdf.ValueTypeNames.Token).ConnectToSource(shader.ConnectableAPI(), "surface")
 
-        # Use the existing method to initialize Arnold shader parameters
         self._initialize_arnold_shader(shader)
-
-        # Fill texture file paths for Arnold Shader
         self._arnold_fill_texture_file_paths(material_prim, shader)
-
         return material
 
     def _initialize_arnold_shader(self, shader):
@@ -426,12 +421,12 @@ class USD_Shader_Create:
                                                                                           "r")
 
 
-    def _create_collect_prim(self, parent_prim='/Scene/materials/', create_usd_preview=True, create_arnold=True) -> UsdShade.Material:
+    def _create_collect_prim(self, create_usd_preview=True, create_arnold=True) -> UsdShade.Material:
         """
         creates a collect material prim on stage
         :return: UsdShade.Material of the collect prim
         """
-        collect_prim_path = f'{parent_prim}{self.material_data.material_name}_collect'
+        collect_prim_path = f'{self.parent_prim}/{self.material_data.material_name}_collect'
         collect_usd_material = UsdShade.Material.Define(self.stage, collect_prim_path)
         collect_usd_material.CreateInput("inputnum", Sdf.ValueTypeNames.Int).Set(2)
 
@@ -462,12 +457,11 @@ class USD_Shader_Create:
             UsdShade.MaterialBindingAPI(prim).Bind(new_material)
 
 
-    def create_usd_material(self, parent_prim='/scene/material_py/'):
+    def create_usd_material(self):
         """
         Main function to run. will create a collect material with Arnold and usdPreview shaders in stage.
         """
-        self.newly_created_usd_mat = self._create_collect_prim(parent_prim=parent_prim,
-                                                               create_usd_preview=self.create_usd_preview,
+        self.newly_created_usd_mat = self._create_collect_prim(create_usd_preview=self.create_usd_preview,
                                                                create_arnold=self.create_arnold)
         # print(f"{self.newly_created_usd_mat=}")
         self._assign_material_to_primitives(self.newly_created_usd_mat)
@@ -483,7 +477,7 @@ def ingest_stage_and_recreate_usd_materials(stage):
 
     for material_data in materialdata_list:
         # print(f"//{material_data.prims_assigned_to_material=}")
-        usd_create = USD_Shader_Create(stage, material_data=material_data, create_arnold=True)
+        usd_create = USD_Shader_Create(stage, material_data=material_data, parent_prim='/pp/smol', create_arnold=True)
 
 
 def ingest_stage_and_recreate_vop_materials(stage):
