@@ -32,8 +32,9 @@ from PySide2.QtCore import Qt
 
 
 """
-TODO 1. Add UDIM support.
-     2. I have to work on material assignments so it automatically works when it overlays in houdini.
+TODO 1. Add UDIM support. [DONE]
+     2. add substance_painter.export.export_mesh()
+     3. I have to work on material assignments so it automatically works when it overlays in houdini.
 
 """
 
@@ -50,8 +51,10 @@ def start_plugin():
     substance_painter.ui.add_dock_widget(usd_exported_qdialog)
     plugin_widgets.append(usd_exported_qdialog)
 
-    # CreateUSD().get_export_template_info()
     register_callbacks()
+
+    # # the line will export the mesh. add it in a try except block if the substance painter edition is below 8.3
+    # substance_painter.export.export_mesh(r'F:\Users\Ahmed Hindy\Documents\Adobe\Adobe Substance 3D Painter\export\tank_v001\mesh_test.usd', substance_painter.export.MeshExportOption.BaseMesh)
 
 
 def register_callbacks():

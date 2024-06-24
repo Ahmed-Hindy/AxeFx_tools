@@ -569,7 +569,7 @@ class MaterialCreate:
     Output <- New material shading network.
     Currently, it creates multiple image nodes disregarding the input material.
     """
-    def __init__(self, material_data: MaterialData, shader_parms_dict=None, mat_context=hou.node('/mat'), convert_to='arnold', ):
+    def __init__(self, material_data: MaterialData, shader_parms_dict=None, mat_context=hou.node('/mat'), convert_to='arnold'):
         self.material_data = material_data
         self.shader_parms_dict = shader_parms_dict
         self.mat_context = mat_context

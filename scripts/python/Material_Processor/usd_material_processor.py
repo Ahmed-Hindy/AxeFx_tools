@@ -265,14 +265,15 @@ class USD_Shader_Create:
         self.prims_assigned_to_the_mat = material_data.prims_assigned_to_material
         self.create_usd_preview = create_usd_preview
         self.create_arnold = create_arnold
+        self.create_mtlx = create_mtlx
         self.newly_created_usd_mat = None
 
         self.create_usd_material()
 
-        print(f"{self.stage=}\n{self.material_data=}\n{self.prims_assigned_to_the_mat=}\n{self.create_usd_preview=}\n"
-              f"{self.create_arnold=}\n{self.newly_created_usd_mat=}\n"
+        print(f"\n{self.stage=}\n{self.material_data=}\n{self.prims_assigned_to_the_mat=}\n{self.create_usd_preview=}\n"
+              f"{self.create_mtlx=}\n{self.create_arnold=}\n{self.newly_created_usd_mat=}\n"
               f"{material_data.material_name=}\n{material_data.material_path=}\n{material_data.usd_material=}\n"
-              f"{material_data.textures=}\n{material_data.prims_assigned_to_material=}")
+              f"{material_data.textures=}\n{material_data.prims_assigned_to_material=}\n")
 
     def _create_usd_preview_material(self, parent_path):
         material_path = f'{parent_path}/UsdPreviewMaterial'
@@ -329,68 +330,68 @@ class USD_Shader_Create:
 
         return material
 
-    def _create_arnold_material(self, parent_path):
+    def _arnold_create_material(self, parent_path):
         shader_path = f'{parent_path}/standard_surface1'
         shader = UsdShade.Shader.Define(self.stage, shader_path)
         shader.CreateIdAttr("arnold:standard_surface")
         material_prim = shader.GetPrim().GetParent()
-        material = UsdShade.Material.Define(self.stage, material_prim.GetPath())
-        material.CreateOutput("arnold:surface", Sdf.ValueTypeNames.Token).ConnectToSource(shader.ConnectableAPI(), "surface")
+        material_usdshade = UsdShade.Material.Define(self.stage, material_prim.GetPath())
+        material_usdshade.CreateOutput("arnold:surface", Sdf.ValueTypeNames.Token).ConnectToSource(shader.ConnectableAPI(), "surface")
 
-        self._initialize_arnold_shader(shader)
+        self._arnold_initialize_shader(shader)
         self._arnold_fill_texture_file_paths(material_prim, shader)
-        return material
+        return material_usdshade
 
-    def _initialize_arnold_shader(self, shader):
-        shader.CreateInput('base', Sdf.ValueTypeNames.Float).Set(1.0)
-        shader.CreateInput('base_color', Sdf.ValueTypeNames.Float3).Set((0.8, 0.8, 0.8))
-        shader.CreateInput('metalness', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('specular', Sdf.ValueTypeNames.Float).Set(1.0)
-        shader.CreateInput('specular_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
-        shader.CreateInput('specular_roughness', Sdf.ValueTypeNames.Float).Set(0.2)
-        shader.CreateInput('specular_IOR', Sdf.ValueTypeNames.Float).Set(1.5)
-        shader.CreateInput('specular_anisotropy', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('specular_rotation', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('coat', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('coat_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
-        shader.CreateInput('coat_roughness', Sdf.ValueTypeNames.Float).Set(0.1)
-        shader.CreateInput('coat_IOR', Sdf.ValueTypeNames.Float).Set(1.5)
-        shader.CreateInput('coat_normal', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
-        shader.CreateInput('coat_affect_color', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('coat_affect_roughness', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('transmission', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('transmission_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
-        shader.CreateInput('transmission_depth', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('transmission_scatter', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
-        shader.CreateInput('transmission_scatter_anisotropy', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('transmission_dispersion', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('transmission_extra_roughness', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('subsurface', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('subsurface_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
-        shader.CreateInput('subsurface_radius', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
-        shader.CreateInput('subsurface_scale', Sdf.ValueTypeNames.Float).Set(1.0)
-        shader.CreateInput('subsurface_anisotropy', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('emission', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('emission_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
-        shader.CreateInput('opacity', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
-        shader.CreateInput('thin_walled', Sdf.ValueTypeNames.Bool).Set(False)
-        shader.CreateInput('sheen', Sdf.ValueTypeNames.Float).Set(0.0)
-        shader.CreateInput('sheen_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
-        shader.CreateInput('sheen_roughness', Sdf.ValueTypeNames.Float).Set(0.3)
-        shader.CreateInput('indirect_diffuse', Sdf.ValueTypeNames.Float).Set(1.0)
-        shader.CreateInput('indirect_specular', Sdf.ValueTypeNames.Float).Set(1.0)
-        shader.CreateInput('internal_reflections', Sdf.ValueTypeNames.Bool).Set(True)
-        shader.CreateInput('caustics', Sdf.ValueTypeNames.Bool).Set(False)
-        shader.CreateInput('exit_to_background', Sdf.ValueTypeNames.Bool).Set(False)
-        shader.CreateInput('aov_id1', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
-        shader.CreateInput('aov_id2', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
-        shader.CreateInput('aov_id3', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
-        shader.CreateInput('aov_id4', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
-        shader.CreateInput('aov_id5', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
-        shader.CreateInput('aov_id6', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
-        shader.CreateInput('aov_id7', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
-        shader.CreateInput('aov_id8', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
-        shader.CreateInput('transmit_aovs', Sdf.ValueTypeNames.Bool).Set(False)
+    def _arnold_initialize_shader(self, shader_usdshade):
+        shader_usdshade.CreateInput('base', Sdf.ValueTypeNames.Float).Set(1.0)
+        shader_usdshade.CreateInput('base_color', Sdf.ValueTypeNames.Float3).Set((0.8, 0.8, 0.8))
+        shader_usdshade.CreateInput('metalness', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('specular', Sdf.ValueTypeNames.Float).Set(1.0)
+        shader_usdshade.CreateInput('specular_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
+        shader_usdshade.CreateInput('specular_roughness', Sdf.ValueTypeNames.Float).Set(0.2)
+        shader_usdshade.CreateInput('specular_IOR', Sdf.ValueTypeNames.Float).Set(1.5)
+        shader_usdshade.CreateInput('specular_anisotropy', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('specular_rotation', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('coat', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('coat_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
+        shader_usdshade.CreateInput('coat_roughness', Sdf.ValueTypeNames.Float).Set(0.1)
+        shader_usdshade.CreateInput('coat_IOR', Sdf.ValueTypeNames.Float).Set(1.5)
+        shader_usdshade.CreateInput('coat_normal', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
+        shader_usdshade.CreateInput('coat_affect_color', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('coat_affect_roughness', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('transmission', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('transmission_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
+        shader_usdshade.CreateInput('transmission_depth', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('transmission_scatter', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
+        shader_usdshade.CreateInput('transmission_scatter_anisotropy', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('transmission_dispersion', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('transmission_extra_roughness', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('subsurface', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('subsurface_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
+        shader_usdshade.CreateInput('subsurface_radius', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
+        shader_usdshade.CreateInput('subsurface_scale', Sdf.ValueTypeNames.Float).Set(1.0)
+        shader_usdshade.CreateInput('subsurface_anisotropy', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('emission', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('emission_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
+        shader_usdshade.CreateInput('opacity', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
+        shader_usdshade.CreateInput('thin_walled', Sdf.ValueTypeNames.Bool).Set(False)
+        shader_usdshade.CreateInput('sheen', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('sheen_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
+        shader_usdshade.CreateInput('sheen_roughness', Sdf.ValueTypeNames.Float).Set(0.3)
+        shader_usdshade.CreateInput('indirect_diffuse', Sdf.ValueTypeNames.Float).Set(1.0)
+        shader_usdshade.CreateInput('indirect_specular', Sdf.ValueTypeNames.Float).Set(1.0)
+        shader_usdshade.CreateInput('internal_reflections', Sdf.ValueTypeNames.Bool).Set(True)
+        shader_usdshade.CreateInput('caustics', Sdf.ValueTypeNames.Bool).Set(False)
+        shader_usdshade.CreateInput('exit_to_background', Sdf.ValueTypeNames.Bool).Set(False)
+        shader_usdshade.CreateInput('aov_id1', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
+        shader_usdshade.CreateInput('aov_id2', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
+        shader_usdshade.CreateInput('aov_id3', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
+        shader_usdshade.CreateInput('aov_id4', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
+        shader_usdshade.CreateInput('aov_id5', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
+        shader_usdshade.CreateInput('aov_id6', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
+        shader_usdshade.CreateInput('aov_id7', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
+        shader_usdshade.CreateInput('aov_id8', Sdf.ValueTypeNames.Float3).Set((0.0, 0.0, 0.0))
+        shader_usdshade.CreateInput('transmit_aovs', Sdf.ValueTypeNames.Bool).Set(False)
 
     def _arnold_fill_texture_file_paths(self, material_prim, shader):
         """
@@ -421,7 +422,68 @@ class USD_Shader_Create:
                                                                                           "r")
 
 
-    def _create_collect_prim(self, create_usd_preview=True, create_arnold=True) -> UsdShade.Material:
+###  mtlx ###
+    def _mtlx_create_material(self, parent_path):
+        shader_path = f'{parent_path}/mtlxstandard_surface'
+        shader_usdshade = UsdShade.Shader.Define(self.stage, shader_path)
+        shader_usdshade.CreateIdAttr("ND_standard_surface_surfaceshader")
+        material_prim = shader_usdshade.GetPrim().GetParent()
+        material_usdshade = UsdShade.Material.Define(self.stage, material_prim.GetPath())
+        material_usdshade.CreateOutput("mtlx:surface", Sdf.ValueTypeNames.Token).ConnectToSource(shader_usdshade.ConnectableAPI(), "surface")
+
+        self._mtlx_initialize_shader(shader_usdshade)
+        self._mtlx_fill_texture_file_paths(material_prim, shader_usdshade)
+        return material_usdshade
+
+    def _mtlx_initialize_shader(self, shader_usdshade):
+        shader_usdshade.CreateInput('base', Sdf.ValueTypeNames.Float).Set(1.0)
+        shader_usdshade.CreateInput('base_color', Sdf.ValueTypeNames.Float3).Set((0.8, 0.8, 0.8))
+        shader_usdshade.CreateInput('coat', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('coat_roughness', Sdf.ValueTypeNames.Float).Set(0.1)
+        shader_usdshade.CreateInput('emission', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('emission_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
+        shader_usdshade.CreateInput('metalness', Sdf.ValueTypeNames.Float).Set(0.0)
+        shader_usdshade.CreateInput('specular', Sdf.ValueTypeNames.Float).Set(1.0)
+        shader_usdshade.CreateInput('specular_color', Sdf.ValueTypeNames.Float3).Set((1.0, 1.0, 1.0))
+        shader_usdshade.CreateInput('specular_IOR', Sdf.ValueTypeNames.Float).Set(1.5)
+        shader_usdshade.CreateInput('specular_roughness', Sdf.ValueTypeNames.Float).Set(0.2)
+        shader_usdshade.CreateInput('transmission', Sdf.ValueTypeNames.Float).Set(0.0)
+
+
+    def _mtlx_fill_texture_file_paths(self, material_prim, shader_usdshade):
+        """
+        Fills the texture file paths for the given shader using the material_data.
+        """
+        texture_types_to_inputs = {
+            'albedo': 'base_color',
+            'metallness': 'metalness',
+            'roughness': 'specular_roughness',
+            'normal': 'normal',
+            # 'opacity': 'opacity'  # no opacity?
+        }
+        print(f"{self.material_data=}\n\n")
+        for tex_type, tex_info in self.material_data.textures.items():
+            if tex_type not in texture_types_to_inputs:
+                continue
+            input_name = texture_types_to_inputs[tex_type]
+            texture_prim_path = f'{material_prim.GetPath()}/{tex_type}_texture'
+            texture_prim = UsdShade.Shader.Define(self.stage, texture_prim_path)
+            if tex_type == 'albedo':
+                texture_prim.CreateIdAttr("ND_image_color3")
+            else:
+                texture_prim.CreateIdAttr("ND_image_float")
+
+            file_input = texture_prim.CreateInput("file", Sdf.ValueTypeNames.Asset)
+            file_input.Set(tex_info.file_path)
+            shader_usdshade.CreateInput(input_name, Sdf.ValueTypeNames.Float3).ConnectToSource(
+                texture_prim.ConnectableAPI(), "rgba")
+            # EXPERIMENTAL
+            if tex_type == 'opacity':
+                shader_usdshade.CreateInput(input_name, Sdf.ValueTypeNames.Float3).ConnectToSource(
+                    texture_prim.ConnectableAPI(), "r")
+
+
+    def _create_collect_prim(self, create_usd_preview=True, create_arnold=True, create_mtlx=False) -> UsdShade.Material:
         """
         creates a collect material prim on stage
         :return: UsdShade.Material of the collect prim
@@ -438,9 +500,15 @@ class USD_Shader_Create:
 
         if create_arnold:
             # Create the Arnold Shader under the collect material
-            arnold_material = self._create_arnold_material(collect_prim_path)
+            arnold_material = self._arnold_create_material(collect_prim_path)
             arnold_shader = arnold_material.GetOutput("arnold:surface").GetConnectedSource()[0]
             collect_usd_material.CreateOutput("arnold:surface", Sdf.ValueTypeNames.Token).ConnectToSource(arnold_shader, "surface")
+
+        if create_mtlx:
+            # Create the mtlx Shader under the collect material
+            mtlx_material = self._mtlx_create_material(collect_prim_path)
+            mtlx_shader = mtlx_material.GetOutput("mtlx:surface").GetConnectedSource()[0]
+            collect_usd_material.CreateOutput("mtlx:surface", Sdf.ValueTypeNames.Token).ConnectToSource(mtlx_shader, "surface")
 
         return collect_usd_material
 
@@ -462,12 +530,12 @@ class USD_Shader_Create:
         Main function to run. will create a collect material with Arnold and usdPreview shaders in stage.
         """
         self.newly_created_usd_mat = self._create_collect_prim(create_usd_preview=self.create_usd_preview,
-                                                               create_arnold=self.create_arnold)
+                                                               create_arnold=self.create_arnold, create_mtlx=self.create_mtlx)
         # print(f"{self.newly_created_usd_mat=}")
         self._assign_material_to_primitives(self.newly_created_usd_mat)
 
 
-def ingest_stage_and_recreate_usd_materials(stage):
+def ingest_stage_and_recreate_usd_materials(stage, parent_prim='/pp/smol', create_usd_preview=True, create_arnold=True, create_mtlx=False):
     """
     [temp] ingests stage, creates new usd materials, and reassign it to prims which already been assigned to previous
      material_data.
@@ -477,10 +545,11 @@ def ingest_stage_and_recreate_usd_materials(stage):
 
     for material_data in materialdata_list:
         # print(f"//{material_data.prims_assigned_to_material=}")
-        usd_create = USD_Shader_Create(stage, material_data=material_data, parent_prim='/pp/smol', create_arnold=True)
+        USD_Shader_Create(stage, material_data=material_data, parent_prim=parent_prim,
+                                       create_usd_preview=create_usd_preview, create_arnold=create_arnold, create_mtlx=create_mtlx)
 
 
-def ingest_stage_and_recreate_vop_materials(stage):
+def ingest_stage_and_recreate_vop_materials(stage, convert_to='arnold'):
     """
     [temp] ingests stage, creates new vop materials
     """
@@ -489,5 +558,5 @@ def ingest_stage_and_recreate_vop_materials(stage):
 
     for material_data in materialdata_list:
         # print(f"//{material_data.prims_assigned_to_material=}")
-        MaterialCreate(material_data=material_data, mat_context=hou.node('/mat'), convert_to='arnold')
+        MaterialCreate(material_data=material_data, mat_context=hou.node('/mat'), convert_to=convert_to)
 
