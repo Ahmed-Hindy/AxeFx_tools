@@ -4,8 +4,10 @@ from importlib import reload
 from pprint import pprint
 from typing import Dict, Tuple, List
 
-sys.path.append(r'C:\dev\python_venvs\venv_001\Lib\site-packages')
+
+# sys.path.append(r'C:\dev\python_venvs\venv_001\Lib\site-packages')
 sys.path.append(r'F:\Users\Ahmed Hindy\Documents\AxeFx_tools\scripts\python')
+print(f'////////{sys.path=}')
 
 import Material_Processor.material_classes
 import Material_Processor.usd_material_processor
@@ -16,7 +18,8 @@ from Material_Processor.usd_material_processor import USD_Shader_Create
 
 print(f'reloading done!')
 
-from pxr import Usd, UsdShade
+
+from pxr import Usd
 import substance_painter
 import substance_painter.ui
 import substance_painter.event
@@ -29,9 +32,7 @@ from PySide2.QtCore import Qt
 
 
 """
-this now works. it checks for checked qboxes on the plugin and creates a usd material and saves it to disk
-TODO 1. it creates 1 material called 'ExportedMaterial_collect', it should loop over all materials in scene and create
-        them one by one.
+TODO 1. Add UDIM support.
      2. I have to work on material assignments so it automatically works when it overlays in houdini.
 
 """
@@ -142,6 +143,22 @@ class CreateUSD:
         else:
             return textures_dict
 
+    @staticmethod
+    def replace_udim_in_texture_path(tex_path):
+        import re
+        """
+        Replace UDIM number in the texture path with <udim>.
+        :param tex_path: str, texture file path
+        :return: str, modified texture file path
+        """
+        # Regular expression to match UDIM numbers (1001, 1002, ..., 1099)
+        udim_pattern = re.compile(r'10\d{2}')
+
+        # Replace UDIM number with <udim>
+        new_tex_path = udim_pattern.sub('<udim>', tex_path)
+
+        return new_tex_path
+
     def create_materialdata(self) -> List[MaterialData]:
         """
         Create a MaterialData object from exported texture data.
@@ -157,6 +174,7 @@ class CreateUSD:
 
             normalized_dict = {}
             for tex_path in texture_paths_list:
+                tex_path = self.replace_udim_in_texture_path(tex_path)
                 if "basecolor" in tex_path.lower():
                     normalized_dict["albedo"] = tex_path
                 elif "base_color" in tex_path.lower():
@@ -184,20 +202,21 @@ class CreateUSD:
         return materialdata_list
 
     def write_material_to_usd(self, material_data) -> None:
-        """Write MaterialData to a USD file using USD_Shader_Create"""
+        """Write MaterialData to a USD stage using USD_Shader_Create"""
         USD_Shader_Create(self.stage, material_data, parent_prim=self.material_primitive_path,
                           create_usd_preview=self.checkbox_create_usdpreview, create_arnold=self.checkbox_create_arnold,
                           create_mtlx=self.checkbox_create_materialx)
-        self.stage.GetRootLayer().Save()
 
         print(f"Material USD file has been exported to {self.usd_publish_location}")
 
     def run(self):
+        """ main run function """
         print("exporting usd....")
         self.stage = Usd.Stage.CreateNew(self.usd_publish_location)
         materialdata_list = self.create_materialdata()
         for materialdata in materialdata_list:
             self.write_material_to_usd(materialdata)
+            self.stage.GetRootLayer().Save()
 
 
 class USDExporterView(QDialog):
