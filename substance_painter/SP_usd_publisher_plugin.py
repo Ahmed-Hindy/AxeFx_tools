@@ -88,13 +88,13 @@ class CreateUSD:
         self.checkbox_create_usdpreview = self.selected_options_dict['usdpreview']
         self.checkbox_create_arnold = self.selected_options_dict['arnold']
         self.checkbox_create_materialx = self.selected_options_dict['materialx']
+        self.material_primitive_path = self.selected_options_dict['primitive_path']
         self.usd_publish_location_with_token = self.selected_options_dict['publish_location']  # has <export_folder> token
 
         self.usd_publish_location = self.get_usd_publish_path()  # replace the <export_folder> token
         self.project = substance_painter.project
         self.export_settings = None
         self.stage = None
-        self.material_parent_path = '/RootNode/material_2'  # TODO: temp, add it as a Qlabel to the pyside QDialog.
 
     def get_usd_publish_path(self):
         """Replace <export_folder> in usd_file_template with the textures_publish_dir"""
@@ -152,7 +152,7 @@ class CreateUSD:
         for (material_name, stack_name), texture_paths_list in self.textures_dict.items():
             material_name = material_name.replace(' ', '_')
             stack_name = stack_name.replace(' ', '_')
-            material_path = f"{self.material_parent_path}/{material_name}"
+            material_path = f"{self.material_primitive_path}/{material_name}"
             print(f"\n  ///{material_name=}, {material_path=}")
 
             normalized_dict = {}
@@ -185,7 +185,7 @@ class CreateUSD:
 
     def write_material_to_usd(self, material_data) -> None:
         """Write MaterialData to a USD file using USD_Shader_Create"""
-        USD_Shader_Create(self.stage, material_data, parent_prim=self.material_parent_path,
+        USD_Shader_Create(self.stage, material_data, parent_prim=self.material_primitive_path,
                           create_usd_preview=self.checkbox_create_usdpreview, create_arnold=self.checkbox_create_arnold,
                           create_mtlx=self.checkbox_create_materialx)
         self.stage.GetRootLayer().Save()
@@ -240,6 +240,21 @@ class USDExporterView(QDialog):
         self.publish_location_vbox.addWidget(self.publish_location_lineedit)
         self.publish_location_vbox.addItem(self.publish_location_spacer)
 
+
+        # USD Stage prim path
+        self.stage_prim_path_vbox = QHBoxLayout()
+        self.stage_prim_path_vbox.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.stage_prim_path_label = QLabel("Primitive Path")
+        self.stage_prim_path_lineedit = QLineEdit("/RootNode/Materials")
+        self.stage_prim_path_lineedit.setMaxLength(128)
+        self.stage_prim_path_lineedit.setMinimumWidth(300)
+        self.stage_prim_path_lineedit.setMaximumWidth(600)
+        self.stage_prim_path_lineedit.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed)
+        self.stage_prim_path_spacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.stage_prim_path_vbox.addWidget(self.stage_prim_path_label)
+        self.stage_prim_path_vbox.addWidget(self.stage_prim_path_lineedit)
+        self.stage_prim_path_vbox.addItem(self.stage_prim_path_spacer)
+
         # Save geometry option
         self.save_geometry_checkbox = QCheckBox("Save Geometry in USD File")
 
@@ -247,6 +262,7 @@ class USDExporterView(QDialog):
         self.outer_layout.addWidget(self.select_engines_label)
         self.outer_layout.addLayout(self.material_options_layout)
         self.outer_layout.addLayout(self.publish_location_vbox)
+        self.outer_layout.addLayout(self.stage_prim_path_vbox)
         self.outer_layout.addWidget(self.save_geometry_checkbox)
 
 
@@ -257,6 +273,7 @@ class USDExporterView(QDialog):
             "arnold": self.arnold_checkbox.isChecked(),
             "materialx": self.materialx_checkbox.isChecked(),
             "publish_location": self.publish_location_lineedit.text(),
+            "primitive_path": self.stage_prim_path_lineedit.text(),
             "save_geometry": self.save_geometry_checkbox.isChecked()
         }
 
