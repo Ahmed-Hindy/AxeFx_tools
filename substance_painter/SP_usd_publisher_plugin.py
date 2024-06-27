@@ -1,13 +1,11 @@
 import sys
 import os
 from importlib import reload
-from pprint import pprint
 from typing import Dict, Tuple, List
 
 
 # sys.path.append(r'C:\dev\python_venvs\venv_001\Lib\site-packages')
 sys.path.append(r'F:\Users\Ahmed Hindy\Documents\AxeFx_tools\scripts\python')
-print(f'////////{sys.path=}')
 
 import Material_Processor.material_classes
 import Material_Processor.usd_material_processor
@@ -50,11 +48,7 @@ def start_plugin():
     usd_exported_qdialog = USDExporterView()
     substance_painter.ui.add_dock_widget(usd_exported_qdialog)
     plugin_widgets.append(usd_exported_qdialog)
-
     register_callbacks()
-
-    # # the line will export the mesh. add it in a try except block if the substance painter edition is below 8.3
-    # substance_painter.export.export_mesh(r'F:\Users\Ahmed Hindy\Documents\Adobe\Adobe Substance 3D Painter\export\tank_v001\mesh_test.usd', substance_painter.export.MeshExportOption.BaseMesh)
 
 
 def register_callbacks():
@@ -68,10 +62,8 @@ def on_post_export(context):
     print("ExportTexturesEnded emitted!!!")
     exported_textures: Dict[Tuple[str, str], List[str]]
     exported_textures = context.textures
-    # print(f"\n\n//////////////////{CreateUSD().extract_material_names(exported_textures)=}\n")
-    # print(f"\n\n//////////////////{CreateUSD().extract_textures_for_material(exported_textures, 'Body mat')=}\n")
-
     CreateUSD(usd_exported_qdialog, exported_textures).run()
+    CreateUSD(usd_exported_qdialog, exported_textures).export_mesh_as_usd()
 
 
 def close_plugin():
@@ -84,28 +76,26 @@ def close_plugin():
 
 class CreateUSD:
     def __init__(self, usd_exported_qdialog, textures_dict=None):
+
         self.usd_exported_qdialog = usd_exported_qdialog
         self.textures_dict = textures_dict
-        self.textures_publish_dir = self.extract_textures_publish_location()
+        self.textures_publish_dir = self.extract_textures_publish_location(self.textures_dict)
 
         self.selected_options_dict = self.usd_exported_qdialog.get_selected_options()
         self.checkbox_create_usdpreview = self.selected_options_dict['usdpreview']
         self.checkbox_create_arnold = self.selected_options_dict['arnold']
         self.checkbox_create_materialx = self.selected_options_dict['materialx']
         self.material_primitive_path = self.selected_options_dict['primitive_path']
+        self.save_geometry = self.selected_options_dict['save_geometry']
         self.usd_publish_location_with_token = self.selected_options_dict['publish_location']  # has <export_folder> token
-
-        self.usd_publish_location = self.get_usd_publish_path()  # replace the <export_folder> token
+        self.usd_publish_location = self.usd_publish_location_with_token.replace('<export_folder>', self.textures_publish_dir)
         self.project = substance_painter.project
+        self.substance_painter_version = substance_painter.application.version_info()
         self.export_settings = None
         self.stage = None
 
-    def get_usd_publish_path(self):
-        """Replace <export_folder> in usd_file_template with the textures_publish_dir"""
-        publish_location = self.usd_publish_location_with_token.replace('<export_folder>', self.textures_publish_dir)
-        return publish_location
-
-    def extract_material_names(self, textures_dict) -> List[str]:
+    @staticmethod
+    def extract_material_names(textures_dict) -> List[str]:
         """
         Extract material names from textures_dict
         :param textures_dict: dictionary we get from SP, format: Dict[Tuple[str, str], List[str]]
@@ -113,8 +103,8 @@ class CreateUSD:
         """
         return [material_name for (material_name, _), _ in textures_dict.items()]
 
-
-    def extract_textures_for_material(self, textures_dict, material_name) -> List[str]:
+    @staticmethod
+    def extract_textures_for_material(textures_dict, material_name) -> List[str]:
         """
         Extract list of textures for a given material name
         :param textures_dict: dictionary we get from SP, format: Dict[Tuple[str, str], List[str]]
@@ -127,12 +117,13 @@ class CreateUSD:
                 return texture_list
         return []
 
-    def extract_textures_publish_location(self) -> str:
+    @staticmethod
+    def extract_textures_publish_location(textures_dict) -> str:
         """
         Extract textures publish folder from textures_dict
         :return: string folder path for the first material encountered in the for loop
         """
-        for (_, _), texture_list in self.textures_dict.items():
+        for (_, _), texture_list in textures_dict.items():
             textures_publish_dir = os.path.dirname(texture_list[0])
             textures_parent_directory = os.path.dirname(textures_publish_dir)
             return textures_parent_directory
@@ -212,6 +203,23 @@ class CreateUSD:
 
         print(f"Material USD file has been exported to {self.usd_publish_location}")
 
+    def export_mesh_as_usd(self):
+        """
+        exports mesh to usd
+        """
+        print(f"{self.save_geometry=}")
+        print(f"SP version: {self.substance_painter_version[0]}.{self.substance_painter_version[1]}")
+        if not self.save_geometry:
+            return
+        if self.substance_painter_version[0] < 8 and self.substance_painter_version[1] < 3:
+            print(f"Exporting Mesh as USD failed as this version of substance painter doesn't support usd yet.\n"
+                  f"Please upgrade to v8.3 or higher")
+            return
+
+        substance_painter.export.export_mesh(f'{self.textures_publish_dir}/mesh.usd',
+                                             substance_painter.export.MeshExportOption.BaseMesh)
+        print(f"exported mesh to {f'{self.textures_publish_dir}/mesh.usd'}")
+
     def run(self):
         """ main run function """
         print("exporting usd....")
@@ -289,7 +297,7 @@ class USDExporterView(QDialog):
 
 
     def get_selected_options(self):
-        print(f"\n\n //{self.arnold_checkbox.isChecked()=}")
+        print(f"\n //{self.save_geometry_checkbox.isChecked()=}")
         return {
             "usdpreview": self.usdpreview_checkbox.isChecked(),
             "arnold": self.arnold_checkbox.isChecked(),
