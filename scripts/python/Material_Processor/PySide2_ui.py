@@ -207,19 +207,19 @@ class NodeListWidget(QListWidget):
 
     def dropEvent(self, event):
         mime = event.mimeData()
-        if mime.hasText():
-            node_paths = mime.text().split('\t')  # Split the text on tab character
-            logger = logging.getLogger(__name__)
-            for node_path in node_paths:
-                # Check if the node is already in the list
-                if not self.findItems(node_path, QtCore.Qt.MatchExactly):
-                    self.addItem(node_path)
-                    logger.info(f"Node dropped: {node_path}")
-                else:
-                    logger.info(f"Node already in list: {node_path}")
-        else:
+        if not mime.hasText():
             logger = logging.getLogger(__name__)
             logger.warning(f'Unsupported object for drag and drop, {mime.formats()}\n')
+
+        node_paths = mime.text().split('\t')  # Split the text on tab character
+        logger = logging.getLogger(__name__)
+        for node_path in node_paths:
+            # Check if the node is already in the list
+            if not self.findItems(node_path, QtCore.Qt.MatchExactly):
+                self.addItem(node_path)
+                logger.info(f"Node dropped: {node_path}")
+            else:
+                logger.info(f"Node already in list: {node_path}")
 
     def keyPressEvent(self, event):
         logger = logging.getLogger(__name__)
