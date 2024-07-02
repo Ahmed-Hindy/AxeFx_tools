@@ -2,11 +2,18 @@
 copyright Ahmed Hindy. Please mention the original author if you used any part of this code
 
 """
-from typing import Dict
+from typing import Dict, List
+from pprint import pprint, pformat
+from importlib import reload
+
 try:
-    from scripts.python.Material_Processor.material_classes import TextureInfo, MaterialData
+    import scripts.python.Material_Processor.material_classes
+    reload(scripts.python.Material_Processor.material_classes)
+    from scripts.python.Material_Processor.material_classes import TextureInfo, MaterialData, NodeInfo
 except:
-    from Material_Processor.material_classes import TextureInfo, MaterialData
+    import Material_Processor.material_classes
+    reload(Material_Processor.material_classes)
+    from Material_Processor.material_classes import TextureInfo, MaterialData, NodeInfo
 
 try:
     import hou
@@ -15,11 +22,7 @@ except:
 
 
 class MaterialIngest:
-    """
-    Ingests a material and gives us a materialData object
-    """
-    def __init__(self, selected_node : hou.node, ):
-
+    def __init__(self, selected_node: hou.node):
         self.old_standard_surface = None
         self.selected_node = selected_node
         if not self.selected_node:
@@ -33,241 +36,38 @@ class MaterialIngest:
 
     @staticmethod
     def get_current_hou_context() -> str:
-        """
-        :return: the current open tab in Houdini.
-        """
         current_tab = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor, 0)
         current_tab_parent = current_tab.pwd()
         print(f"get_current_hou_context()----- {current_tab_parent.type().name()=}")
         return current_tab_parent
 
-
     @staticmethod
-    def get_principled_texture_nodes() -> list[hou.node]:
-        """
-        Get all Principled texture nodes in the current scene.
-        note: make it work only on matnets instead of looping over all nodes in scene.
-        note: currently not used
-        :return: list of all found "principledshader::2.0" hou.VopNode in scene
-        """
-        texture_nodes = []
-        for node in hou.node("/").allSubChildren(recurse_in_locked_nodes=False):
-            if node.type().name() == "principledshader::2.0":
-                texture_nodes.append(node)
-        return texture_nodes
-
-
-    @staticmethod
-    def get_texture_parms_list_from_principled_shader(input_node) -> list[hou.parm]:
-        """
-        :param input_node:  -> hou.node() of type 'principledshader::2.0'
-        :process: returns dict of parameters on a node that have '<tex_name>_useTexture' enabled
-                  basically get all enabled texture parameters.
-        :return: list containing all enabled texture parameters on the principled shader.
-                  # e.g. [<hou.Parm basecolor_texture in /mat/principledshader2>]
-        """
-        input_tex_parm_list = []
-        for parm in input_node.parms():
-            if '_useTexture' in parm.name() and parm.eval() == 1:
-                input_tex_str  = parm.name().split('_useTexture')[0] + '_texture'
-                input_tex_parm = input_node.parm(input_tex_str)
-                input_tex_parm_list.append(input_tex_parm)
-
-        # special case for getting displacement
-        if input_node.parm('dispTex_enable'):
-            input_tex_str = 'displacement' + '_texture'
-            input_tex_parm = input_node.parm('dispTex_texture')
-            # input_tex_parm_dict[input_tex_str] = input_tex_parm
-            input_tex_parm_list.append(input_tex_parm)
-
-        # print(f'{input_tex_parm_list=}\n')
-        return input_tex_parm_list
-
-    @staticmethod
-    def get_texture_parms_dict_from_principled_shader(input_parm_list: list) -> Dict[str,hou.parm]:
-        """
-            [WIP, how do I get the 'texture_type'? it should be the key]
-            :param input_parm_list: list containing all enabled texture parameters on the principled shader.
-              # e.g. [<hou.Parm basecolor_texture in /mat/principledshader2>]
-            :return: Dict
-        """
-        dicta = {}
-        for parm in input_parm_list:
-            if parm.name() == 'basecolor_texture':
-                dicta['albedo'] = parm
-            if parm.name() == 'rough_texture':
-                dicta['rough'] = parm
-            if parm.name() == 'metallic_texture':
-                dicta['metallic'] = parm
-            if parm.name() == 'opaccolor_texture':
-                dicta['opacity'] = parm
-            if parm.name() == 'baseNormal_texture':
-                dicta['normal'] = parm
-            if parm.name() == 'dispTex_texture':
-                dicta['displacement'] = parm
-
-        return dicta
-
-
-    @staticmethod
-    def get_texture_nodes_from_arnold_shader(input_node: hou.node) -> [hou.VopNode, Dict[str, hou.node]]:
-        """
-        Arnold material networks need traversing to detect which arnold::image node corresponds to which texture_type
-        e.g. 'albedo', this function will get this data as a dictionary.
-        NEW: this function will also add the arnold::standard_surface node to the dictionary
-
-        :param input_node: hou.node() of type 'arnold_materialbuilder'
-        :process: 1. Traverses the shader network to find all 'arnold::image' nodes connected
-                  2. returns dict of parameters on nodes 'arnold::image' that are connected to the shader
-        :return:  1. <hou.VopNode of type arnold::standard_surface at /mat/x/standard_surface1>
-                  2. a dict of {'texture_type': hou.VopNode} e.g. {'albedo': <hou.VopNode of type arnold::image at
-                 /mat/arnold_mat/albedo_node>, 'normal': <hou.VopNode of type arnold::image at
-                 /mat/arnold_mat/normal_node>}
-        """
-        filtered_dict     = {}
+    def get_texture_nodes_from_all_shader_types(input_node: hou.node) -> Dict[str, hou.VopNode]:
+        filtered_dict = {}
         mapped_nodes_dict = {}
-        traverse_class  = TraverseNodeConnections()
-        traverse_tree   = traverse_class.traverse_children_nodes(input_node)
-        all_connections = traverse_class.map_all_nodes_to_target_input_index(traverse_tree,
-                                                                             node_b_type='arnold::standard_surface')
-        # print(f'{all_connections=}')
-
-        # we will get the arnold::standard_surface
-        standard_surface = [k for k, v in all_connections.items() if k.type().name() == 'arnold::standard_surface'][0]
-
-        # we will filter a dictionary to include only 'arnold::image'
-        filtered_dict.update({k: v for k, v in all_connections.items() if k.type().name() == 'arnold::image'})
+        traverse_class = TraverseNodeConnections()
+        traverse_tree = traverse_class.traverse_children_nodes(input_node)
+        all_connections = traverse_class.map_all_nodes_to_target_input_index(traverse_tree, node_b_type='arnold::standard_surface')
+        print(f'\n')
+        pprint(traverse_tree)
+        print(f'\n')
+        standard_surface = [k for k, v in traverse_tree.items() if k.type().name() == 'arnold::standard_surface'][0]
+        filtered_dict.update({k: v for k, v in traverse_tree.items() if k.type().name() in ['arnold::image', 'arnold::color_correct', 'arnold::triplanar']})
         mapped_nodes_dict.update(traverse_class.map_connection_input_index_to_texture_type(input_dict=filtered_dict))
-
-        print(f"\n get_texture_nodes_from_arnold_shader-----{mapped_nodes_dict=}\n")
-
-        return standard_surface, mapped_nodes_dict
-
+        return mapped_nodes_dict
 
     @staticmethod
-    def get_texture_nodes_from_mtlx_shader(input_node: hou.node) -> [hou.VopNode, Dict[str, hou.node]]:
-        """
-        mtlx subnet networks need traversing to detect which mtlximage node corresponds to which texture_type
-        e.g. 'albedo', this function will get this data as a dictionary.
-        NEW: this function will also add the mtlxstandard_surface node to the dictionary
-
-        :param input_node: hou.node() of type 'subnet' containing the mtlx network
-        :process: 1. Traverses the shader network to find all 'mtlximage' nodes connected
-                  2. returns dict of parameters on nodes 'mtlximage' that are connected to the shader
-        :return:  1. <hou.VopNode of type arnold::standard_surface at /mat/x/standard_surface1>                     #FIX THIS
-                  2. a dict of {'texture_type': hou.VopNode} e.g. {'albedo': <hou.VopNode of type arnold::image at  #FIX THIS
-                 /mat/arnold_mat/albedo_node>, 'normal': <hou.VopNode of type arnold::image at                      #FIX THIS
-                 /mat/arnold_mat/normal_node>}                                                                      #FIX THIS
-        """
-        filtered_dict     = {}
-        mapped_nodes_dict = {}
-        traverse_class  = TraverseNodeConnections()
-        traverse_tree   = traverse_class.traverse_children_nodes(input_node)
-        all_connections = traverse_class.map_all_nodes_to_target_input_index(traverse_tree,
-                                                                             node_b_type='mtlxstandard_surface')
-        # print(f'{all_connections=}')
-
-        # we will get the arnold::standard_surface
-        standard_surface = [k for k, v in all_connections.items() if k.type().name() == 'mtlxstandard_surface'][0]
-
-        # we will filter a dictionary to include only 'arnold::image'
-        filtered_dict.update({k: v for k, v in all_connections.items() if k.type().name() == 'mtlximage'})
-        mapped_nodes_dict.update(traverse_class.map_connection_input_index_to_texture_type(input_dict=filtered_dict))
-
-        print(f"\n get_texture_nodes_from_mtlx_shader-----{mapped_nodes_dict=}\n")
-
-        return standard_surface, mapped_nodes_dict
-
-    @staticmethod
-    def get_texture_parms_from_arnold_shader(tex_node_dict: Dict) -> Dict[str, hou.parm]:
-        """
-        :param tex_node_dict: dict of {'texture_type': hou.VopNode}
-                              e.g. {'albedo': <hou.VopNode of type arnold::image at /mat/x/albedo>},
-        :return: will get the hou.parm containing image file path
-                 e.g. {'albedo': <hou.VopNode of type arnold::image at /mat/arnold3/albedo>,
-                 'normal': <hou.VopNode of type arnold::image at /mat/arnold3/normal>}
-        """
-        dicta = {}
-        for key, value in tex_node_dict.items():
-            if key == 'standard_surface':
-                continue
-            dicta[key] = value.parm('filename')
-
-        # print(f'{tex_node_dict=},\n{dicta=}')
-        return dicta
-
-
-    @staticmethod
-    def get_texture_parms_from_mtlx_shader(tex_node_dict: Dict) -> Dict[str, hou.parm]:
-        """
-        :param tex_node_dict: dict of {'texture_type': hou.VopNode}                                     #FIX THIS
-                              e.g. {'albedo': <hou.VopNode of type arnold::image at /mat/x/albedo>},    #FIX THIS
-        :return: will get the hou.parm containing image file path                                       #FIX THIS
-                 e.g. {'albedo': <hou.VopNode of type arnold::image at /mat/arnold3/albedo>,            #FIX THIS
-                 'normal': <hou.VopNode of type arnold::image at /mat/arnold3/normal>}                  #FIX THIS
-        """
-        dicta = {}
-        for key, value in tex_node_dict.items():
-            if key == 'standard_surface':
-                continue
-            dicta[key] = value.parm('file')
-
-        # print(f'{tex_node_dict=},\n{dicta=}')
-        return dicta
-
-    @staticmethod
-    def get_texture_parms_from_all_shader_types(input_node: hou.node) -> [hou.VopNode, Dict[str, hou.parm]]:
-        """
-        [DOCSTRING WIP]
-        """
-        input_tex_parm_dict = {}
-        standard_surface = None
-        node_type = input_node.type().name()
-        if node_type == 'principledshader::2.0':
-            input_tex_parm_list = MaterialIngest.get_texture_parms_list_from_principled_shader(input_node)
-            input_tex_parm_dict = MaterialIngest.get_texture_parms_dict_from_principled_shader(input_tex_parm_list)
-        elif node_type == 'arnold_materialbuilder':
-            standard_surface, input_tex_nodes_dict = MaterialIngest.get_texture_nodes_from_arnold_shader(input_node)
-            input_tex_parm_dict = MaterialIngest.get_texture_parms_from_arnold_shader(input_tex_nodes_dict)
-        elif node_type == 'subnet': # need a check if its mtlx or usdpreview
-            standard_surface, input_tex_nodes_dict = MaterialIngest.get_texture_nodes_from_mtlx_shader(input_node)
-            input_tex_parm_dict = MaterialIngest.get_texture_parms_from_mtlx_shader(input_tex_nodes_dict)
-        else:
-            raise Exception(f'Unknown Node Type: {node_type}')
-
-        print(f'//{input_tex_parm_dict=}\n')
-        return standard_surface, input_tex_parm_dict
-
-    @staticmethod
-    def get_texture_maps_from_parms(input_parms_dict: Dict[str, hou.parm]) -> Dict[str, str]:
-        """
-        :param input_parms_dict: dict of {'parm_name' : hou.parm},
-                                 e.g. {'basecolor_texture': <hou.Parm basecolor_texture in /mat/principledshader2>}
-        :process: gets the string value of parameter including '<UDIM>' if found
-        :return: dict of {'parm_name' : parm.unexpandedString()}
-        """
+    def get_texture_maps_from_parms(input_parms_dict: Dict[str, hou.VopNode]) -> Dict[str, str]:
         textures_dict = {}
         for key, value in input_parms_dict.items():
-            parm_value = value.unexpandedString()
-            textures_dict[key] = parm_value
-
-        # print(f'get_texture_maps_from_parms()-----{textures_dict=}\n')
+            if value:
+                parm_value = value.parm('filename').unexpandedString()
+                textures_dict[key] = parm_value
+        print(f'get_texture_maps_from_parms()-----{textures_dict=}\n')
         return textures_dict
-
 
     @staticmethod
     def normalize_texture_map_keys(textures_dict: Dict[str, str]) -> Dict[str, str]:
-        """
-        :param textures_dict: takes a dict of texture images, e.g. {'basecolor_texture': 'xxxbase.exr',
-                             'rough_texture': 'rough.<UDIM>.jpeg', 'dispTex_texture': ''}'
-        process: Normalizes the dict keys which is texture type e.g. 'albedo, and removes empty dict items.
-                 because every render engine has its set of names. e.g. for principledshader::2.0:
-                 dict['basecolor_texture'] = value -> dict['albedo'] = value
-        :return: dict with same value but keys are named differently (normalized)
-                 e.g. {'albedo': 'xxxbase.exr', 'roughness': 'rough.<UDIM>.jpeg', 'normal': 'normal.<UDIM>.rat'}
-        note:   not all textures are added for now.
-        """
-
         normalized_dict = {}
         for key, value in textures_dict.items():
             if value:
@@ -289,68 +89,13 @@ class MaterialIngest:
         return normalized_dict
 
     @staticmethod
-    def get_shader_parameters_from_principled_shader(input_node: hou.node) -> Dict:
-        """
-        given a principledshader::2.0 node, will attempt to get all shader parameters like basecolor, albedo_mult, rough ,ior
-        :return: a normalized dict containing shader parameters.
-        """
-        shader_parameters_dict = {
-            'base'          : input_node.evalParm('albedomult'),
-            'base_color'    : input_node.parmTuple('basecolor').eval(),
-            'metalness'     : input_node.evalParm('metallic'),
-            'specular'      : input_node.evalParm('reflect'),
-            'specular_roughness': input_node.evalParm('rough'),
-            'specular_IOR'  : input_node.evalParm('ior'),
-            'transmission'  : input_node.evalParm('transparency'),
-            'transmission_color': input_node.parmTuple('transcolor').eval(),
-            'subsurface'    : input_node.evalParm('sss'),
-            'subsurface_color': input_node.parmTuple('ssscolor').eval(),
-            'emission'      : input_node.evalParm('emitint'),
-            'emission_color': input_node.parmTuple('emitcolor').eval(),
-        }
-
-        # print(f'{shader_parameters_dict=}')
-        return shader_parameters_dict
-
-    @staticmethod
     def get_shader_parameters_from_arnold_shader(input_node: hou.node) -> Dict:
         """
-        Given an Arnold shader node, this function attempts to get all shader parameters like basecolor, metalness,
+        Given an Arnold shader node, this function attempts to get all shader parameters like base_color, metalness,
         specular, roughness, etc.
         :return: A normalized dictionary containing shader parameters.
         """
-        print(f'get_shader_parameters_from_arnold_shader()-----{input_node=}')
-        shader_parameters_dict = {
-            'base'          : input_node.evalParm('base'),
-            'base_color'    : input_node.parmTuple('base_color').eval(),
-            'diffuse_roughness': input_node.evalParm('diffuse_roughness'),
-            'metalness'     : input_node.evalParm('metalness'),
-            'specular'      : input_node.evalParm('specular'),
-            'specular_color': input_node.parmTuple('specular_color').eval(),
-            'specular_roughness': input_node.evalParm('specular_roughness'),
-            'specular_IOR'  : input_node.evalParm('specular_IOR'),
-            'transmission'  : input_node.evalParm('transmission'),
-            'transmission_color': input_node.parmTuple('transmission_color').eval(),
-            'subsurface'    : input_node.evalParm('subsurface'),
-            'subsurface_color': input_node.parmTuple('subsurface_color').eval(),
-            'emission'      : input_node.evalParm('emission'),
-            'emission_color': input_node.parmTuple('emission_color').eval(),
-            'opacity'       : input_node.parmTuple('opacity').eval(),
-        }
-
-
-
-        # print(f'{shader_parameters_dict=}')
-        return shader_parameters_dict
-
-    @staticmethod
-    def get_shader_parameters_from_materialx_shader(input_node: hou.node) -> Dict:
-        """
-        Given a MaterialX shader node, this function attempts to get all shader parameters like base_color, metalness,
-        specular, roughness, etc.
-        :return: A normalized dictionary containing shader parameters.
-        """
-        print(f'get_shader_parameters_from_materialx_shader()-----{input_node=}')
+        # print(f'get_shader_parameters_from_arnold_shader()-----{input_node=}')
         shader_parameters_dict = {
             'base': input_node.evalParm('base'),
             'base_color': input_node.parmTuple('base_color').eval(),
@@ -366,70 +111,65 @@ class MaterialIngest:
             'subsurface_color': input_node.parmTuple('subsurface_color').eval(),
             'emission': input_node.evalParm('emission'),
             'emission_color': input_node.parmTuple('emission_color').eval(),
-            'opacity'       : input_node.parmTuple('opacity').eval(),
+            'opacity': input_node.parmTuple('opacity').eval(),
         }
-
         print(f'{shader_parameters_dict=}')
         return shader_parameters_dict
 
-    @staticmethod
-    def get_shader_parameters_from_usdpreview_shader(input_node: hou.node) -> Dict:
-        """
-        Given a usdpreview shader node, this function attempts to get all shader parameters like diffuseColor,
-        emissiveColor, roughness, etc.
-        :return: A normalized dictionary containing shader parameters.
-        """
-        print(f'get_shader_parameters_from_usdpreview_shader()-----{input_node=}')
-        shader_parameters_dict = {
-            'base_color': input_node.parmTuple('diffuseColor').eval(),
-            'metalness': input_node.evalParm('metalness'),
-            'specular_roughness': input_node.evalParm('roughness'),
-            'specular_IOR': input_node.evalParm('ior'),
-            'emission_color': input_node.parmTuple('emissiveColor').eval(),
-            'opacity': (input_node.evalParm('opacity'), 0, 0),  # opacity should be a tuple like in arnold and mtlx.
-        }
-
-        print(f'{shader_parameters_dict=}')
-        return shader_parameters_dict
-
-    @staticmethod
-    def get_shader_parameters_from_all_shader_types(input_node: hou.node, old_standard_surface=None):
+    def get_shader_parameters_from_all_shader_types(self, input_node: hou.node) -> Dict:
         input_shader_parm_dict = {}
         node_type = input_node.type().name()
         if node_type == 'principledshader::2.0':
-            input_shader_parm_dict = MaterialIngest.get_shader_parameters_from_principled_shader(input_node)
-        elif node_type == 'arnold_materialbuilder':
-            input_shader_parm_dict = MaterialIngest.get_shader_parameters_from_arnold_shader(old_standard_surface)
+            input_shader_parm_dict = self.get_shader_parameters_from_principled_shader(input_node)
+        elif node_type == 'arnold::standard_surface':
+            input_shader_parm_dict = self.get_shader_parameters_from_arnold_shader(input_node)
         elif node_type == 'subnet':  # need a check for mtlx vs usdpreview
-            input_shader_parm_dict = MaterialIngest.get_shader_parameters_from_materialx_shader(old_standard_surface)
+            standard_surface_node = [child for child in input_node.children() if child.type().name() == 'mtlxstandard_surface'][0]
+            input_shader_parm_dict = self.get_shader_parameters_from_materialx_shader(standard_surface_node)
         else:
             raise Exception(f'Unknown Node Type: {node_type}')
 
-        # print(f'//{input_shader_parm_dict=}\n')
+        print(f'//{input_shader_parm_dict=}\n')
         return input_shader_parm_dict
 
-
     def run(self):
-        """ main function to run."""
-        ### Ingestion of input material
-        self.old_standard_surface, input_tex_parms_dict = self.get_texture_parms_from_all_shader_types(
-            input_node=self.selected_node)
-        textures_dict = self.get_texture_maps_from_parms(input_tex_parms_dict)
+        input_tex_nodes_dict = self.get_texture_nodes_from_all_shader_types(self.selected_node)
+
+        # Create a dictionary of texture maps
+        textures_dict = self.get_texture_maps_from_parms(input_tex_nodes_dict)
         textures_dict_normalized = self.normalize_texture_map_keys(textures_dict)
-        self.shader_parms_dict = self.get_shader_parameters_from_all_shader_types(input_node=self.selected_node,
-                                                                                       old_standard_surface=self.old_standard_surface)
+
+        # Get shader parameters
+        standard_surface_node = \
+        [child for child in self.selected_node.children() if child.type().name() == 'arnold::standard_surface'][0]
+        self.shader_parms_dict = self.get_shader_parameters_from_all_shader_types(standard_surface_node)
 
         # Convert dictionaries to MaterialData
+        self.material_data = MaterialData(
+            material_name=self.selected_node.name(),
+            textures={
+                key: TextureInfo(
+                    file_path=value,
+                    nodes=[
+                        NodeInfo(
+                            node_type=node.type().name(),
+                            traversal_path=self.get_traversal_path(node),
+                            connected_input_index=str(node.inputs()[0].inputIndex()) if node.inputs() else None
+                        ) for node in self.get_traversal_nodes(input_tex_nodes_dict[key])
+                    ]
+                ) for key, value in textures_dict_normalized.items()
+            }
+        )
 
-        self.material_data = MaterialData(material_name=self.selected_node.name(),
-                                          textures={key: TextureInfo(file_path=value, traversal_path='', connected_input='') for
-                                                    key, value in textures_dict_normalized.items()})
         print(f'\n{self.material_data.textures=}\n\n')
+
+
 
 
 class TraverseNodeConnections:
     """
-    a helper class that traverses VOP networks. currently tested on Arnold
+    A helper class that traverses VOP networks.
+    Currently tested on Arnold.
     """
     def __init__(self) -> None:
         pass
@@ -462,7 +202,7 @@ class TraverseNodeConnections:
             branch_dict = self.traverse_node_tree(output_node, [])
             all_branches.update(branch_dict)
 
-        # print(f'traverse_children_nodes()-----all_branches={all_branches}\n')
+        print(f'traverse_children_nodes()-----all_branches={all_branches}\n')
         return all_branches
 
     @staticmethod
@@ -559,6 +299,15 @@ class TraverseNodeConnections:
         # print(f'{node_map_dict=}')
         return node_map_dict
 
+    @staticmethod
+    def update_connected_input_indices(node_dict: Dict, node_info_list: List[NodeInfo]) -> None:
+        for node_info in node_info_list:
+            node = hou.node(node_info.traversal_path.split(">")[-1])
+            index = TraverseNodeConnections.find_input_index_in_dict(node_dict, node)
+            node_info.connected_input_index = index
+
+
+
 
 
 
@@ -652,25 +401,20 @@ class MaterialCreate:
 
     @staticmethod
     def convert_to_usdpreview(input_mat_node_name, mat_context, material_data: MaterialData, shader_parms_dict=None):
-        """Main function to run for creating new usdpreview material
-           :param input_mat_node_name: input material node to convert from.
-           :param mat_context: mat context to create the material in, e.g. '/mat'
-           :param material_data: MaterialData containing gathered data about all texture images to be re-created.
-           :return: new hou.VopNode of the material subnet.
-        """
+        """Main function to run for creating new usdpreview material"""
         if not material_data:
             raise Exception(f"Cant create a material when {material_data=}")
 
-        usdpreview_nodes_dict = MaterialCreate._create_usdpreview_shader(mat_context, input_mat_node_name, material_data)
+        usdpreview_nodes_dict = MaterialCreate._create_usdpreview_shader(mat_context, input_mat_node_name,
+                                                                         material_data)
         new_standard_surface = hou.node(usdpreview_nodes_dict['standard_surface'])
-        MaterialCreate._connect_usdpreview_textures(usdpreview_nodes_dict=usdpreview_nodes_dict, material_data=material_data)
+        MaterialCreate._connect_usdpreview_textures(usdpreview_nodes_dict=usdpreview_nodes_dict,
+                                                    material_data=material_data)
         if shader_parms_dict:
-            MaterialCreate._apply_shader_parameters_to_usdpreview_shader(new_standard_surface=new_standard_surface, shader_parameters=shader_parms_dict)
+            MaterialCreate._apply_shader_parameters_to_usdpreview_shader(new_standard_surface=new_standard_surface,
+                                                                         shader_parameters=shader_parms_dict)
 
         return hou.node(usdpreview_nodes_dict['materialbuilder'])
-
-    # Similar updates will be made for other shaders (e.g., mtlx, arnold, principled)
-    # For brevity, only the usdpreview shader example is fully shown here.
 
     @staticmethod
     def _create_mtlx_shader(mat_context: hou.node, node_name: str, material_data: MaterialData) -> Dict:
@@ -797,12 +541,7 @@ class MaterialCreate:
 
     @staticmethod
     def convert_to_mtlx(input_mat_node_name, mat_context, material_data: MaterialData, shader_parms_dict=None):
-        """Main function to run for creating new MTLX material
-           :param input_mat_node_name: input material node to convert from.
-           :param mat_context: mat context to create the material in, e.g. '/mat'
-           :param material_data: MaterialData containing gathered data about all texture images to be re-created.
-           :return: new hou.VopNode of the material subnet.
-        """
+        """Main function to run for creating new MTLX material"""
         if not material_data:
             raise Exception(f"Cant create a material when {material_data=}")
 
@@ -891,14 +630,9 @@ class MaterialCreate:
         print(f'Shader parameters applied to {principled_node.name()}')
 
     @staticmethod
-    def convert_to_principled_shader(input_mat_node_name, mat_context, material_data: MaterialData, shader_parms_dict=None):
-        """Main function to run for creating new principled shader material
-           :param input_mat_node_name: input material node to convert from.
-           :param mat_context: mat context to create the material in, e.g. '/mat'
-           :param material_data: MaterialData containing gathered data about all texture images to be re-created.
-           :param shader_parms_dict: standard surface parameters, e.g. {albedo:0.8}
-           :return: new hou.VopNode of the material subnet.
-        """
+    def convert_to_principled_shader(input_mat_node_name, mat_context, material_data: MaterialData,
+                                     shader_parms_dict=None):
+        """Main function to run for creating new principled shader material"""
         if not material_data:
             raise Exception(f"Cant create a material when {material_data=}")
 
@@ -915,14 +649,6 @@ class MaterialCreate:
 
     @staticmethod
     def _create_arnold_shader(mat_context: hou.node, node_name: str, material_data: MaterialData) -> Dict:
-        """Creates an Arnold material Builder VOP, and inside it creates a standard surface and multiple arnold::image
-           nodes for each EXISTING texture type e.g. 'albedo' or 'roughness' then connects all nodes together.
-
-           :param mat_context: mat library node to create the new arnold_materialbuilder in
-           :param node_name: name of arnold_materialbuilder to create, will suffix it with '_arnold'.
-           :param material_data: MaterialData containing normalized texture names and their paths.
-           :return: dict of all created Arnold nodes
-        """
         arnold_image_dict = {}
         arnold_builder = mat_context.createNode("arnold_materialbuilder", node_name + "_arnold")
         arnold_image_dict['materialbuilder'] = arnold_builder.path()
@@ -932,54 +658,52 @@ class MaterialCreate:
         output_node.setInput(0, node_std_surface)
         arnold_image_dict['standard_surface'] = node_std_surface.path()
 
-        if 'albedo' in material_data.textures:
-            image_albedo = arnold_builder.createNode("arnold::image", "albedo")
-            node_std_surface.setInput(1, image_albedo)
-            arnold_image_dict['image_albedo'] = image_albedo.path()
-
-        if 'roughness' in material_data.textures:
-            image_roughness = arnold_builder.createNode("arnold::image", "roughness")
-            node_std_surface.setInput(6, image_roughness)
-            arnold_image_dict['image_roughness'] = image_roughness.path()
-
-        if 'normal' in material_data.textures:
-            image_normal = arnold_builder.createNode("arnold::image", "normal")
-            normal_map = arnold_builder.createNode("arnold::normal_map")
-            normal_map.setInput(0, image_normal)
-            node_std_surface.setInput(39, normal_map)
-            arnold_image_dict['image_normal'] = image_normal.path()
-            arnold_image_dict['normal_map'] = normal_map.path()
+        for texture_type, texture_info in material_data.textures.items():
+            current_node = None
+            for node_info in texture_info.nodes:
+                if node_info.node_type == 'arnold::image':
+                    image_node = arnold_builder.createNode("arnold::image", texture_type)
+                    image_node.parm("filename").set(texture_info.file_path)
+                    current_node = image_node
+                    arnold_image_dict[f'image_{texture_type}'] = image_node.path()
+                else:
+                    node = arnold_builder.createNode(node_info.node_type)
+                    node.setInput(0, current_node)
+                    current_node = node
+                    arnold_image_dict[f'{node_info.node_type}_{texture_type}'] = node.path()
+            print(f"{texture_info.nodes[-1]=}")
+            node_std_surface.setInput(int(texture_info.nodes[-1].connected_input_index), current_node)
 
         arnold_builder.layoutChildren()
-
         return arnold_image_dict
 
     @staticmethod
     def _connect_arnold_textures(arnold_nodes_dict: Dict, material_data: MaterialData) -> None:
-        """
-        Links the texture paths from 'material_data' to the freshly created arnold standard surface.
-        """
         print(f'{arnold_nodes_dict=}\n')
         for texture_type, texture_info in material_data.textures.items():
-            if texture_type == 'albedo':
-                hou.node(arnold_nodes_dict['image_albedo']).parm("filename").set(texture_info.file_path)
-            elif texture_type == 'roughness':
-                hou.node(arnold_nodes_dict['image_roughness']).parm("filename").set(texture_info.file_path)
-            elif texture_type == 'normal':
-                hou.node(arnold_nodes_dict['image_normal']).parm("filename").set(texture_info.file_path)
-            else:
-                print(f'Node {texture_type=} is missing...')
+            image_node = hou.node(arnold_nodes_dict[f'image_{texture_type}'])
+            image_node.parm("filename").set(texture_info.file_path)
+            for node_info in texture_info.nodes:
+                if node_info.node_type != 'arnold::image':
+                    node = hou.node(arnold_nodes_dict[f'{node_info.node_type}_{texture_type}'])
+                    node.setInput(0, image_node)
+
+    @staticmethod
+    def _connect_arnold_textures(arnold_nodes_dict: Dict, material_data: MaterialData) -> None:
+        print(f'{arnold_nodes_dict=}\n')
+        for texture_type, texture_info in material_data.textures.items():
+            image_node = hou.node(arnold_nodes_dict[f'image_{texture_type}'])
+            image_node.parm("filename").set(texture_info.file_path)
+            for node_info in texture_info.nodes:
+                if node_info.node_type != 'arnold::image':
+                    node = hou.node(arnold_nodes_dict[f'{node_info.node_type}_{texture_type}'])
+                    node.setInput(0, image_node)
 
     @staticmethod
     def _apply_shader_parameters_to_arnold_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
         """
         Apply shader parameters to a newly created Arnold shader node.
-        :param new_standard_surface: hou.VopNode the newly created Arnold Standard Surface
-        :param shader_parameters: A dictionary containing shader parameter values.
         """
-        # print(f'apply_shader_parameters_to_arnold_shader()-----{new_standard_surface=}\n{shader_parameters=}\n'
-        #       f'{new_standard_surface.parm("base")=}')
-
         new_standard_surface.parm('base').set(shader_parameters.get('base'))
         new_standard_surface.parmTuple('base_color').set(shader_parameters.get('base_color', (1.0, 1.0, 1.0)))
         new_standard_surface.parm('diffuse_roughness').set(shader_parameters.get('diffuse_roughness', 0.0))
@@ -1001,13 +725,7 @@ class MaterialCreate:
 
     @staticmethod
     def convert_to_arnold(input_mat_node_name, mat_context, material_data: MaterialData, shader_parms_dict=None):
-        """Main function to run for creating new Arnold material
-           :param input_mat_node_name: input material node to convert from.
-           :param mat_context: mat context to create the material in, e.g. '/mat'
-           :param material_data: MaterialData containing gathered data about all texture images to be re-created.
-           :return: new hou.VopNode of the material subnet.
-           [Note: opacity isnt being applied]
-        """
+        """Main function to run for creating new Arnold material"""
         if not material_data:
             raise Exception(f"Cant create a material when {material_data=}")
 
@@ -1020,22 +738,24 @@ class MaterialCreate:
 
         return hou.node(arnold_nodes_dict['materialbuilder'])
 
-
     def run(self):
         """
         Main function to run, creates Principledshader, usdpreview, Arnold, and MTLX textures.
         """
-
-        # Convert:
+        # Convert to the specified shader type
         old_mat_name = self.material_data.material_name
         if self.convert_to == 'principled_shader':
-            new_shader = MaterialCreate.convert_to_principled_shader(old_mat_name, self.mat_context, self.material_data, self.shader_parms_dict)
+            new_shader = MaterialCreate.convert_to_principled_shader(old_mat_name, self.mat_context, self.material_data,
+                                                                     self.shader_parms_dict)
         elif self.convert_to == 'mtlx':
-            new_shader = MaterialCreate.convert_to_mtlx(old_mat_name, self.mat_context, self.material_data, self.shader_parms_dict)
+            new_shader = MaterialCreate.convert_to_mtlx(old_mat_name, self.mat_context, self.material_data,
+                                                        self.shader_parms_dict)
         elif self.convert_to == 'arnold':
-            new_shader = MaterialCreate.convert_to_arnold(old_mat_name, self.mat_context, self.material_data, self.shader_parms_dict)
+            new_shader = MaterialCreate.convert_to_arnold(old_mat_name, self.mat_context, self.material_data,
+                                                          self.shader_parms_dict)
         elif self.convert_to == 'usdpreview':
-            new_shader = MaterialCreate.convert_to_usdpreview(old_mat_name, self.mat_context, self.material_data, self.shader_parms_dict)
+            new_shader = MaterialCreate.convert_to_usdpreview(old_mat_name, self.mat_context, self.material_data,
+                                                              self.shader_parms_dict)
         else:
             raise Exception(f"Wrong format to convert to: {self.convert_to}")
 

@@ -14,9 +14,9 @@
     <memberToolshelf name="Redshift"/>
     <memberToolshelf name="prism"/>
     <memberToolshelf name="aelib_shelf"/>
+    <memberToolshelf name="sparse_pyro_dynamics"/>
     <memberToolshelf name="AxeFx_Shelf_tab"/>
     <memberToolshelf name="AxeFx_archived_Shelf_tab"/>
-    <memberToolshelf name="sparse_pyro_dynamics"/>
     <memberToolshelf name="RenderMan26"/>
   </shelfSet>
 </shelfDocument>
