@@ -9,11 +9,11 @@ from importlib import reload
 try:
     import scripts.python.Material_Processor.material_classes
     reload(scripts.python.Material_Processor.material_classes)
-    from scripts.python.Material_Processor.material_classes import TextureInfo, MaterialData, NodeInfo
+    from scripts.python.Material_Processor.material_classes import TextureInfo, MaterialData, NodeInfo, NodeParameter
 except:
     import Material_Processor.material_classes
     reload(Material_Processor.material_classes)
-    from Material_Processor.material_classes import TextureInfo, MaterialData, NodeInfo
+    from Material_Processor.material_classes import TextureInfo, MaterialData, NodeInfo, NodeParameter
 
 try:
     import hou
@@ -167,10 +167,6 @@ class MaterialIngest:
 
 
 class TraverseNodeConnections:
-    """
-    A helper class that traverses VOP networks.
-    Currently tested on Arnold.
-    """
     def __init__(self) -> None:
         pass
 
@@ -280,11 +276,6 @@ class TraverseNodeConnections:
 
     @staticmethod
     def map_connection_input_index_to_texture_type(input_dict: Dict, renderer='Arnold') -> Dict:
-        """
-        :return: dict of texturetype e.g. 'albedo', and it's respective image hou.VOPNode.
-                 e.g.{'albedo': <hou.VopNode of type arnold::image at /mat/principledshader1_arnold3/albedo>,
-                      'normal': <hou.VopNode of type arnold::image at /mat/principledshader1_arnold3/normal>}
-        """
         index_map = {}
         if renderer == 'Arnold':
             index_map = {
@@ -296,7 +287,6 @@ class TraverseNodeConnections:
             }
 
         node_map_dict = {index_map[value]: key for key, value in input_dict.items() if value in index_map}
-        # print(f'{node_map_dict=}')
         return node_map_dict
 
     @staticmethod
@@ -305,6 +295,73 @@ class TraverseNodeConnections:
             node = hou.node(node_info.traversal_path.split(">")[-1])
             index = TraverseNodeConnections.find_input_index_in_dict(node_dict, node)
             node_info.connected_input_index = index
+
+    def create_material_data(self, selected_node: hou.Node) -> MaterialData:
+        traverse_tree = self.traverse_children_nodes(selected_node)
+        nodes_info = []
+        for node in traverse_tree.keys():
+            parameters = [NodeParameter(name=parm.name(), value=parm.eval()) for parm in node.parms()]
+            traversal_path = ">".join([n.path() for n in traverse_tree.keys()])
+            nodes_info.append(NodeInfo(
+                node_type=node.type().name(),
+                node_name=node.name(),
+                parameters=parameters,
+                traversal_path=traversal_path,
+                connected_input_index=None,
+                child_nodes=self._create_child_nodes(node, traverse_tree)
+            ))
+
+        material_data = MaterialData(
+            material_name=selected_node.name(),
+            nodes=nodes_info
+        )
+        return material_data
+
+    def _create_child_nodes(self, node: hou.Node, traverse_tree: Dict) -> List[NodeInfo]:
+        child_nodes = []
+        if node in traverse_tree:
+            for (child, input_index), grand_children in traverse_tree[node].items():
+                parameters = [NodeParameter(name=parm.name(), value=parm.eval()) for parm in child.parms()]
+                traversal_path = ">".join([n.path() for n in traverse_tree.keys()])
+                child_nodes.append(NodeInfo(
+                    node_type=child.type().name(),
+                    node_name=child.name(),
+                    parameters=parameters,
+                    traversal_path=traversal_path,
+                    connected_input_index=input_index,
+                    child_nodes=self._create_child_nodes(child, grand_children)
+                ))
+        return child_nodes
+
+
+
+
+class NodeRecreator:
+    def __init__(self, material_data: MaterialData, target_context: hou.Node):
+        self.material_data = material_data
+        self.target_context = target_context
+        self.old_new_node_map = {}
+
+    def recreate_nodes(self):
+        for node_info in self.material_data.nodes:
+            new_node = self._create_node(node_info)
+            self.old_new_node_map[node_info.traversal_path] = new_node
+
+        self._set_node_inputs()
+
+    def _create_node(self, node_info: NodeInfo):
+        new_node = self.target_context.createNode(node_info.node_type, node_info.node_name)
+        for param in node_info.parameters:
+            new_node.parm(param.name).set(param.value)
+        return new_node
+
+    def _set_node_inputs(self):
+        for node_info in self.material_data.nodes:
+            new_node = self.old_new_node_map[node_info.traversal_path]
+            for child_info in node_info.child_nodes:
+                child_node = self.old_new_node_map[child_info.traversal_path]
+                new_node.setInput(child_info.connected_input_index, child_node)
+
 
 
 
