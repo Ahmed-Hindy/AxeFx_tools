@@ -1,5 +1,7 @@
 """
 copyright Ahmed Hindy. Please mention the original author if you used any part of this code
+This module processes material nodes in Houdini, extracting and converting shader parameters and textures.
+
 
 """
 from typing import Dict, List
@@ -23,7 +25,29 @@ except:
 
 
 class MaterialIngest:
+    """
+    A class to ingest material data from a selected Houdini node.
+
+    Attributes:
+        old_standard_surface: Stores the old standard surface node.
+        selected_node: The selected Houdini node.
+        material_name: The name of the material.
+        material_data: The ingested material data.
+        shader_parms_dict: The shader parameters dictionary.
+
+    Methods:
+        get_current_hou_context(): Returns the current Houdini context.
+        get_texture_nodes_from_all_shader_types(input_node): Returns texture nodes from all shader types.
+        get_texture_maps_from_parms(input_parms_dict): Returns a dictionary of texture maps.
+        normalize_texture_map_keys(textures_dict): Normalizes texture map keys.
+        get_shader_parameters_from_arnold_shader(input_node): Returns shader parameters from an Arnold shader node.
+        get_shader_parameters_from_all_shader_types(input_node): Returns shader parameters from all shader types.
+        run(): Runs the material ingestion process.
+    """
     def __init__(self, selected_node: hou.node):
+        """
+       Initializes the MaterialIngest class with the selected Houdini node.
+       """
         self.old_standard_surface = None
         self.selected_node = selected_node
         if not self.selected_node:
@@ -37,6 +61,12 @@ class MaterialIngest:
 
     @staticmethod
     def get_current_hou_context() -> str:
+        """
+        Returns the current Houdini context.
+
+        Returns:
+            str: The current Houdini context.
+        """
         current_tab = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor, 0)
         current_tab_parent = current_tab.pwd()
         print(f"get_current_hou_context()----- {current_tab_parent.type().name()=}")
@@ -44,6 +74,15 @@ class MaterialIngest:
 
     @staticmethod
     def get_texture_nodes_from_all_shader_types(input_node: hou.node) -> Dict[str, hou.VopNode]:
+        """
+        Returns texture nodes from all shader types.
+
+        Args:
+            input_node (hou.node): The input Houdini node.
+
+        Returns:
+            Dict[str, hou.VopNode]: A dictionary of texture nodes.
+        """
         filtered_dict = {}
         mapped_nodes_dict = {}
         traverse_class = TraverseNodeConnections()
@@ -59,6 +98,15 @@ class MaterialIngest:
 
     @staticmethod
     def get_texture_maps_from_parms(input_parms_dict: Dict[str, hou.VopNode]) -> Dict[str, str]:
+        """
+        Returns a dictionary of texture maps.
+
+        Args:
+            input_parms_dict (Dict[str, hou.VopNode]): A dictionary of input parameters.
+
+        Returns:
+            Dict[str, str]: A dictionary of texture maps.
+        """
         textures_dict = {}
         for key, value in input_parms_dict.items():
             if value:
@@ -69,6 +117,15 @@ class MaterialIngest:
 
     @staticmethod
     def normalize_texture_map_keys(textures_dict: Dict[str, str]) -> Dict[str, str]:
+        """
+        Normalizes texture map keys.
+
+        Args:
+            textures_dict (Dict[str, str]): A dictionary of texture maps.
+
+        Returns:
+            Dict[str, str]: A dictionary of normalized texture maps.
+        """
         normalized_dict = {}
         for key, value in textures_dict.items():
             if value:
@@ -92,9 +149,13 @@ class MaterialIngest:
     @staticmethod
     def get_shader_parameters_from_arnold_shader(input_node: hou.node) -> Dict:
         """
-        Given an Arnold shader node, this function attempts to get all shader parameters like base_color, metalness,
-        specular, roughness, etc.
-        :return: A normalized dictionary containing shader parameters.
+        Returns shader parameters from an Arnold shader node.
+
+        Args:
+            input_node (hou.node): The input Houdini node.
+
+        Returns:
+            Dict: A dictionary of shader parameters.
         """
         # print(f'get_shader_parameters_from_arnold_shader()-----{input_node=}')
         shader_parameters_dict = {
@@ -118,6 +179,15 @@ class MaterialIngest:
         return shader_parameters_dict
 
     def get_shader_parameters_from_all_shader_types(self, input_node: hou.node) -> Dict:
+        """
+        Returns shader parameters from all shader types.
+
+        Args:
+            input_node (hou.node): The input Houdini node.
+
+        Returns:
+            Dict: A dictionary of shader parameters.
+        """
         input_shader_parm_dict = {}
         node_type = input_node.type().name()
         if node_type == 'principledshader::2.0':
@@ -134,6 +204,9 @@ class MaterialIngest:
         return input_shader_parm_dict
 
     def run(self):
+        """
+        Runs the material ingestion process.
+        """
         input_tex_nodes_dict = self.get_texture_nodes_from_all_shader_types(self.selected_node)
         print("HI\n\n\n\n")
 
@@ -168,10 +241,35 @@ class MaterialIngest:
 
 
 class TraverseNodeConnections:
+    """
+    A class to traverse node connections in Houdini.
+
+    Methods:
+        traverse_node_tree(node, path=None): Traverses the node tree and returns a dictionary of nodes.
+        traverse_children_nodes(parent_node): Traverses child nodes and returns a dictionary of all branches.
+        find_input_index_in_dict(node_dict, target_node): Finds the input index in a dictionary.
+        get_input_index_to_target_node_type(node_dict, node_a, node_b_type): Gets the input index to the target node type.
+        map_all_nodes_to_target_input_index(node_dict, node_b_type='arnold::standard_surface'): Maps all nodes to the target input index.
+        find_nodes_of_type(node_dict, node_type, found_nodes=None): Finds nodes of a specific type.
+        map_connection_input_index_to_texture_type(input_dict, renderer='Arnold'): Maps connection input index to texture type.
+        update_connected_input_indices(node_dict, node_info_list): Updates connected input indices.
+        filter_node_parameters(node): Filters node parameters based on node type and renderer.
+        create_material_data(selected_node): Creates material data from the selected node.
+    """
     def __init__(self) -> None:
         pass
 
     def traverse_node_tree(self, node: hou.Node, path=None) -> Dict[hou.Node, Dict]:
+        """
+        Traverses the node tree and returns a dictionary of nodes.
+
+        Args:
+            node (hou.Node): The input Houdini node.
+            path (list): The path of nodes.
+
+        Returns:
+            Dict[hou.Node, Dict]: A dictionary of nodes.
+        """
         if path is None:
             path = []
         node_dict = {node: {}}
@@ -188,6 +286,15 @@ class TraverseNodeConnections:
         return node_dict
 
     def traverse_children_nodes(self, parent_node: hou.Node) -> Dict:
+        """
+        Traverses child nodes and returns a dictionary of all branches.
+
+        Args:
+            parent_node (hou.Node): The parent Houdini node.
+
+        Returns:
+            Dict: A dictionary of all branches.
+        """
         output_nodes = []
         for child in parent_node.children():
             is_output = not any(child in other_node.inputs() for other_node in parent_node.children())
@@ -206,6 +313,16 @@ class TraverseNodeConnections:
 
     @staticmethod
     def find_input_index_in_dict(node_dict: Dict, target_node: hou.Node) -> int:
+        """
+        Finds the input index in a dictionary.
+
+        Args:
+            node_dict (Dict): The node dictionary.
+            target_node (hou.Node): The target Houdini node.
+
+        Returns:
+            int: The input index.
+        """
         for key, value in node_dict.items():
             if isinstance(key, tuple) and key[0] == target_node:
                 return key[1]
@@ -219,6 +336,17 @@ class TraverseNodeConnections:
 
     @staticmethod
     def get_input_index_to_target_node_type(node_dict: Dict, node_a: hou.Node, node_b_type: str) -> int:
+        """
+        Gets the input index to the target node type.
+
+        Args:
+            node_dict (Dict): The node dictionary.
+            node_a (hou.Node): The starting Houdini node.
+            node_b_type (str): The target node type.
+
+        Returns:
+            int: The input index to the target node type.
+        """
         def flatten_dict(d, flat_dict=None, parent=None):
             if flat_dict is None:
                 flat_dict = {}
@@ -248,6 +376,16 @@ class TraverseNodeConnections:
 
     @staticmethod
     def map_all_nodes_to_target_input_index(node_dict: Dict, node_b_type='arnold::standard_surface') -> Dict:
+        """
+        Maps all nodes to the target input index.
+
+        Args:
+            node_dict (Dict): The node dictionary.
+            node_b_type (str): The target node type.
+
+        Returns:
+            Dict: A dictionary mapping nodes to the target input index.
+        """
         connection_indices = {}
 
         def iterate_nodes(d):
@@ -265,6 +403,17 @@ class TraverseNodeConnections:
 
     @staticmethod
     def find_nodes_of_type(node_dict: Dict, node_type: str, found_nodes=None) -> list:
+        """
+        Finds nodes of a specific type.
+
+        Args:
+            node_dict (Dict): The node dictionary.
+            node_type (str): The node type to find.
+            found_nodes (list): A list to store found nodes.
+
+        Returns:
+            list: A list of nodes of the specified type.
+        """
         if found_nodes is None:
             found_nodes = []
 
@@ -279,6 +428,16 @@ class TraverseNodeConnections:
 
     @staticmethod
     def map_connection_input_index_to_texture_type(input_dict: Dict, renderer='Arnold') -> Dict:
+        """
+        Maps connection input index to texture type.
+
+        Args:
+            input_dict (Dict): The input dictionary.
+            renderer (str): The renderer type.
+
+        Returns:
+            Dict: A dictionary mapping connection input index to texture type.
+        """
         index_map = {}
         if renderer == 'Arnold':
             index_map = {
@@ -294,6 +453,13 @@ class TraverseNodeConnections:
 
     @staticmethod
     def update_connected_input_indices(node_dict: Dict, node_info_list: List[NodeInfo]) -> None:
+        """
+        Updates connected input indices.
+
+        Args:
+            node_dict (Dict): The node dictionary.
+            node_info_list (List[NodeInfo]): A list of NodeInfo objects.
+        """
         for node_info in node_info_list:
             node = hou.node(node_info.traversal_path.split(">")[-1])
             index = TraverseNodeConnections.find_input_index_in_dict(node_dict, node)
@@ -301,8 +467,13 @@ class TraverseNodeConnections:
 
     def filter_node_parameters(self, node: hou.Node) -> List[NodeParameter]:
         """
-        Filter the node parameters based on the node type and renderer.
-        For MaterialX, only include specific parameters.
+        Filters node parameters based on node type and renderer.
+
+        Args:
+            node (hou.Node): The Houdini node.
+
+        Returns:
+            List[NodeParameter]: A list of filtered node parameters.
         """
         if node.type().name() == 'mtlxstandard_surface':
             param_names = [
@@ -319,6 +490,16 @@ class TraverseNodeConnections:
         return [NodeParameter(name=p.name(), value=p.eval()) for p in node.parms() if p.name() in param_names]
 
     def _create_child_nodes(self, node: hou.Node, traverse_tree: Dict) -> List[NodeInfo]:
+        """
+        Creates child nodes from the traversal tree.
+
+        Args:
+            node (hou.Node): The Houdini node.
+            traverse_tree (Dict): The traversal tree.
+
+        Returns:
+            List[NodeInfo]: A list of child NodeInfo objects.
+        """
         child_nodes = []
         if node in traverse_tree:
             for (child, input_index), grand_children in traverse_tree[node].items():
@@ -337,6 +518,15 @@ class TraverseNodeConnections:
         return child_nodes
 
     def create_material_data(self, selected_node: hou.Node) -> MaterialData:
+        """
+        Creates material data from the selected node.
+
+        Args:
+            selected_node (hou.Node): The selected Houdini node.
+
+        Returns:
+            MaterialData: The created material data.
+        """
         traverse_tree = self.traverse_children_nodes(selected_node)
         nodes_info = []
 
@@ -346,12 +536,13 @@ class TraverseNodeConnections:
                 # Handle key being a tuple (node, index) or just a node
                 if isinstance(key, tuple):
                     node = key[0]
+                    connected_input_index = key[1]
                 else:
                     node = key
+                    connected_input_index = None
 
                 parameters = self.filter_node_parameters(node)
                 traversal_path = node.path()
-                connected_input_index = self.get_connected_input_index(node, parent_node)
                 print(f"Creating NodeInfo for node: {traversal_path} with parameters: {parameters}")
 
                 # Create NodeInfo for the current node
@@ -390,52 +581,127 @@ class TraverseNodeConnections:
         return material_data
 
     def get_connected_input_index(self, node: hou.Node, parent_node: hou.Node) -> int:
+        """
+        Gets the connected input index for a node.
+
+        Args:
+            node (hou.Node): The Houdini node.
+            parent_node (hou.Node): The parent Houdini node.
+
+        Returns:
+            int: The connected input index.
+        """
         if parent_node:
             for conn in node.inputConnections():
                 if conn.inputNode() == parent_node:
                     return conn.inputIndex()
         return None
 
-    class NodeRecreator:
-        def __init__(self, material_data: MaterialData, target_context: hou.Node):
-            self.material_data = material_data
-            self.target_context = target_context
-            self.old_new_node_map = {}
 
-        def recreate_nodes(self):
-            for node_info in self.material_data.nodes:
-                new_node = self._create_node(node_info)
-                self.old_new_node_map[node_info.traversal_path] = new_node
+class NodeRecreator:
+    """
+    A class to recreate nodes in Houdini from material data.
 
-            self._set_node_inputs()
+    Methods:
+        recreate_nodes(): Recreates nodes and sets their inputs.
+    """
+    def __init__(self, material_data: MaterialData, target_context: hou.Node):
+        """
+        Initializes the NodeRecreator class.
 
-        def _create_node(self, node_info: NodeInfo):
-            new_node = self.target_context.createNode(node_info.node_type, node_info.node_name)
-            for param in node_info.parameters:
-                new_node.parm(param.name).set(param.value)
-            return new_node
+        Args:
+            material_data (MaterialData): The material data.
+            target_context (hou.Node): The target Houdini context.
+        """
+        self.material_data = material_data
+        self.target_context = target_context
+        self.old_new_node_map = {}
 
-        def _set_node_inputs(self):
-            for node_info in self.material_data.nodes:
-                new_node = self.old_new_node_map[node_info.traversal_path]
-                self._set_inputs_recursive(node_info, new_node)
+    def recreate_nodes(self):
+        """
+        Recreates nodes and sets their inputs.
+        """
+        # Step 1: Create all nodes
+        self._create_all_nodes(self.material_data.nodes)
 
-        def _set_inputs_recursive(self, node_info: NodeInfo, new_node: hou.Node):
-            for child_info in node_info.child_nodes:
-                child_node = self.old_new_node_map[child_info.traversal_path]
-                if child_info.connected_input_index is not None:
-                    new_node.setInput(child_info.connected_input_index, child_node)
-                self._set_inputs_recursive(child_info, child_node)
+        # Step 2: Connect all nodes
+        self._set_node_inputs()
+
+    def _create_all_nodes(self, nodes):
+        """
+        Creates all nodes from the material data.
+
+        Args:
+            nodes (List[NodeInfo]): A list of NodeInfo objects.
+        """
+        for node_info in nodes:
+            print(f"Creating node: {node_info.node_name} of type {node_info.node_type}")
+            new_node = self._create_node(node_info)
+            self.old_new_node_map[node_info.traversal_path] = new_node
+            self._create_all_nodes(node_info.child_nodes)  # Recursive call to create child nodes
+
+    def _create_node(self, node_info: NodeInfo):
+        """
+        Creates a node from NodeInfo.
+
+        Args:
+            node_info (NodeInfo): The NodeInfo object.
+
+        Returns:
+            hou.Node: The created Houdini node.
+        """
+        new_node = self.target_context.createNode(node_info.node_type, node_info.node_name)
+        for param in node_info.parameters:
+            new_node.parm(param.name).set(param.value)
+        return new_node
+
+    def _set_node_inputs(self):
+        """
+        Sets the inputs for all nodes.
+        """
+        for node_info in self.material_data.nodes:
+            new_node = self.old_new_node_map[node_info.traversal_path]
+            self._set_inputs_recursive(node_info, new_node)
+
+    def _set_inputs_recursive(self, node_info: NodeInfo, new_node: hou.Node):
+        """
+        Recursively sets inputs for child nodes.
+
+        Args:
+            node_info (NodeInfo): The NodeInfo object.
+            new_node (hou.Node): The Houdini node.
+        """
+        for child_info in node_info.child_nodes:
+            child_node = self.old_new_node_map[child_info.traversal_path]
+            if child_info.connected_input_index is not None:
+                print(f"Setting input for node {new_node.path()} input index {child_info.connected_input_index} to {child_node.path()}")
+                new_node.setInput(child_info.connected_input_index, child_node)
+            self._set_inputs_recursive(child_info, child_node)
+
+
+
+
+
+
 
 
 class MaterialCreate:
     """
-    This class creates material shading networks.
-    Input  -> MaterialData with textures and shader attributes.
-    Output <- New material shading network.
-    Currently, it creates multiple image nodes disregarding the input material.
+    A class to create material shading networks.
+
+    Methods:
+        run(): Creates material shading networks based on MaterialData.
     """
     def __init__(self, material_data: MaterialData, shader_parms_dict=None, mat_context=hou.node('/mat'), convert_to='arnold'):
+        """
+        Initializes the MaterialCreate class.
+
+        Args:
+            material_data (MaterialData): The material data.
+            shader_parms_dict (dict, optional): The shader parameters dictionary.
+            mat_context (hou.node, optional): The Houdini material context.
+            convert_to (str, optional): The shader type to convert to. Defaults to 'arnold'.
+        """
         self.material_data = material_data
         self.shader_parms_dict = shader_parms_dict
         self.mat_context = mat_context
@@ -445,13 +711,16 @@ class MaterialCreate:
 
     @staticmethod
     def _create_usdpreview_shader(mat_context: hou.VopNode, node_name: str, material_data: MaterialData) -> Dict:
-        """Creates a usdpreview subnet VOP, and inside it creates a usdpreviewsurface and multiple 'usduvtexture::2.0'
-           nodes for each EXISTING texture type e.g. 'albedo' or 'roughness' then connects all nodes together.
+        """
+        Creates a USD Preview shader network.
 
-           :param mat_context: mat library node to create the new usdpreview subnet in.
-           :param node_name: name of usdpreview subnet to create, will suffix it with '_usdpreview'.
-           :param material_data: MaterialData containing normalized texture names and their paths.
-           :return: dict of all created usdpreview nodes
+        Args:
+            mat_context (hou.VopNode): The material context.
+            node_name (str): The name of the node.
+            material_data (MaterialData): The material data.
+
+        Returns:
+            Dict: A dictionary of created nodes.
         """
 
         usdpreview_image_dict = {}
@@ -486,7 +755,11 @@ class MaterialCreate:
     @staticmethod
     def _connect_usdpreview_textures(usdpreview_nodes_dict: Dict, material_data: MaterialData) -> None:
         """
-        Links the texture paths from 'material_data' to the freshly created usdpreviewsurface.
+        Connects texture paths to the USD Preview shader.
+
+        Args:
+            usdpreview_nodes_dict (Dict): The USD Preview nodes dictionary.
+            material_data (MaterialData): The material data.
         """
         for texture_type, texture_info in material_data.textures.items():
             if texture_type == 'albedo':
@@ -499,9 +772,11 @@ class MaterialCreate:
     @staticmethod
     def _apply_shader_parameters_to_usdpreview_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
         """
-        Apply shader parameters to a newly created usdpreview shader node.
-        :param new_standard_surface: hou.VopNode the newly created usdpreview shader
-        :param shader_parameters: A dictionary containing shader parameter values.
+        Applies shader parameters to a USD Preview shader.
+
+        Args:
+            new_standard_surface (hou.node): The new USD Preview shader.
+            shader_parameters (Dict): The shader parameters.
         """
         print(f'apply_shader_parameters_to_usdpreview_shader()-----{new_standard_surface=}\n{shader_parameters=}\n')
 
@@ -516,7 +791,18 @@ class MaterialCreate:
 
     @staticmethod
     def convert_to_usdpreview(input_mat_node_name, mat_context, material_data: MaterialData, shader_parms_dict=None):
-        """Main function to run for creating new usdpreview material"""
+        """
+        Converts the material to a USD Preview shader.
+
+        Args:
+            input_mat_node_name (str): The input material node name.
+            mat_context (hou.node): The material context.
+            material_data (MaterialData): The material data.
+            shader_parms_dict (dict, optional): The shader parameters dictionary.
+
+        Returns:
+            hou.node: The created USD Preview material node.
+        """
         if not material_data:
             raise Exception(f"Cant create a material when {material_data=}")
 
@@ -533,13 +819,16 @@ class MaterialCreate:
 
     @staticmethod
     def _create_mtlx_shader(mat_context: hou.node, node_name: str, material_data: MaterialData) -> Dict:
-        """Creates an MTLX subnet VOP, and inside it creates an mtlx standard surface and multiple mtlx image
-           nodes for each EXISTING texture type e.g. 'albedo' or 'roughness' then connects all nodes together.
+        """
+        Creates an MTLX shader network.
 
-           :param mat_context: mat library node to create the new mtlx subnet in.
-           :param node_name: name of mtlx subnet to create, will suffix it with '_materialX'.
-           :param material_data: MaterialData containing normalized texture names and their paths.
-           :return: dict of all created mtlx nodes
+        Args:
+            mat_context (hou.node): The material context.
+            node_name (str): The name of the node.
+            material_data (MaterialData): The material data.
+
+        Returns:
+            Dict: A dictionary of created nodes.
         """
         mtlx_image_dict = {}
         mtlx_subnet = mat_context.createNode("subnet", node_name + "_materialX")
@@ -609,7 +898,11 @@ class MaterialCreate:
     @staticmethod
     def _connect_mtlx_textures(mtlx_nodes_dict: Dict, material_data: MaterialData) -> None:
         """
-        Links the texture paths from 'material_data' to the freshly created mtlx standard surface.
+        Connects texture paths to the MTLX shader.
+
+        Args:
+            mtlx_nodes_dict (Dict): The MTLX nodes dictionary.
+            material_data (MaterialData): The material data.
         """
         for texture_type, texture_info in material_data.textures.items():
             if texture_type == 'albedo':
@@ -656,7 +949,18 @@ class MaterialCreate:
 
     @staticmethod
     def convert_to_mtlx(input_mat_node_name, mat_context, material_data: MaterialData, shader_parms_dict=None):
-        """Main function to run for creating new MTLX material"""
+        """
+        Converts the material to an MTLX shader.
+
+        Args:
+            input_mat_node_name (str): The input material node name.
+            mat_context (hou.node): The material context.
+            material_data (MaterialData): The material data.
+            shader_parms_dict (dict, optional): The shader parameters dictionary.
+
+        Returns:
+            hou.node: The created MTLX material node.
+        """
         if not material_data:
             raise Exception(f"Cant create a material when {material_data=}")
 
@@ -671,13 +975,16 @@ class MaterialCreate:
 
     @staticmethod
     def _create_principled_shader(mat_context: hou.VopNode, node_name: str, material_data: MaterialData) -> Dict:
-        """Creates a principled mat VOP, and links all texture images for each EXISTING texture type e.g. 'albedo' or
-           'roughness' then connects all nodes together.
+        """
+        Creates a Principled shader network.
 
-           :param mat_context: mat library node to create the new principled subnet in.
-           :param node_name: name of principled subnet to create, will suffix it with '_principled'.
-           :param material_data: MaterialData containing normalized texture names and their paths.
-           :return: dict of created principled nodes (just one entry)
+        Args:
+            mat_context (hou.VopNode): The material context.
+            node_name (str): The name of the node.
+            material_data (MaterialData): The material data.
+
+        Returns:
+            Dict: A dictionary of created nodes.
         """
         principled_shader = mat_context.createNode("principledshader::2.0", node_name + "_principled")
 
@@ -704,7 +1011,11 @@ class MaterialCreate:
     @staticmethod
     def _connect_principled_textures(principled_nodes_dict: Dict, material_data: MaterialData) -> None:
         """
-        Links the texture paths from 'material_data' to the freshly created principled shader.
+        Connects texture paths to the Principled shader.
+
+        Args:
+            principled_nodes_dict (Dict): The Principled nodes dictionary.
+            material_data (MaterialData): The material data.
         """
         principled_shader = hou.node(principled_nodes_dict['materialbuilder'])
         for texture_type, texture_info in material_data.textures.items():
@@ -722,9 +1033,11 @@ class MaterialCreate:
     @staticmethod
     def _apply_shader_parameters_to_principled_shader(principled_node: hou.VopNode, shader_parameters: Dict) -> None:
         """
-        Apply shader parameters to a newly created principled shader node.
-        :param principled_node: hou.VopNode the newly created principled shader
-        :param shader_parameters: A dictionary containing shader parameter values.
+        Applies shader parameters to a Principled shader.
+
+        Args:
+            principled_node (hou.VopNode): The new Principled shader.
+            shader_parameters (Dict): The shader parameters.
         """
         print(
             f'apply_shader_parameters_to_principled_shader()-----{principled_node=}\n{shader_parameters=}\n{principled_node.parm("base")=}')
@@ -747,7 +1060,18 @@ class MaterialCreate:
     @staticmethod
     def convert_to_principled_shader(input_mat_node_name, mat_context, material_data: MaterialData,
                                      shader_parms_dict=None):
-        """Main function to run for creating new principled shader material"""
+        """
+        Converts the material to a Principled shader.
+
+        Args:
+            input_mat_node_name (str): The input material node name.
+            mat_context (hou.node): The material context.
+            material_data (MaterialData): The material data.
+            shader_parms_dict (dict, optional): The shader parameters dictionary.
+
+        Returns:
+            hou.node: The created Principled material node.
+        """
         if not material_data:
             raise Exception(f"Cant create a material when {material_data=}")
 
@@ -764,6 +1088,17 @@ class MaterialCreate:
 
     @staticmethod
     def _create_arnold_shader(mat_context: hou.node, node_name: str, material_data: MaterialData) -> Dict:
+        """
+        Creates an Arnold shader network.
+
+        Args:
+            mat_context (hou.node): The material context.
+            node_name (str): The name of the node.
+            material_data (MaterialData): The material data.
+
+        Returns:
+            Dict: A dictionary of created nodes.
+        """
         arnold_image_dict = {}
         arnold_builder = mat_context.createNode("arnold_materialbuilder", node_name + "_arnold")
         arnold_image_dict['materialbuilder'] = arnold_builder.path()
@@ -794,6 +1129,13 @@ class MaterialCreate:
 
     @staticmethod
     def _connect_arnold_textures(arnold_nodes_dict: Dict, material_data: MaterialData) -> None:
+        """
+        Connects texture paths to the Arnold shader.
+
+        Args:
+            arnold_nodes_dict (Dict): The Arnold nodes dictionary.
+            material_data (MaterialData): The material data.
+        """
         print(f'{arnold_nodes_dict=}\n')
         for texture_type, texture_info in material_data.textures.items():
             image_node = hou.node(arnold_nodes_dict[f'image_{texture_type}'])
@@ -806,7 +1148,11 @@ class MaterialCreate:
     @staticmethod
     def _apply_shader_parameters_to_arnold_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
         """
-        Apply shader parameters to a newly created Arnold shader node.
+        Applies shader parameters to an Arnold shader.
+
+        Args:
+            new_standard_surface (hou.node): The new Arnold shader.
+            shader_parameters (Dict): The shader parameters.
         """
         new_standard_surface.parm('base').set(shader_parameters.get('base'))
         new_standard_surface.parmTuple('base_color').set(shader_parameters.get('base_color', (1.0, 1.0, 1.0)))
@@ -829,7 +1175,18 @@ class MaterialCreate:
 
     @staticmethod
     def convert_to_arnold(input_mat_node_name, mat_context, material_data: MaterialData, shader_parms_dict=None):
-        """Main function to run for creating new Arnold material"""
+        """
+        Converts the material to an Arnold shader.
+
+        Args:
+            input_mat_node_name (str): The input material node name.
+            mat_context (hou.node): The material context.
+            material_data (MaterialData): The material data.
+            shader_parms_dict (dict, optional): The shader parameters dictionary.
+
+        Returns:
+            hou.node: The created Arnold material node.
+        """
         if not material_data:
             raise Exception(f"Cant create a material when {material_data=}")
 
@@ -844,7 +1201,7 @@ class MaterialCreate:
 
     def run(self):
         """
-        Main function to run, creates Principledshader, usdpreview, Arnold, and MTLX textures.
+        Creates material shading networks based on MaterialData.
         """
         # Convert to the specified shader type
         old_mat_name = self.material_data.material_name
