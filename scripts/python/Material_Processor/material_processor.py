@@ -475,19 +475,80 @@ class TraverseNodeConnections:
         Returns:
             List[NodeParameter]: A list of filtered node parameters.
         """
+        param_names = []
+        standardized_names = {}
+
         if node.type().name() == 'mtlxstandard_surface':
             param_names = [
-                'base', 'base_color', 'diffuse_roughness', 'metalness', 'specular',
-                'specular_color', 'specular_roughness', 'specular_IOR', 'transmission',
-                'transmission_color', 'subsurface', 'subsurface_color', 'emission', 'emission_color',
-                'opacity'
+                'base', 'base_colorr', 'base_colorg', 'base_colorb', 'diffuse_roughness', 'metalness', 'specular',
+                'specular_colorr', 'specular_colorg', 'specular_colorb', 'specular_roughness', 'specular_IOR',
+                'transmission', 'transmission_colorr', 'transmission_colorg', 'transmission_colorb', 'subsurface',
+                'subsurface_color', 'emission', 'emission_colorr', 'emission_colorg', 'emission_colorb', 'opacity'
             ]
+            standardized_names = {
+                'base': 'base',
+                'base_colorr': 'base_colorr',
+                'base_colorg': 'base_colorg',
+                'base_colorb': 'base_colorb',
+                'diffuse_roughness': 'diffuse_roughness',
+                'metalness': 'metalness',
+                'specular': 'specular',
+                'specular_colorr': 'specular_colorr',
+                'specular_colorg': 'specular_colorg',
+                'specular_colorb': 'specular_colorb',
+                'specular_roughness': 'specular_roughness',
+                'specular_IOR': 'specular_IOR',
+                'transmission': 'transmission',
+                'transmission_colorr': 'transmission_colorr',
+                'transmission_colorg': 'transmission_colorg',
+                'transmission_colorb': 'transmission_colorb',
+                'emission': 'emission',
+                'emission_colorr': 'emission_colorr',
+                'emission_colorg': 'emission_colorg',
+                'emission_colorb': 'emission_colorb',
+            }
         elif node.type().name() == 'mtlximage':
             param_names = ['file']
-        else:
-            param_names = []  # Add more cases as needed
+            standardized_names = {'file': 'filename'}
+        elif node.type().name() == 'arnold::standard_surface':
+            param_names = [
+                'base', 'base_colorr', 'base_colorg', 'base_colorb', 'diffuse_roughness', 'metalness', 'specular',
+                'specular_colorr', 'specular_colorg', 'specular_colorb', 'specular_roughness', 'specular_IOR',
+                'transmission', 'transmission_colorr', 'transmission_colorg', 'transmission_colorb', 'subsurface',
+                'subsurface_color', 'emission', 'emission_colorr', 'emission_colorg', 'emission_colorb', 'opacity'
+            ]
+            standardized_names = {  # TODO: these arent tested with arnold yet
+                'base': 'base',
+                'base_colorr': 'base_colorr',
+                'base_colorg': 'base_colorg',
+                'base_colorb': 'base_colorb',
+                'diffuse_roughness': 'diffuse_roughness',
+                'metalness': 'metalness',
+                'specular': 'specular',
+                'specular_colorr': 'specular_colorr',
+                'specular_colorg': 'specular_colorg',
+                'specular_colorb': 'specular_colorb',
+                'specular_roughness': 'specular_roughness',
+                'specular_IOR': 'specular_IOR',
+                'transmission': 'transmission',
+                'transmission_colorr': 'transmission_colorr',
+                'transmission_colorg': 'transmission_colorg',
+                'transmission_colorb': 'transmission_colorb',
+                'emission': 'emission',
+                'emission_colorr': 'emission_colorr',
+                'emission_colorg': 'emission_colorg',
+                'emission_colorb': 'emission_colorb',
+            }
+        elif node.type().name() == 'arnold::image':
+            param_names = ['filename']
+            standardized_names = {'filename': 'file'}
+        # Add cases for other node types as needed
 
-        return [NodeParameter(name=p.name(), value=p.eval()) for p in node.parms() if p.name() in param_names]
+        node_parameters = [
+            NodeParameter(name=p.name(), value=p.eval(), standardized_name=standardized_names.get(p.name(), p.name()))
+            for p in node.parms() if p.name() in param_names]
+        # print(f"\n{node_parameters=}")
+        return node_parameters
 
     def _create_child_nodes(self, node: hou.Node, traverse_tree: Dict) -> List[NodeInfo]:
         """
@@ -598,85 +659,43 @@ class TraverseNodeConnections:
         return None
 
 
+
 class NodeRecreator:
-    """
-    A class to recreate nodes in Houdini from material data.
-
-    Methods:
-        recreate_nodes(): Recreates nodes and sets their inputs.
-    """
     def __init__(self, material_data: MaterialData, target_context: hou.Node):
-        """
-        Initializes the NodeRecreator class.
-
-        Args:
-            material_data (MaterialData): The material data.
-            target_context (hou.Node): The target Houdini context.
-        """
         self.material_data = material_data
         self.target_context = target_context
         self.old_new_node_map = {}
 
     def recreate_nodes(self):
-        """
-        Recreates nodes and sets their inputs.
-        """
-        # Step 1: Create all nodes
         self._create_all_nodes(self.material_data.nodes)
-
-        # Step 2: Connect all nodes
         self._set_node_inputs()
 
     def _create_all_nodes(self, nodes):
-        """
-        Creates all nodes from the material data.
-
-        Args:
-            nodes (List[NodeInfo]): A list of NodeInfo objects.
-        """
         for node_info in nodes:
             print(f"Creating node: {node_info.node_name} of type {node_info.node_type}")
             new_node = self._create_node(node_info)
             self.old_new_node_map[node_info.traversal_path] = new_node
-            self._create_all_nodes(node_info.child_nodes)  # Recursive call to create child nodes
+            self._create_all_nodes(node_info.child_nodes)
 
     def _create_node(self, node_info: NodeInfo):
-        """
-        Creates a node from NodeInfo.
-
-        Args:
-            node_info (NodeInfo): The NodeInfo object.
-
-        Returns:
-            hou.Node: The created Houdini node.
-        """
         new_node = self.target_context.createNode(node_info.node_type, node_info.node_name)
-        for param in node_info.parameters:
-            new_node.parm(param.name).set(param.value)
+        MaterialCreate.apply_parameters(new_node, node_info.parameters, MaterialCreate.translate_to_materialx)
         return new_node
 
     def _set_node_inputs(self):
-        """
-        Sets the inputs for all nodes.
-        """
         for node_info in self.material_data.nodes:
             new_node = self.old_new_node_map[node_info.traversal_path]
             self._set_inputs_recursive(node_info, new_node)
 
     def _set_inputs_recursive(self, node_info: NodeInfo, new_node: hou.Node):
-        """
-        Recursively sets inputs for child nodes.
-
-        Args:
-            node_info (NodeInfo): The NodeInfo object.
-            new_node (hou.Node): The Houdini node.
-        """
         for child_info in node_info.child_nodes:
             child_node = self.old_new_node_map[child_info.traversal_path]
             if child_info.connected_input_index is not None:
                 print(f"Setting input for node {new_node.path()} input index {child_info.connected_input_index} to {child_node.path()}")
                 new_node.setInput(child_info.connected_input_index, child_node)
             self._set_inputs_recursive(child_info, child_node)
+
+
 
 
 
@@ -769,6 +788,7 @@ class MaterialCreate:
             else:
                 print(f'Node {texture_type=} is missing...')
 
+
     @staticmethod
     def _apply_shader_parameters_to_usdpreview_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
         """
@@ -780,14 +800,28 @@ class MaterialCreate:
         """
         print(f'apply_shader_parameters_to_usdpreview_shader()-----{new_standard_surface=}\n{shader_parameters=}\n')
 
-        new_standard_surface.parmTuple('diffuseColor').set(shader_parameters.get('base_color', (1.0, 1.0, 1.0)))
-        new_standard_surface.parm('metallic').set(shader_parameters.get('metalness', 0.0))
-        new_standard_surface.parm('roughness').set(shader_parameters.get('specular_roughness', 0.2))
+        new_standard_surface.parmTuple('diffuseColor').set(shader_parameters.get('color', (1.0, 1.0, 1.0)))
+        new_standard_surface.parm('metallic').set(shader_parameters.get('metallic', 0.0))
+        new_standard_surface.parm('roughness').set(shader_parameters.get('roughness', 0.2))
         new_standard_surface.parm('ior').set(shader_parameters.get('specular_IOR', 1.5))
         new_standard_surface.parmTuple('emissiveColor').set(shader_parameters.get('emission_color', (0.0, 0.0, 0.0)))
-        new_standard_surface.parm('opacity').set(shader_parameters.get('opacity', (1,1,1))[0])
+        new_standard_surface.parm('opacity').set(shader_parameters.get('opacity', (1, 1, 1))[0])
 
         print(f'Shader parameters applied to {new_standard_surface.name()}')
+
+    def _create_node(self, node_info: NodeInfo):
+        """
+        Creates a node from NodeInfo.
+
+        Args:
+            node_info (NodeInfo): The NodeInfo object.
+
+        Returns:
+            hou.Node: The created Houdini node.
+        """
+        new_node = self.target_context.createNode(node_info.node_type, node_info.node_name)
+        self.apply_parameters(new_node, node_info.parameters, self.translate_to_materialx)
+        return new_node
 
     @staticmethod
     def convert_to_usdpreview(input_mat_node_name, mat_context, material_data: MaterialData, shader_parms_dict=None):
@@ -894,6 +928,98 @@ class MaterialCreate:
 
         mtlx_subnet.layoutChildren()
         return mtlx_image_dict
+
+    @staticmethod
+    def translate_to_materialx(param: NodeParameter, node_type: str) -> str:
+        """
+        Translates standardized parameter names to MaterialX-specific names based on the node type.
+
+        Args:
+            param (NodeParameter): The parameter with a standardized name.
+            node_type (str): The type of the node.
+
+        Returns:
+            str: The MaterialX-specific name.
+        """
+        translation_maps = {
+            'mtlxstandard_surface': {
+                'base': 'base',
+                'color': 'base_color',
+                'roughness': 'specular_roughness',
+                'specular_IOR': 'specular_ior',
+                'specular_color': 'specular_color',
+                'metallic': 'metalness',
+                'transmission': 'transmission',
+                'transmission_color': 'transmission_color',
+            },
+            'mtlximage': {
+                'filename': 'file',
+                'default_color': 'default_color',
+                # Add more translations for mtlximage
+            },
+            'mtlxcolorcorrect': {
+                'hue': 'hue',
+                'saturation': 'saturation',
+                'gamma': 'gamma',
+                'lift': 'lift',
+                'gain': 'gain',
+                'contrast': 'contrast',
+                'contrastpivot': 'contrastpivot',
+                'exposure': 'exposure',
+            },
+
+
+            'arnold::standard_surface': {
+                'base': 'base',
+                'base_color': 'base_color',
+                'specular': 'specular',
+                'specular_color': 'specular_color',
+                'specular_roughness': 'specular_roughness',
+                'specular_IOR': 'specular_ior',
+                'metalness': 'metalness',
+                'transmission': 'transmission',
+                'transmission_color': 'transmission_color',
+            },
+            'arnold::image': {
+                'filename': 'file',
+                'missing_texture_color': 'default_color',
+                # Add more translations for arnold::image
+            },
+            'arnold::color_correct': {
+                'hue_shift': 'hue',
+                'saturation': 'saturation',
+                'gamma': 'gamma',
+                'lift': 'lift',
+                'gain': 'gain',
+                'contrast': 'contrast',
+                'contrast_pivot': 'contrastpivot',
+                'exposure': 'exposure',
+            },
+            # Add more node types and their respective translations
+        }
+
+        node_translation_map = translation_maps.get(node_type, {})
+        return node_translation_map.get(param.standardized_name, param.name)
+
+
+    @staticmethod
+    def apply_parameters(node: hou.Node, parameters: List[NodeParameter], translate_func) -> None:
+        """
+        Apply parameters to a node, translating standardized names to renderer-specific names.
+
+        Args:
+            node (hou.Node): The node to apply parameters to.
+            parameters (List[NodeParameter]): The parameters to apply.
+            translate_func (function): The function to translate parameter names.
+        """
+        for param in parameters:
+            translated_name = translate_func(param, node.type().name())
+            hou_parm = node.parm(translated_name)
+            if hou_parm is not None:
+                hou_parm.set(param.value)
+            else:
+                print(f"Parameter '{translated_name}' not found on node '{node.path()}'.")
+
 
     @staticmethod
     def _connect_mtlx_textures(mtlx_nodes_dict: Dict, material_data: MaterialData) -> None:

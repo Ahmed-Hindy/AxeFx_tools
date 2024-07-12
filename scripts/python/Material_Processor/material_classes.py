@@ -1,14 +1,18 @@
 from dataclasses import dataclass, field
 from typing import Optional, Dict, List
 
+
+
 @dataclass
 class NodeParameter:
     name: str
     value: any
+    standardized_name: Optional[str] = None  # Add a standardized name attribute
 
     def __str__(self):
-        # return f"NodeParameter(name={self.name}, value={self.value})"
-        return ""
+        return f"NodeParameter(name={self.name}, value={self.value}, standardized_name={self.standardized_name})"
+
+
 
 @dataclass
 class NodeInfo:
