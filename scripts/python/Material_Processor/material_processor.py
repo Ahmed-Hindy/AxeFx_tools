@@ -21,6 +21,7 @@ except:
     hou = None  # temp to make the module work with substance painter
 
 
+
 class MaterialIngest:
     def __init__(self, selected_node: hou.node):
         self.old_standard_surface = None
@@ -134,6 +135,7 @@ class MaterialIngest:
 
     def run(self):
         input_tex_nodes_dict = self.get_texture_nodes_from_all_shader_types(self.selected_node)
+        print("HI\n\n\n\n")
 
         # Create a dictionary of texture maps
         textures_dict = self.get_texture_maps_from_parms(input_tex_nodes_dict)
@@ -162,7 +164,6 @@ class MaterialIngest:
         )
 
         print(f'\n{self.material_data.textures=}\n\n')
-
 
 
 
@@ -198,7 +199,9 @@ class TraverseNodeConnections:
             branch_dict = self.traverse_node_tree(output_node, [])
             all_branches.update(branch_dict)
 
-        print(f'traverse_children_nodes()-----all_branches={all_branches}\n')
+        print('traverse_children_nodes()-----all_branches:')
+        pprint(all_branches, indent=3)
+        print(f'\n')
         return all_branches
 
     @staticmethod
@@ -296,33 +299,32 @@ class TraverseNodeConnections:
             index = TraverseNodeConnections.find_input_index_in_dict(node_dict, node)
             node_info.connected_input_index = index
 
-    def create_material_data(self, selected_node: hou.Node) -> MaterialData:
-        traverse_tree = self.traverse_children_nodes(selected_node)
-        nodes_info = []
-        for node in traverse_tree.keys():
-            parameters = [NodeParameter(name=parm.name(), value=parm.eval()) for parm in node.parms()]
-            traversal_path = ">".join([n.path() for n in traverse_tree.keys()])
-            nodes_info.append(NodeInfo(
-                node_type=node.type().name(),
-                node_name=node.name(),
-                parameters=parameters,
-                traversal_path=traversal_path,
-                connected_input_index=None,
-                child_nodes=self._create_child_nodes(node, traverse_tree)
-            ))
+    def filter_node_parameters(self, node: hou.Node) -> List[NodeParameter]:
+        """
+        Filter the node parameters based on the node type and renderer.
+        For MaterialX, only include specific parameters.
+        """
+        if node.type().name() == 'mtlxstandard_surface':
+            param_names = [
+                'base', 'base_color', 'diffuse_roughness', 'metalness', 'specular',
+                'specular_color', 'specular_roughness', 'specular_IOR', 'transmission',
+                'transmission_color', 'subsurface', 'subsurface_color', 'emission', 'emission_color',
+                'opacity'
+            ]
+        elif node.type().name() == 'mtlximage':
+            param_names = ['file']
+        else:
+            param_names = []  # Add more cases as needed
 
-        material_data = MaterialData(
-            material_name=selected_node.name(),
-            nodes=nodes_info
-        )
-        return material_data
+        return [NodeParameter(name=p.name(), value=p.eval()) for p in node.parms() if p.name() in param_names]
 
     def _create_child_nodes(self, node: hou.Node, traverse_tree: Dict) -> List[NodeInfo]:
         child_nodes = []
         if node in traverse_tree:
             for (child, input_index), grand_children in traverse_tree[node].items():
-                parameters = [NodeParameter(name=parm.name(), value=parm.eval()) for parm in child.parms()]
-                traversal_path = ">".join([n.path() for n in traverse_tree.keys()])
+                parameters = self.filter_node_parameters(child)
+                traversal_path = child.path()
+                print(f"Creating child NodeInfo for node: {child.path()} with parameters: {parameters}")
                 child_nodes.append(NodeInfo(
                     node_type=child.type().name(),
                     node_name=child.name(),
@@ -331,41 +333,99 @@ class TraverseNodeConnections:
                     connected_input_index=input_index,
                     child_nodes=self._create_child_nodes(child, grand_children)
                 ))
+        print(f"Child Nodes for {node.path()}: {child_nodes}")
         return child_nodes
 
+    def create_material_data(self, selected_node: hou.Node) -> MaterialData:
+        traverse_tree = self.traverse_children_nodes(selected_node)
+        nodes_info = []
 
+        def traverse_and_create_node_info(node_dict: Dict, parent_node: hou.Node = None):
+            local_nodes_info = []
+            for key, children in node_dict.items():
+                # Handle key being a tuple (node, index) or just a node
+                if isinstance(key, tuple):
+                    node = key[0]
+                else:
+                    node = key
 
+                parameters = self.filter_node_parameters(node)
+                traversal_path = node.path()
+                connected_input_index = self.get_connected_input_index(node, parent_node)
+                print(f"Creating NodeInfo for node: {traversal_path} with parameters: {parameters}")
 
-class NodeRecreator:
-    def __init__(self, material_data: MaterialData, target_context: hou.Node):
-        self.material_data = material_data
-        self.target_context = target_context
-        self.old_new_node_map = {}
+                # Create NodeInfo for the current node
+                node_info = NodeInfo(
+                    node_type=node.type().name(),
+                    node_name=node.name(),
+                    parameters=parameters,
+                    traversal_path=traversal_path,
+                    connected_input_index=connected_input_index,
+                    child_nodes=[]
+                )
 
-    def recreate_nodes(self):
-        for node_info in self.material_data.nodes:
-            new_node = self._create_node(node_info)
-            self.old_new_node_map[node_info.traversal_path] = new_node
+                # Recursively process child nodes
+                child_nodes_info = traverse_and_create_node_info(children, node)
+                node_info.child_nodes.extend(child_nodes_info)
+                local_nodes_info.append(node_info)
 
-        self._set_node_inputs()
+            return local_nodes_info
 
-    def _create_node(self, node_info: NodeInfo):
-        new_node = self.target_context.createNode(node_info.node_type, node_info.node_name)
-        for param in node_info.parameters:
-            new_node.parm(param.name).set(param.value)
-        return new_node
+        nodes_info.extend(traverse_and_create_node_info(traverse_tree))
 
-    def _set_node_inputs(self):
-        for node_info in self.material_data.nodes:
-            new_node = self.old_new_node_map[node_info.traversal_path]
+        material_data = MaterialData(
+            material_name=selected_node.name(),
+            textures={},  # Add textures information if needed
+            nodes=nodes_info
+        )
+
+        print("Final MaterialData:")
+        for node_info in material_data.nodes:
+            print(
+                f"Node: {node_info.node_name}, Type: {node_info.node_type}, Params: {node_info.parameters}, Path: {node_info.traversal_path}")
+            for child_node in node_info.child_nodes:
+                print(
+                    f"  Child Node: {child_node.node_name}, Type: {child_node.node_type}, Params: {child_node.parameters}, Path: {child_node.traversal_path}")
+
+        return material_data
+
+    def get_connected_input_index(self, node: hou.Node, parent_node: hou.Node) -> int:
+        if parent_node:
+            for conn in node.inputConnections():
+                if conn.inputNode() == parent_node:
+                    return conn.inputIndex()
+        return None
+
+    class NodeRecreator:
+        def __init__(self, material_data: MaterialData, target_context: hou.Node):
+            self.material_data = material_data
+            self.target_context = target_context
+            self.old_new_node_map = {}
+
+        def recreate_nodes(self):
+            for node_info in self.material_data.nodes:
+                new_node = self._create_node(node_info)
+                self.old_new_node_map[node_info.traversal_path] = new_node
+
+            self._set_node_inputs()
+
+        def _create_node(self, node_info: NodeInfo):
+            new_node = self.target_context.createNode(node_info.node_type, node_info.node_name)
+            for param in node_info.parameters:
+                new_node.parm(param.name).set(param.value)
+            return new_node
+
+        def _set_node_inputs(self):
+            for node_info in self.material_data.nodes:
+                new_node = self.old_new_node_map[node_info.traversal_path]
+                self._set_inputs_recursive(node_info, new_node)
+
+        def _set_inputs_recursive(self, node_info: NodeInfo, new_node: hou.Node):
             for child_info in node_info.child_nodes:
                 child_node = self.old_new_node_map[child_info.traversal_path]
-                new_node.setInput(child_info.connected_input_index, child_node)
-
-
-
-
-
+                if child_info.connected_input_index is not None:
+                    new_node.setInput(child_info.connected_input_index, child_node)
+                self._set_inputs_recursive(child_info, child_node)
 
 
 class MaterialCreate:
@@ -382,8 +442,6 @@ class MaterialCreate:
         self.convert_to = convert_to
 
         self.run()
-
-
 
     @staticmethod
     def _create_usdpreview_shader(mat_context: hou.VopNode, node_name: str, material_data: MaterialData) -> Dict:
@@ -746,17 +804,6 @@ class MaterialCreate:
                     node.setInput(0, image_node)
 
     @staticmethod
-    def _connect_arnold_textures(arnold_nodes_dict: Dict, material_data: MaterialData) -> None:
-        print(f'{arnold_nodes_dict=}\n')
-        for texture_type, texture_info in material_data.textures.items():
-            image_node = hou.node(arnold_nodes_dict[f'image_{texture_type}'])
-            image_node.parm("filename").set(texture_info.file_path)
-            for node_info in texture_info.nodes:
-                if node_info.node_type != 'arnold::image':
-                    node = hou.node(arnold_nodes_dict[f'{node_info.node_type}_{texture_type}'])
-                    node.setInput(0, image_node)
-
-    @staticmethod
     def _apply_shader_parameters_to_arnold_shader(new_standard_surface: hou.node, shader_parameters: Dict) -> None:
         """
         Apply shader parameters to a newly created Arnold shader node.
@@ -817,6 +864,3 @@ class MaterialCreate:
             raise Exception(f"Wrong format to convert to: {self.convert_to}")
 
         new_shader.moveToGoodPosition(move_unconnected=False)
-
-
-
