@@ -2,13 +2,30 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, List
 
 @dataclass
-class NodeInfo:
-    node_type: str
-    traversal_path: str
-    connected_input_index: Optional[int] = None
+class NodeParameter:
+    name: str
+    value: any
 
     def __str__(self):
-        return f"NodeInfo(node_type={self.node_type}, traversal_path={self.traversal_path}, connected_input_index={self.connected_input_index})"
+        # return f"NodeParameter(name={self.name}, value={self.value})"
+        return ""
+
+@dataclass
+class NodeInfo:
+    node_type: str
+    node_name: str
+    parameters: List[NodeParameter] = field(default_factory=list)
+    traversal_path: str = ""
+    connected_input_index: Optional[int] = None
+    child_nodes: List['NodeInfo'] = field(default_factory=list)  # Added to store child nodes
+
+    def __str__(self):
+        # return (f"NodeInfo(node_type={self.node_type}, node_name={self.node_name}, parameters={self.parameters},"
+        #         f"traversal_path={self.traversal_path}, connected_input_index={self.connected_input_index},"
+        #         f"child_nodes={self.child_nodes})")
+        return (f"NodeInfo(node_type={self.node_type}, node_name={self.node_name},"
+                f"traversal_path={self.traversal_path}, connected_input_index={self.connected_input_index},"
+                f"child_nodes={self.child_nodes})")
 
 @dataclass
 class TextureInfo:
@@ -23,6 +40,7 @@ class MaterialData:
     material_name: str
     material_path: Optional[str] = None
     textures: Dict[str, TextureInfo] = field(default_factory=dict)
+    nodes: List[NodeInfo] = field(default_factory=list)
 
     def __str__(self):
         return self._pretty_print()
@@ -31,4 +49,4 @@ class MaterialData:
         return self._pretty_print()
 
     def _pretty_print(self):
-        return f"MaterialData(material_name={self.material_name}, textures={self.textures})"
+        return f"MaterialData(material_name={self.material_name}, textures={self.textures}, nodes={self.nodes})"
