@@ -8,6 +8,8 @@ from typing import Dict, List
 from pprint import pprint, pformat
 from importlib import reload
 
+
+
 try:
     import scripts.python.Material_Processor.material_classes
     reload(scripts.python.Material_Processor.material_classes)
@@ -28,20 +30,35 @@ except:
 
 
 ###################################### CONSTANTS ######################################
+
+GENERIC_NODE_TYPES = {
+    'arnold::standard_surface': 'GENERIC::standard_surface',
+    'arnold::image': 'GENERIC::image',
+    'arnold::color_correct': 'GENERIC::color_correct',
+    'mtlxstandard_surface': 'GENERIC::standard_surface',
+    'mtlximage': 'GENERIC::image',
+    'mtlxcolorcorrect': 'GENERIC::color_correct',
+    'null': 'GENERIC::null'
+}
+
+
+
 """
 Conversion_map is a dict of 'from_node_type' : 'to_node_type'
 TODO: standardize the names so it can take any render engine and I dont have to repeat myself multiple times
 """
 CONVERSION_MAP = {
             'arnold': {
-                'mtlxstandard_surface': 'arnold::standard_surface',
-                'mtlximage': 'arnold::image',
-                'mtlxcolorcorrect': 'arnold::color_correct'
+                'GENERIC::standard_surface': 'arnold::standard_surface',
+                'GENERIC::image': 'arnold::image',
+                'GENERIC::color_correct': 'arnold::color_correct',
+                'GENERIC::null': 'null'
             },
             'mtlx': {
-                'arnold::standard_surface': 'mtlxstandard_surface',
-                'arnold::image': 'mtlximage',
-                'arnold::color_correct': 'mtlxcolorcorrect'
+                'GENERIC::standard_surface': 'mtlxstandard_surface',
+                'GENERIC::image': 'mtlximage',
+                'GENERIC::color_correct': 'mtlxcolorcorrect',
+                'GENERIC::null': 'null'
             }
         }
 
@@ -142,6 +159,7 @@ class TraverseNodeConnections:
         filter_node_parameters(node): Filters node parameters based on node type and renderer.
         create_material_data(selected_node): Creates material data from the selected node.
     """
+
     def __init__(self) -> None:
         pass
 
@@ -343,42 +361,41 @@ class TraverseNodeConnections:
             filtered_param_names = list(STANDARDIZED_PARAM_NAMES.get(node_type).keys())
         except AttributeError:
             print(f"WARNING: node_type: {node_type} not in STANDARDIZED_PARAM_NAMES dict")
-        # print(f"{filtered_param_names=}")
 
         node_parameters = [NodeParameter(name=p.name(), value=p.eval(),
-                           standardized_name=standardized_names.get(p.name(), p.name()))
+                                         standardized_name=standardized_names.get(p.name(), p.name()))
                            for p in node.parms() if p.name() in filtered_param_names
                            ]
-        # print(f"{node_parameters=}")
         return node_parameters
 
-    def _create_child_nodes(self, node: hou.Node, traverse_tree: Dict) -> List[NodeInfo]:
-        """
-        Creates child nodes from the traversal tree.
-
-        Args:
-            node (hou.Node): The Houdini node.
-            traverse_tree (Dict): The traversal tree.
-
-        Returns:
-            List[NodeInfo]: A list of child NodeInfo objects.
-        """
-        child_nodes = []
-        if node in traverse_tree:
-            for (child, input_index), grand_children in traverse_tree[node].items():
-                parameters = self.filter_node_parameters(child)
-                traversal_path = child.path()
-                print(f"Creating child NodeInfo for node: {child.path()} with parameters: {parameters}")
-                child_nodes.append(NodeInfo(
-                    node_type=child.type().name(),
-                    node_name=child.name(),
-                    parameters=parameters,
-                    traversal_path=traversal_path,
-                    connected_input_index=input_index,
-                    child_nodes=self._create_child_nodes(child, grand_children)
-                ))
-        print(f"Child Nodes for {node.path()}: {child_nodes}")
-        return child_nodes
+    # def _create_child_nodes(self, node: hou.Node, traverse_tree: Dict) -> List[NodeInfo]:
+    #     """
+    #     Creates child nodes from the traversal tree.
+    #
+    #     Args:
+    #         node (hou.Node): The Houdini node.
+    #         traverse_tree (Dict): The traversal tree.
+    #
+    #     Returns:
+    #         List[NodeInfo]: A list of child NodeInfo objects.
+    #     """
+    #     child_nodes = []
+    #     if node in traverse_tree:
+    #         for (child, input_index), grand_children in traverse_tree[node].items():
+    #             parameters = self.filter_node_parameters(child)
+    #             traversal_path = child.path()
+    #             generic_node_type = GENERIC_NODE_TYPES.get(child.type().name(), child.type().name())
+    #             print(f"Creating child NodeInfo for node: {child.path()}, {generic_node_type=}, {parameters=}")
+    #             child_nodes.append(NodeInfo(
+    #                 node_type=generic_node_type,
+    #                 node_name=child.name(),
+    #                 parameters=parameters,
+    #                 traversal_path=traversal_path,
+    #                 connected_input_index=input_index,
+    #                 child_nodes=self._create_child_nodes(child, grand_children)
+    #             ))
+    #     print(f"Child Nodes for {node.path()}: {child_nodes}")
+    #     return child_nodes
 
     def create_material_data(self, selected_node: hou.Node) -> MaterialData:
         """
@@ -406,11 +423,12 @@ class TraverseNodeConnections:
 
                 parameters = self.filter_node_parameters(node)
                 traversal_path = node.path()
+                generic_node_type = GENERIC_NODE_TYPES.get(node.type().name(), node.type().name())
                 # print(f"Creating NodeInfo for node: {traversal_path} with parameters: {parameters}")
 
                 # Create NodeInfo for the current node
                 node_info = NodeInfo(
-                    node_type=node.type().name(),
+                    node_type=generic_node_type,
                     node_name=node.name(),
                     parameters=parameters,
                     traversal_path=traversal_path,
@@ -435,7 +453,8 @@ class TraverseNodeConnections:
 
         print("Final MaterialData:")
         for node_info in material_data.nodes:
-            print(f"Node: {node_info.node_name}, Type: {node_info.node_type}, Params: {node_info.parameters}, Path: {node_info.traversal_path}")
+            print(
+                f"Node: {node_info.node_name}, Type: {node_info.node_type}, Params: {node_info.parameters}, Path: {node_info.traversal_path}")
             for child_node in node_info.child_nodes:
                 print(f"'-->  Child Node: {child_node.node_name}, Type: {child_node.node_type},"
                       f"Params: {child_node.parameters}, Path: {child_node.traversal_path},"
@@ -459,20 +478,29 @@ class NodeRecreator:
         for node_info in nodes:
             print(f"\nCreating node: {node_info.node_name} of type {node_info.node_type}")
             new_node = self._create_node(node_info)
+            if not new_node:
+                print(f"DEBUG: Couldn't create new node {node_info.node_type}")
+                continue
             self.old_new_node_map[node_info.traversal_path] = new_node
             # print(f"{self.old_new_node_map=}\n")
             self._create_all_nodes(nodes=node_info.child_nodes)
 
     def _create_node(self, node_info: NodeInfo) -> hou.Node:
         new_node_type = self._convert_node_type(node_info.node_type)
+        if not new_node_type:
+            print(f"DEBUG: Node type:{node_info.node_type} is unsupported")
+            return
         new_node = self.target_context.createNode(new_node_type, node_info.node_name)
-        print(f"{node_info.parameters=}")
+        print(f"DEBUG: {node_info.parameters=}, {new_node_type=}")
         self.apply_parameters(new_node, node_info.parameters)
         return new_node
 
     def _set_node_inputs(self, nodes: List[NodeInfo]):
         for node_info in nodes:
-            new_node = self.old_new_node_map[node_info.traversal_path]
+            new_node = self.old_new_node_map.get(node_info.traversal_path)
+            if not new_node:
+                print(f"DEBUG: new_node is None.\n")
+                continue
             self._set_inputs_recursive(node_info, new_node)
 
     def _set_inputs_recursive(self, node_info: NodeInfo, new_node: hou.Node):
@@ -484,11 +512,14 @@ class NodeRecreator:
 
     def _convert_node_type(self, node_type: str) -> str:
         """
-        Convert the node type based on the target renderer.
+        Convert the generic node type to the target renderer-specific node type.
         """
+        print(f"DEBUG: renderer:{self.target_renderer}, node_type:{node_type}")
         if self.target_renderer in CONVERSION_MAP and node_type in CONVERSION_MAP[self.target_renderer]:
             return CONVERSION_MAP[self.target_renderer][node_type]
-        return node_type  # Default to the original type if no conversion is found
+        else:
+            node_type = 'GENERIC::null'
+            return CONVERSION_MAP[self.target_renderer][node_type]
 
     @staticmethod
     def apply_parameters(node: hou.Node, parameters: List[NodeParameter]):
@@ -507,10 +538,11 @@ class NodeRecreator:
             if hou_parm is not None:
                 hou_parm.set(param.value)
             else:
-                print(f"Parameter '{renderer_specific_name}' not found on node '{node.path()}', \n{node_specific_dict=}")
+                print(
+                    f"Parameter '{renderer_specific_name}' not found on node '{node.path()}', \n{node_specific_dict=}")
 
 
-def run(selected_node, target_context, target_renderer='mtlx'):
+def run(selected_node, target_context, target_renderer='arnold'):
     """
     Temp run function that traverses mtlx networks then recreates it,
     with an option to specify the target renderer for material conversion.
