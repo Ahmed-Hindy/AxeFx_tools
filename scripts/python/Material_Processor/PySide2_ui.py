@@ -6,7 +6,7 @@ from PySide2.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
 from PySide2 import QtCore, QtGui
 
 import hou
-from Material_Processor import materials_processer
+from Material_Processor import material_processor
 
 
 class QTextEditLogger(logging.Handler):
