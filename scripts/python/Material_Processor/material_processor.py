@@ -35,9 +35,13 @@ GENERIC_NODE_TYPES = {
     'arnold::standard_surface': 'GENERIC::standard_surface',
     'arnold::image': 'GENERIC::image',
     'arnold::color_correct': 'GENERIC::color_correct',
+    'arnold_material': 'GENERIC::output',
+
     'mtlxstandard_surface': 'GENERIC::standard_surface',
     'mtlximage': 'GENERIC::image',
     'mtlxcolorcorrect': 'GENERIC::color_correct',
+    'mtlxdisplacement': 'GENERIC::displacement',
+    'subnetconnector': 'GENERIC::output',
     'null': 'GENERIC::null'
 }
 
@@ -52,12 +56,15 @@ CONVERSION_MAP = {
                 'GENERIC::standard_surface': 'arnold::standard_surface',
                 'GENERIC::image': 'arnold::image',
                 'GENERIC::color_correct': 'arnold::color_correct',
+                'GENERIC::output': 'arnold_material',
                 'GENERIC::null': 'null'
             },
             'mtlx': {
                 'GENERIC::standard_surface': 'mtlxstandard_surface',
                 'GENERIC::image': 'mtlximage',
                 'GENERIC::color_correct': 'mtlxcolorcorrect',
+                'GENERIC::displacement': 'mtlxdisplacement',
+                'GENERIC::output': 'subnetconnector',
                 'GENERIC::null': 'null'
             }
         }
@@ -101,6 +108,10 @@ STANDARDIZED_PARAM_NAMES = {
             'contrast': 'contrast',
             'exposure': 'exposure',
         },
+        'mtlxdisplacement': {
+            'displacement': 'displacement',
+            'scale': 'scale',
+        },
 
 
         'arnold::standard_surface': {
@@ -137,7 +148,6 @@ STANDARDIZED_PARAM_NAMES = {
             'contrast': 'contrast',
             'exposure': 'exposure',
         },
-        # Add dictionaries for other node types as needed
     }
 
 ##########################################################################################
@@ -469,8 +479,50 @@ class NodeRecreator:
         self.target_context = target_context
         self.target_renderer = target_renderer
         self.old_new_node_map = {}
+        self.reused_nodes = []  # Track reused nodes
+
+    @staticmethod
+    def create_init_mtlx_shader(matnet=None):
+        import voptoolutils
+        UTILITY_NODES = 'parameter constant collect null genericshader'
+        SUBNET_NODES = 'subnet subnetconnector suboutput subinput'
+        MTLX_TAB_MASK = 'MaterialX {} {}'.format(UTILITY_NODES, SUBNET_NODES)
+        name = 'mtlxmaterial'
+        folder_label = 'MaterialX Builder'
+        render_context = 'mtlx'
+
+        if not matnet:
+            matnet = hou.node('/mat')
+        subnet_node = matnet.createNode('subnet', name)
+        subnet_node = voptoolutils._setupMtlXBuilderSubnet(subnet_node=subnet_node, name=name, mask=MTLX_TAB_MASK,
+                                                           folder_label=folder_label, render_context=render_context)
+        return subnet_node
+
+    @staticmethod
+    def create_init_arnold_shader(matnet=None, create_surface=False):
+        if not matnet:
+            matnet = hou.node('/mat')
+        node_material_builder = matnet.createNode('arnold_materialbuilder')
+        node_output = node_material_builder.node('OUT_material')
+        if create_surface:
+            node_std_surface = node_material_builder.createNode('arnold::standard_surface')
+            node_output.setInput(0, node_std_surface)
+            node_std_surface.setPosition(hou.Vector2(-3, 0))
+        return node_material_builder
+
 
     def recreate_nodes(self):
+        # Create the initial shader network based on the target renderer
+        if self.target_renderer == 'mtlx':
+            self.target_context = self.create_init_mtlx_shader(self.target_context)
+        elif self.target_renderer == 'arnold':
+            self.target_context = self.create_init_arnold_shader(self.target_context)
+        else:
+            raise Exception(f"Unsupported target renderer: {self.target_renderer}")
+
+        print(f"{self.target_context=}")
+
+        # Proceed with node creation and input setting
         self._create_all_nodes(self.material_data.nodes)
         self._set_node_inputs(self.material_data.nodes)
 
@@ -486,10 +538,26 @@ class NodeRecreator:
             self._create_all_nodes(nodes=node_info.child_nodes)
 
     def _create_node(self, node_info: NodeInfo) -> hou.Node:
+        # Define node types that should be reused if they already exist
+        reusable_node_types = ['mtlxstandard_surface', 'mtlxdisplacement', 'subnetconnector', 'subinput', 'arnold::standard_surface', 'arnold_material']
+
         new_node_type = self._convert_node_type(node_info.node_type)
         if not new_node_type:
             print(f"DEBUG: Node type:{node_info.node_type} is unsupported")
-            return
+            return None
+
+        # Check for existing nodes of the same type to reuse
+        if any(reusable_type in new_node_type for reusable_type in reusable_node_types):
+            existing_nodes = [node for node in self.target_context.children() if
+                              node.type().name() == new_node_type and node not in self.reused_nodes]
+            if existing_nodes:
+                node = existing_nodes[0]
+                print(f"Using existing node: {node.path()} of type {node.type().name()}")
+                self.apply_parameters(node, node_info.parameters)  # Ensure parameters are set
+                self.reused_nodes.append(node)  # Mark node as reused
+                return node
+
+        # Create new node if no reusable node is found
         new_node = self.target_context.createNode(new_node_type, node_info.node_name)
         print(f"DEBUG: {node_info.parameters=}, {new_node_type=}")
         self.apply_parameters(new_node, node_info.parameters)
@@ -528,7 +596,9 @@ class NodeRecreator:
             node_type = node.type().name()
             node_specific_dict = STANDARDIZED_PARAM_NAMES.get(node_type)
             if not node_specific_dict:
-                raise Exception(f"Couldn't get dictionary for node type: {node_type}")
+                # raise Exception(f"Couldn't get dictionary for node type: {node_type}")
+                print(f"Couldn't get dictionary for node type: {node_type}")
+                continue
 
             # Reverse lookup: find the key (renderer-specific name) that matches the standardized name
             renderer_specific_name = next(
@@ -554,9 +624,6 @@ def run(selected_node, target_context, target_renderer='arnold'):
     """
     # Create an instance of TraverseNodeConnections
     traverse_class = TraverseNodeConnections()
-
-    # Traverse the children nodes of the selected node
-    traverse_tree = traverse_class.traverse_children_nodes(selected_node)
 
     # Create material data with filtered parameters
     material_data = traverse_class.create_material_data(selected_node)
