@@ -20,30 +20,35 @@ except:
 try:
     import hou
 except:
-    hou = None  # temp to make the module work with substance painter
+    # temp to make the module work with substance painter
+    hou = None
 
 
 
-class TraverseNodeConnections:
-    """
-    A class to traverse node connections in Houdini.
 
-    Methods:
-        traverse_node_tree(node, path=None): Traverses the node tree and returns a dictionary of nodes.
-        traverse_children_nodes(parent_node): Traverses child nodes and returns a dictionary of all branches.
-        find_input_index_in_dict(node_dict, target_node): Finds the input index in a dictionary.
-        get_input_index_to_target_node_type(node_dict, node_a, node_b_type): Gets the input index to the target node type.
-        map_all_nodes_to_target_input_index(node_dict, node_b_type='arnold::standard_surface'): Maps all nodes to the target input index.
-        find_nodes_of_type(node_dict, node_type, found_nodes=None): Finds nodes of a specific type.
-        map_connection_input_index_to_texture_type(input_dict, renderer='Arnold'): Maps connection input index to texture type.
-        update_connected_input_indices(node_dict, node_info_list): Updates connected input indices.
-        filter_node_parameters(node): Filters node parameters based on node type and renderer.
-        create_material_data(selected_node): Creates material data from the selected node.
-    """
-    def __init__(self) -> None:
-        pass
 
-    STANDARDIZED_PARAM_NAMES = {
+###################################### CONSTANTS ######################################
+"""
+Conversion_map is a dict of 'from_node_type' : 'to_node_type'
+TODO: standardize the names so it can take any render engine and I dont have to repeat myself multiple times
+"""
+CONVERSION_MAP = {
+            'arnold': {
+                'mtlxstandard_surface': 'arnold::standard_surface',
+                'mtlximage': 'arnold::image',
+                'mtlxcolorcorrect': 'arnold::color_correct'
+            },
+            'mtlx': {
+                'arnold::standard_surface': 'mtlxstandard_surface',
+                'arnold::image': 'mtlximage',
+                'arnold::color_correct': 'mtlxcolorcorrect'
+            }
+        }
+
+"""
+names of parameters on specific node which is supported in this module. Any other node type will be filtered out.
+"""
+STANDARDIZED_PARAM_NAMES = {
         'mtlxstandard_surface': {
             'base': 'base',
             'base_colorr': 'base_colorr',
@@ -71,6 +76,13 @@ class TraverseNodeConnections:
         },
         'mtlximage': {
             'file': 'filename'
+        },
+        'mtlxcolorcorrect': {
+            'saturation': 'saturation',
+            'gamma': 'gamma',
+            'gain': 'gain',
+            'contrast': 'contrast',
+            'exposure': 'exposure',
         },
 
 
@@ -102,8 +114,36 @@ class TraverseNodeConnections:
         'arnold::image': {
             'filename': 'filename'
         },
+        'arnold::color_correct': {
+            'gamma': 'gamma',
+            'saturation': 'saturation',
+            'contrast': 'contrast',
+            'exposure': 'exposure',
+        },
         # Add dictionaries for other node types as needed
     }
+
+##########################################################################################
+
+
+
+class TraverseNodeConnections:
+    """
+    A class to traverse node connections in Houdini.
+
+    Methods:
+        traverse_node_tree(node, path=None): Traverses the node tree and returns a dictionary of nodes.
+        traverse_children_nodes(parent_node): Traverses child nodes and returns a dictionary of all branches.
+        find_input_index_in_dict(node_dict, target_node): Finds the input index in a dictionary.
+        get_input_index_to_target_node_type(node_dict, node_a, node_b_type): Gets the input index to the target node type.
+        map_all_nodes_to_target_input_index(node_dict, node_b_type='arnold::standard_surface'): Maps all nodes to the target input index.
+        find_nodes_of_type(node_dict, node_type, found_nodes=None): Finds nodes of a specific type.
+        update_connected_input_indices(node_dict, node_info_list): Updates connected input indices.
+        filter_node_parameters(node): Filters node parameters based on node type and renderer.
+        create_material_data(selected_node): Creates material data from the selected node.
+    """
+    def __init__(self) -> None:
+        pass
 
 
     def traverse_node_tree(self, node: hou.Node, path=None) -> Dict[hou.Node, Dict]:
@@ -273,30 +313,6 @@ class TraverseNodeConnections:
 
         return found_nodes
 
-    @staticmethod
-    def map_connection_input_index_to_texture_type(input_dict: Dict, renderer='Arnold') -> Dict:
-        """
-        Maps connection input index to texture type.
-
-        Args:
-            input_dict (Dict): The input dictionary.
-            renderer (str): The renderer type.
-
-        Returns:
-            Dict: A dictionary mapping connection input index to texture type.
-        """
-        index_map = {}
-        if renderer == 'Arnold':
-            index_map = {
-                1: 'albedo',
-                6: 'roughness',
-                10: 'transmission',
-                38: 'opacity',
-                39: 'normal'
-            }
-
-        node_map_dict = {index_map[value]: key for key, value in input_dict.items() if value in index_map}
-        return node_map_dict
 
     @staticmethod
     def update_connected_input_indices(node_dict: Dict, node_info_list: List[NodeInfo]) -> None:
@@ -314,33 +330,26 @@ class TraverseNodeConnections:
 
     def filter_node_parameters(self, node: hou.Node) -> List[NodeParameter]:
         """
-        Filters node parameters based on node type and standardizes their names.
-
+        Filters ingested node parameters based on node type and standardizes their names.
         Args:
             node (hou.Node): The Houdini node.
-
         Returns:
             List[NodeParameter]: A list of filtered and standardized node parameters.
         """
         node_type = node.type().name()
-        param_names = []
-        standardized_names = self.STANDARDIZED_PARAM_NAMES.get(node_type, {})
+        filtered_param_names = []
+        standardized_names = STANDARDIZED_PARAM_NAMES.get(node_type, {})
+        try:
+            filtered_param_names = list(STANDARDIZED_PARAM_NAMES.get(node_type).keys())
+        except AttributeError:
+            print(f"WARNING: node_type: {node_type} not in STANDARDIZED_PARAM_NAMES dict")
+        # print(f"{filtered_param_names=}")
 
-        if node_type in ['mtlxstandard_surface', 'arnold::standard_surface']:
-            param_names = [
-                'base', 'base_colorr', 'base_colorg', 'base_colorb', 'diffuse_roughness', 'metalness', 'specular',
-                'specular_colorr', 'specular_colorg', 'specular_colorb', 'specular_roughness', 'specular_IOR',
-                'transmission', 'transmission_colorr', 'transmission_colorg', 'transmission_colorb', 'subsurface',
-                'subsurface_color', 'emission', 'emission_colorr', 'emission_colorg', 'emission_colorb', 'opacity'
-            ]
-        elif node_type in ['mtlximage', 'arnold::image']:
-            param_names = ['file']
-
-        node_parameters = [
-            NodeParameter(name=p.name(), value=p.eval(),
-                          standardized_name=standardized_names.get(p.name(), p.name()))
-            for p in node.parms() if p.name() in param_names
-        ]
+        node_parameters = [NodeParameter(name=p.name(), value=p.eval(),
+                           standardized_name=standardized_names.get(p.name(), p.name()))
+                           for p in node.parms() if p.name() in filtered_param_names
+                           ]
+        # print(f"{node_parameters=}")
         return node_parameters
 
     def _create_child_nodes(self, node: hou.Node, traverse_tree: Dict) -> List[NodeInfo]:
@@ -410,7 +419,7 @@ class TraverseNodeConnections:
                 )
 
                 # Recursively process child nodes
-                child_nodes_info = traverse_and_create_node_info(children, node)
+                child_nodes_info = traverse_and_create_node_info(children)
                 node_info.child_nodes.extend(child_nodes_info)
                 local_nodes_info.append(node_info)
 
@@ -428,7 +437,9 @@ class TraverseNodeConnections:
         for node_info in material_data.nodes:
             print(f"Node: {node_info.node_name}, Type: {node_info.node_type}, Params: {node_info.parameters}, Path: {node_info.traversal_path}")
             for child_node in node_info.child_nodes:
-                print(f"  Child Node: {child_node.node_name}, Type: {child_node.node_type}, Params: {child_node.parameters}, Path: {child_node.traversal_path}")
+                print(f"'-->  Child Node: {child_node.node_name}, Type: {child_node.node_type},"
+                      f"Params: {child_node.parameters}, Path: {child_node.traversal_path},"
+                      f"children: {child_node.child_nodes}\n")
 
         return material_data
 
@@ -475,22 +486,8 @@ class NodeRecreator:
         """
         Convert the node type based on the target renderer.
         """
-        conversion_map = {
-            'arnold': {
-                'mtlxstandard_surface': 'arnold::standard_surface',
-                'mtlximage': 'arnold::image'
-                # Add more conversions as needed
-            },
-            'mtlx': {
-                'arnold::standard_surface': 'mtlxstandard_surface',
-                'arnold::image': 'mtlximage'
-                # Add more conversions as needed
-            }
-            # Add more renderer maps as needed
-        }
-
-        if self.target_renderer in conversion_map and node_type in conversion_map[self.target_renderer]:
-            return conversion_map[self.target_renderer][node_type]
+        if self.target_renderer in CONVERSION_MAP and node_type in CONVERSION_MAP[self.target_renderer]:
+            return CONVERSION_MAP[self.target_renderer][node_type]
         return node_type  # Default to the original type if no conversion is found
 
     @staticmethod
@@ -498,7 +495,7 @@ class NodeRecreator:
         for param in parameters:
             # Determine the renderer-specific name using the standardized name
             node_type = node.type().name()
-            node_specific_dict = TraverseNodeConnections.STANDARDIZED_PARAM_NAMES.get(node_type, {})
+            node_specific_dict = STANDARDIZED_PARAM_NAMES.get(node_type)
             if not node_specific_dict:
                 raise Exception(f"Couldn't get dictionary for node type: {node_type}")
 
