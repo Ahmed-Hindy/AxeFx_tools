@@ -479,7 +479,7 @@ class NodeRecreator:
         self.target_context = target_context
         self.target_renderer = target_renderer
         self.old_new_node_map = {}
-        self.reused_nodes = []  # Track reused nodes
+        self.reused_nodes = {}  # Track reused nodes
 
     @staticmethod
     def create_init_mtlx_shader(matnet=None):
@@ -538,29 +538,34 @@ class NodeRecreator:
             self._create_all_nodes(nodes=node_info.child_nodes)
 
     def _create_node(self, node_info: NodeInfo) -> hou.Node:
-        # Define node types that should be reused if they already exist
-        reusable_node_types = ['mtlxstandard_surface', 'mtlxdisplacement', 'subnetconnector', 'subinput', 'arnold::standard_surface', 'arnold_material']
-
         new_node_type = self._convert_node_type(node_info.node_type)
         if not new_node_type:
             print(f"DEBUG: Node type:{node_info.node_type} is unsupported")
             return None
 
+        # Check if the node has already been created or reused based on its unique identifier (node path)
+        node_identifier = f"{new_node_type}_{node_info.node_name}"
+
+        if node_identifier in self.reused_nodes:
+            node = self.reused_nodes[node_identifier]
+            print(f"Using existing node: {node.path()} of type {node.type().name()}")
+            self.apply_parameters(node, node_info.parameters)  # Ensure parameters are set
+            return node
+
         # Check for existing nodes of the same type to reuse
-        if any(reusable_type in new_node_type for reusable_type in reusable_node_types):
-            existing_nodes = [node for node in self.target_context.children() if
-                              node.type().name() == new_node_type and node not in self.reused_nodes]
-            if existing_nodes:
-                node = existing_nodes[0]
-                print(f"Using existing node: {node.path()} of type {node.type().name()}")
-                self.apply_parameters(node, node_info.parameters)  # Ensure parameters are set
-                self.reused_nodes.append(node)  # Mark node as reused
-                return node
+        existing_nodes = [node for node in self.target_context.children() if node.type().name() == new_node_type and node not in self.reused_nodes.values()]
+        if existing_nodes:
+            node = existing_nodes[0]
+            print(f"Using existing node: {node.path()} of type {node.type().name()}")
+            self.apply_parameters(node, node_info.parameters)  # Ensure parameters are set
+            self.reused_nodes[node_identifier] = node  # Mark node as reused
+            return node
 
         # Create new node if no reusable node is found
         new_node = self.target_context.createNode(new_node_type, node_info.node_name)
         print(f"DEBUG: {node_info.parameters=}, {new_node_type=}")
         self.apply_parameters(new_node, node_info.parameters)
+        self.reused_nodes[node_identifier] = new_node  # Track the new node
         return new_node
 
     def _set_node_inputs(self, nodes: List[NodeInfo]):
