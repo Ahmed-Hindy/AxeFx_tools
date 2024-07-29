@@ -1,8 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional, Dict, List
 
-
-
 @dataclass
 class NodeParameter:
     name: str
@@ -10,9 +8,8 @@ class NodeParameter:
     standardized_name: Optional[str] = None  # Add a standardized name attribute
 
     def __str__(self):
-        return f"NodeParameter(name={self.name}, value={self.value}, standardized_name={self.standardized_name})"
-
-
+        return f""
+        # return f"NodeParameter(name={self.name}, value={self.value}, standardized_name={self.standardized_name})"
 
 @dataclass
 class NodeInfo:
@@ -23,13 +20,17 @@ class NodeInfo:
     connected_input_index: Optional[int] = None
     child_nodes: List['NodeInfo'] = field(default_factory=list)  # Added to store child nodes
 
+    # New attributes specific to output nodes
+    is_output_node: bool = False
+    output_type: Optional[str] = None  # Could be 'surface', 'displacement', etc.
+
     def __str__(self):
-        # return (f"NodeInfo(node_type={self.node_type}, node_name={self.node_name}, parameters={self.parameters},"
-        #         f"traversal_path={self.traversal_path}, connected_input_index={self.connected_input_index},"
-        #         f"child_nodes={self.child_nodes})")
-        return (f"NodeInfo(node_type={self.node_type}, node_name={self.node_name},"
+        b = "Not Output"
+        if self.is_output_node:
+            b = f"{self.is_output_node}, output_type = {self.output_type})"
+        return(f"NodeInfo(node_type={self.node_type}, node_name={self.node_name},"
                 f"traversal_path={self.traversal_path}, connected_input_index={self.connected_input_index},"
-                f"child_nodes={self.child_nodes})")
+                f"child_nodes={self.child_nodes}, {b})")
 
 @dataclass
 class TextureInfo:
