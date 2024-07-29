@@ -537,27 +537,48 @@ class NodeRecreator:
         return new_node
 
     def _set_node_inputs(self, nodes: List[NodeInfo]):
+        print(f"\n\nDEBUG: STARTING _set_node_inputs()....")
         for node_info in nodes:
-            print(f"DEBUG: connecting node {node_info.traversal_path} or type {node_info.node_type}")
+            print(f"DEBUG: connecting node {node_info.traversal_path} of type {node_info.node_type}")
 
             # Skip setting inputs for output nodes
-            if node_info.node_type in OUTPUT_NODE_MAP[self.target_renderer]:
-                print(f"DEBUG: { node_info.node_type=} found in {OUTPUT_NODE_MAP.values()=}")
+            if node_info.node_type in OUTPUT_NODE_MAP.values():
+                print(f"DEBUG: {node_info.node_type=} found in {OUTPUT_NODE_MAP.values()=}, skipping output node.")
+                # Continue to process child nodes even for output nodes
+                self._set_inputs_recursive(node_info, self.old_new_node_map.get(node_info.traversal_path))
                 continue
 
             new_node = self.old_new_node_map.get(node_info.traversal_path)
             if not new_node:
-                print(f"DEBUG: new_node is None.\n")
+                print(f"DEBUG: new_node is None for {node_info.traversal_path}.")
                 continue
+
             self._set_inputs_recursive(node_info, new_node)
 
     def _set_inputs_recursive(self, node_info: NodeInfo, new_node: hou.Node):
+        if new_node is None:
+            print(f"DEBUG: new_node is None for {node_info.traversal_path}, skipping.")
+            return
+
         for child_info in node_info.child_nodes:
+            print(f"DEBUG: {child_info.node_type=}, {child_info.traversal_path=}")
             if child_info.node_type in OUTPUT_NODE_MAP.values():
+                print(f"DEBUG: {child_info.node_type=} found in output nodes, skipping direct connection.")
+                self._set_inputs_recursive(child_info, self.old_new_node_map.get(child_info.traversal_path))
                 continue  # Skip setting inputs for output nodes
-            child_node = self.old_new_node_map[child_info.traversal_path]
+
+            child_node = self.old_new_node_map.get(child_info.traversal_path)
+            if not child_node:
+                print(f"DEBUG: child_node is None for {child_info.traversal_path}.")
+                continue
+
             if child_info.connected_input_index is not None:
+                print(
+                    f"DEBUG: Setting input {child_info.connected_input_index} of {new_node.path()} to {child_node.path()}.")
                 new_node.setInput(child_info.connected_input_index, child_node)
+            else:
+                print(f"DEBUG: connected_input_index is None for child node {child_info.traversal_path}.")
+
             self._set_inputs_recursive(child_info, child_node)
 
     def _convert_node_type(self, node_type: str) -> str:
