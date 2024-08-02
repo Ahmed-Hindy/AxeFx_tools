@@ -16,7 +16,7 @@ except:
 import Material_Processor.material_classes
 from Material_Processor.material_classes import TextureInfo, MaterialData
 if 'hou' in globals():
-    from Material_Processor.materials_processer import MaterialCreate
+    from Material_Processor.material_processor import MaterialCreate
     reload(Material_Processor.material_classes)
 else:
     print('hou not in globals')
