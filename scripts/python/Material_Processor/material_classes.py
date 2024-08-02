@@ -16,7 +16,7 @@ class NodeInfo:
     node_type: str
     node_name: str
     parameters: List[NodeParameter] = field(default_factory=list)
-    traversal_path: str = ""
+    node_path: str = ""
     connected_input_index: Optional[int] = None
     child_nodes: List['NodeInfo'] = field(default_factory=list)  # Added to store child nodes
 
@@ -29,7 +29,14 @@ class NodeInfo:
         if self.is_output_node:
             b = f"{self.is_output_node}, output_type = {self.output_type})"
         return(f"NodeInfo(node_type={self.node_type}, node_name={self.node_name},"
-                f"traversal_path={self.traversal_path}, connected_input_index={self.connected_input_index},"
+                f"node_path={self.node_path}, connected_input_index={self.connected_input_index},"
+                f"child_nodes={self.child_nodes}, {b})")
+    def __repr__(self):
+        b = "Not Output"
+        if self.is_output_node:
+            b = f"{self.is_output_node}, output_type = {self.output_type})"
+        return(f"NodeInfo(node_type={self.node_type}, node_name={self.node_name},"
+                f"node_path={self.node_path}, connected_input_index={self.connected_input_index},"
                 f"child_nodes={self.child_nodes}, {b})")
 
 @dataclass
