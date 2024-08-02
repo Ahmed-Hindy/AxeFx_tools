@@ -161,9 +161,10 @@ STANDARDIZED_PARAM_NAMES = {
 
 
 class TraverseNodeConnections:
-    def __init__(self) -> None:
+    def __init__(self, material_type: str) -> None:
+        self.material_type = material_type
         self.output_nodes = {}
-        self.output_connections = {}  # Initialize output_connections
+        self.TraverseNodeConnections = {}  # Initialize output_connections
 
     def traverse_node_tree(self, node: hou.Node, path=None) -> Dict[hou.Node, Dict]:
         if path is None:
@@ -193,30 +194,87 @@ class TraverseNodeConnections:
             branch_dict = self.traverse_node_tree(output_node, [])
             all_branches.update(branch_dict)
 
-        self.detect_output_nodes(parent_node)
+        self.output_nodes = self.detect_output_nodes(parent_node, material_type=self.material_type)
+        print(f"output nodes detected: {self.output_nodes}\n")
+
 
         print('traverse_children_nodes()-----all_branches:')
         pprint(all_branches, indent=3)
         print(f'\n')
         return all_branches
 
-    def detect_output_nodes(self, parent_node: hou.Node):
+
+    @staticmethod
+    def detect_output_nodes(parent_node: hou.Node, material_type: str) -> Dict:
         print(f"detect_output_nodes START for {parent_node.path()}")
+        if material_type == 'arnold':
+            output_nodes = TraverseNodeConnections._detect_arnold_output_nodes(parent_node)
+        elif material_type == 'mtlx':
+            output_nodes = TraverseNodeConnections._detect_mtlx_output_nodes(parent_node)
+        else:
+            raise KeyError(f"Unsupported renderer: {material_type=}")
+
+        return output_nodes
+
+
+    @staticmethod
+    def _detect_arnold_output_nodes(parent_node: hou.Node) -> Dict:
         for child in parent_node.children():
             if child.type().name() == 'arnold_material':
-                self.output_nodes['surface'] = child
-            elif child.type().name() == 'subnetconnector':
-                parmname = child.parm('parmname').eval()
-                if parmname == 'surface':
-                    self.output_nodes['surface'] = child
-                elif parmname == 'displacement':
-                    self.output_nodes['displacement'] = child
-        for key, node in self.output_nodes.items():
-            self.output_nodes[key] = {
-                'node': node,
-                'traversal_path': node.path()
-            }
-        print(f"{self.output_nodes=}")
+                arnold_output: hou.Node = child  # we found the arnold_output node
+                break
+        if not arnold_output:
+            raise Exception(f"No Output Node detected for Atnold Material")
+
+        output_nodes = {}
+        connections = arnold_output.inputConnections()
+        for connection in connections:
+            connected_input = connection.inputNode()
+            connected_input_index = connection.outputIndex()
+            connected_output_index = connection.inputIndex()
+            # print(f"{connected_input=}, {connected_input_index=}, {connected_output_index=}, ")
+            if connected_output_index == 0:  # that's a surface
+                output_nodes['surface'] = {
+                    'node': arnold_output,
+                    'node_path': arnold_output.path(),
+                    'connected_node': connected_input,
+                    'connected_node_index': connected_input_index
+                }
+            elif connected_output_index == 1:  # that's a displacement
+                output_nodes['displacement'] = {
+                    'node': arnold_output,
+                    'node_path': arnold_output.path(),
+                    'connected_node': connected_input,
+                    'connected_node_index': connected_input_index
+                }
+
+        return output_nodes
+
+
+    @staticmethod
+    def _detect_mtlx_output_nodes(parent_node: hou.Node) -> Dict:
+        output_nodes = {}
+        output_nodes_list = []
+        for child in parent_node.children():
+            if child.type().name() == 'subnetconnector':
+                output_nodes_list.append(child)
+
+        for output_node in output_nodes_list:
+            connections = output_node.inputConnections()
+            for connection in connections:
+                connected_input = connection.inputNode()
+                connected_input_index = connection.outputIndex()
+                connected_output_index = connection.inputIndex()
+                # print(f"{connected_input=}, {connected_input_index=}, {connected_output_index=}, ")
+            parmname = output_node.parm('parmname').eval()
+            if parmname in ['surface', 'displacement']:
+                output_nodes[parmname] = {
+                    'node': output_node,
+                    'node_path': output_node.path(),
+                    'connected_node': connected_input,
+                    'connected_node_index': connected_input_index
+                }
+        return output_nodes
 
     @staticmethod
     def find_input_index_in_dict(node_dict: Dict, target_node: hou.Node) -> int:
@@ -294,7 +352,7 @@ class TraverseNodeConnections:
     @staticmethod
     def update_connected_input_indices(node_dict: Dict, node_info_list: List[NodeInfo]) -> None:
         for node_info in node_info_list:
-            node = hou.node(node_info.traversal_path.split(">")[-1])
+            node = hou.node(node_info.node_path.split(">")[-1])
             index = TraverseNodeConnections.find_input_index_in_dict(node_dict, node)
             node_info.connected_input_index = index
 
@@ -340,7 +398,7 @@ class TraverseNodeConnections:
                     node_type=generic_node_type,
                     node_name=node.name(),
                     parameters=parameters,
-                    traversal_path=traversal_path,
+                    node_path=traversal_path,
                     connected_input_index=connected_input_index,
                     child_nodes=[]
                 )
@@ -363,10 +421,10 @@ class TraverseNodeConnections:
 
         print("\nFinal MaterialData:")
         for node_info in material_data.nodes:
-            print(f"NodeType: {node_info.node_type}, Path: {node_info.traversal_path}")
+            print(f"NodeType: {node_info.node_type}, Path: {node_info.node_path}")
             for child_node in node_info.child_nodes:
                 print(f"'-->  Child Node Type: {child_node.node_type},"
-                      f"Path: {child_node.traversal_path},"
+                      f"Path: {child_node.node_path},"
                       f"children: {child_node.child_nodes}\n")
 
         return material_data
@@ -379,9 +437,8 @@ class NodeRecreator:
         self.target_renderer = target_renderer
         self.old_new_node_map = {}  # a dict of {old_node.path():str : new_node:hou.Node}
         self.reused_nodes = {}
-        self.output_node = None  # Track the output node for special handling
-        self.traverse_class = traverse_class  # Reintroduce traverse_class
-        self.output_nodes = output_nodes  # Add output_nodes attribute
+        self.traverse_class = traverse_class
+        self.output_nodes = output_nodes
 
     @staticmethod
     def create_init_mtlx_shader(matnet=None):
@@ -400,9 +457,9 @@ class NodeRecreator:
                                                            folder_label=folder_label, render_context=render_context)
         output_nodes = {
             'surface': {'node': subnet_node.node('surface_output'),
-                        'traversal_path': subnet_node.node('surface_output').path()},
+                        'node_path': subnet_node.node('surface_output').path()},
             'displacement': {'node': subnet_node.node('displacement_output'),
-                             'traversal_path': subnet_node.node('displacement_output').path()}
+                             'node_path': subnet_node.node('displacement_output').path()}
         }
         return subnet_node, output_nodes
 
@@ -413,79 +470,57 @@ class NodeRecreator:
         node_material_builder = matnet.createNode('arnold_materialbuilder')
         output_nodes = {
             'surface': {'node': node_material_builder.node('OUT_material'),
-                        'traversal_path': node_material_builder.node('OUT_material').path()}
+                        'node_path': node_material_builder.node('OUT_material').path()},
+            'displacement': {'node': node_material_builder.node('OUT_material'),
+                             'node_path': node_material_builder.node('OUT_material').path()}
         }
         return node_material_builder, output_nodes
 
     def create_output_nodes(self):
-        for key, output_info in self.output_nodes.items():
-            new_node_type = OUTPUT_NODE_MAP.get(self.target_renderer)
-            print(f"{new_node_type=}, {self.output_nodes=}")
-            if not new_node_type:
-                raise KeyError(f"Couldn't get New Output node type from dictionary, might be unsupported renderer!")
+        output_node_type = OUTPUT_NODE_MAP.get(self.target_renderer)  # e.g. 'arnold_material' or 'subnetconnector'
+        # print(f"{output_node_type=}, {self.output_nodes=}, {self.created_output_nodes=}")
 
+        for output_type, output_info in self.output_nodes.items():
             # Check if the output node already exists in the target context
-            existing_node = self.target_context.node(output_info['node'].name())
-            if existing_node:
-                node = existing_node
-                print(f"Reusing existing output node: {node.path()} of type {new_node_type}")
+            created_output_node: hou.Node = self.created_output_nodes[output_type]['node']
+            # created_output_node = self.material_builder.node(output_info['node'].name())
+            if created_output_node:
+                node = created_output_node
+                print(f"Reusing existing output node: {node.path()} of type {output_node_type} for output {output_type}")
             else:
-                node = self.target_context.createNode(new_node_type, output_info['node'].name())
-                print(f"Created new output node: {node.path()} of type {new_node_type}")
+                node = self.material_builder.createNode(output_node_type, output_info['node'].name())
+                print(f"Created new output node: {node.path()} of type {output_node_type} for output {output_type}")
 
             # self.apply_parameters(node, output_info['node'].parms())  # Uncomment if you want to apply parameters
-            self.old_new_node_map[output_info['traversal_path']] = node
-            self.output_nodes[key]['node'] = node  # Update to the newly created or reused node
+            self.old_new_node_map[output_info['node_path']] = node
+            self.created_output_nodes[output_type]['node'] = node  # Update to the newly created or reused node
 
 
-    def recreate_nodes(self):
-        # Create the initial shader network based on the target renderer
-        if self.target_renderer == 'mtlx':
-            self.target_context, self.output_nodes = self.create_init_mtlx_shader(self.target_context)
-        elif self.target_renderer == 'arnold':
-            self.target_context, self.output_nodes = self.create_init_arnold_shader(self.target_context)
-        else:
-            raise Exception(f"Unsupported target renderer: {self.target_renderer}")
 
-        print(f"{self.target_context=}, {self.output_nodes=}")
 
-        # Create output nodes first
-        print(f"\n\n\nDEBUG: STARTING create_output_nodes()....")
-        self.create_output_nodes()
-
-        # Proceed with node creation and input setting
-        print(f"\n\n\nDEBUG: STARTING _create_all_nodes()....")
-        self._create_all_nodes(self.material_data.nodes)
-
-        print(f"\n\n\nDEBUG: STARTING _set_node_inputs()....")
-        self._set_node_inputs(self.material_data.nodes)
-
-        print(f"\n\n\nDEBUG: STARTING _set_output_connections()....")
-        self._set_output_connections()
-
-    def _create_all_nodes(self, nodes: List[NodeInfo], processed_nodes=None):
+    def _create_nodes_recursive(self, nodes: List[NodeInfo], processed_nodes=None):
         if processed_nodes is None:
             processed_nodes = set()
 
         for node_info in nodes:
-            if node_info.traversal_path in processed_nodes:
+            if node_info.node_path in processed_nodes:
                 print(f"DEBUG: Skipping already created node {node_info.node_name} of type {node_info.node_type}")
                 continue
 
-            print(f"\nCreating node: {node_info.node_name} of type {node_info.node_type}")
+            print(f"Creating node: {node_info.node_name} of type {node_info.node_type}")
             new_node = self._create_node(node_info)
             if not new_node:
                 print(f"DEBUG: Couldn't create new node {node_info.node_type}")
                 continue
 
-            self.old_new_node_map[node_info.traversal_path] = new_node
-            processed_nodes.add(node_info.traversal_path)
-            self._create_all_nodes(nodes=node_info.child_nodes, processed_nodes=processed_nodes)
+            self.old_new_node_map[node_info.node_path] = new_node
+            processed_nodes.add(node_info.node_path)
+            self._create_nodes_recursive(nodes=node_info.child_nodes, processed_nodes=processed_nodes)
 
             # Add output nodes to the map if they are marked as such
             if node_info.is_output_node:
                 print(f"DEBUG: Output node detected: {node_info.node_name} of type {node_info.node_type}")
-                self.old_new_node_map[node_info.traversal_path] = new_node
+                self.old_new_node_map[node_info.node_path] = new_node
 
     def _create_node(self, node_info: NodeInfo) -> hou.Node:
         new_node_type = self._convert_node_type(node_info.node_type)
@@ -494,58 +529,58 @@ class NodeRecreator:
             return None
 
         # Check for existing nodes of the same type to reuse
-        existing_nodes = [node for node in self.target_context.children() if
+        existing_nodes = [node for node in self.material_builder.children() if
                           node.type().name() == new_node_type and node not in self.reused_nodes.values()]
         if existing_nodes:
             node = existing_nodes[0]
             print(f"Using existing node: {node.path()} of type {node.type().name()}")
             self.apply_parameters(node, node_info.parameters)
-            self.reused_nodes[node_info.traversal_path] = node
-            self.old_new_node_map[node_info.traversal_path] = node  # Ensure all nodes are mapped
+            self.reused_nodes[node_info.node_path] = node
+            self.old_new_node_map[node_info.node_path] = node  # Ensure all nodes are mapped
             return node
 
         # Create new node if no reusable node is found
-        new_node = self.target_context.createNode(new_node_type, node_info.node_name)
+        new_node = self.material_builder.createNode(new_node_type, node_info.node_name)
         self.apply_parameters(new_node, node_info.parameters)
-        self.reused_nodes[node_info.traversal_path] = new_node
-        self.old_new_node_map[node_info.traversal_path] = new_node  # Ensure all nodes are mapped
+        self.reused_nodes[node_info.node_path] = new_node
+        self.old_new_node_map[node_info.node_path] = new_node  # Ensure all nodes are mapped
         print(f"\n{self.old_new_node_map=}")
         return new_node
 
     def _set_node_inputs(self, nodes: List[NodeInfo]):
         print(f"\n\nDEBUG: STARTING _set_node_inputs()....")
         for node_info in nodes:
-            print(f"DEBUG: connecting node {node_info.traversal_path} of type {node_info.node_type}")
+            print(f"DEBUG: connecting node {node_info.node_path} of type {node_info.node_type}")
 
             # Skip setting inputs for output nodes
             if node_info.node_type in OUTPUT_NODE_MAP.values():
                 print(f"DEBUG: {node_info.node_type=} found in {OUTPUT_NODE_MAP.values()=}, skipping output node.")
                 # Continue to process child nodes even for output nodes
-                self._set_inputs_recursive(node_info, self.old_new_node_map.get(node_info.traversal_path))
+                self._set_inputs_recursive(node_info, self.old_new_node_map.get(node_info.node_path))
                 continue
 
-            new_node = self.old_new_node_map.get(node_info.traversal_path)
+            new_node = self.old_new_node_map.get(node_info.node_path)
             if not new_node:
-                print(f"DEBUG: new_node is None for {node_info.traversal_path}.")
+                print(f"DEBUG: new_node is None for {node_info.node_path}.")
                 continue
 
             self._set_inputs_recursive(node_info, new_node)
 
     def _set_inputs_recursive(self, node_info: NodeInfo, new_node: hou.Node):
         if new_node is None:
-            print(f"DEBUG: new_node is None for {node_info.traversal_path}, skipping.")
+            print(f"DEBUG: new_node is None for {node_info.node_path}, skipping.")
             return
 
         for child_info in node_info.child_nodes:
-            print(f"DEBUG: {child_info.node_type=}, {child_info.traversal_path=}")
+            print(f"DEBUG: {child_info.node_type=}, {child_info.node_path=}")
             if child_info.node_type in OUTPUT_NODE_MAP.values():
                 print(f"DEBUG: {child_info.node_type=} found in output nodes, skipping direct connection.")
-                self._set_inputs_recursive(child_info, self.old_new_node_map.get(child_info.traversal_path))
+                self._set_inputs_recursive(child_info, self.old_new_node_map.get(child_info.node_path))
                 continue  # Skip setting inputs for output nodes
 
-            child_node = self.old_new_node_map.get(child_info.traversal_path)
+            child_node = self.old_new_node_map.get(child_info.node_path)
             if not child_node:
-                print(f"DEBUG: child_node is None for {child_info.traversal_path}.")
+                print(f"DEBUG: child_node is None for {child_info.node_path}.")
                 continue
 
             if child_info.connected_input_index is not None:
@@ -553,7 +588,7 @@ class NodeRecreator:
                     f"DEBUG: Setting input {child_info.connected_input_index} of {new_node=} to {child_node.path()}.")
                 new_node.setInput(child_info.connected_input_index, child_node)
             else:
-                print(f"DEBUG: connected_input_index is None for child node {child_info.traversal_path}.")
+                print(f"DEBUG: connected_input_index is None for child node {child_info.node_path}.")
 
             self._set_inputs_recursive(child_info, child_node)
 
@@ -589,7 +624,7 @@ class NodeRecreator:
                 print(f"Parm '{renderer_specific_name}' not found on node '{node.path()}',\n{node_specific_dict=}")
 
     def _set_output_connections(self):
-        output_connections = {
+        output_connections_index_map = {
             'arnold': {
                 'surface': 0,
                 'displacement': 1
@@ -600,57 +635,72 @@ class NodeRecreator:
             }
         }
 
-        renderer_output_connections = output_connections.get(self.target_renderer)
+        renderer_output_connections = output_connections_index_map.get(self.target_renderer)
         if not renderer_output_connections:
             raise KeyError(f"Unsupported renderer: {self.target_renderer}")
 
-        for key, output_info in self.output_nodes.items():
+        for output_type, output_info in self.created_output_nodes.items():
             output_node = output_info['node']
-            if key not in renderer_output_connections:
-                raise KeyError(f"{key=} not found in {renderer_output_connections=}")
+            if output_type not in renderer_output_connections:
+                raise KeyError(f"{output_type=} not found in {renderer_output_connections=}")
 
-            output_index = renderer_output_connections[key]
+            output_index = renderer_output_connections[output_type]
+
+            # Find all connected node info from the material_data
+            connected_nodes = []
+            for node_info in self.material_data.nodes:
+                if node_info.node_path == self.output_nodes[output_type]['node_path']:
+                    connected_nodes = node_info.child_nodes
+                    break
+
             connected_node_info = None
-
-            if self.target_renderer == 'arnold':
-                # For Arnold, gather all nodes connected to the output
-                connected_nodes = []
-                for node_info in self.material_data.nodes:
-                    if node_info.node_type == 'GENERIC::standard_surface':  # Ensure we're only looking for standard surfaces
-                        connected_nodes.append(node_info)
-                for connected_node_info in connected_nodes:
-                    new_node = self.old_new_node_map.get(connected_node_info.traversal_path)
-                    print(
-                        f"DEBUG: Arnold renderer - Trying to connect {new_node.path() if new_node else 'None'} to {output_node.path()} at index {output_index}")
-                    if new_node and new_node != output_node:
-                        print(f"DEBUG: Setting input {output_index} of {output_node.path()} to {new_node.path()}")
-                        output_node.setInput(output_index, new_node)
-                    else:
-                        print(
-                            f"DEBUG: New node for {key} not found in old_new_node_map or is the same as the output node.")
-            else:
-                # For MTLX or other renderers, assume only one child node connected directly to output
-                for node_info in self.material_data.nodes:
-                    if node_info.child_nodes:
-                        for child_node in node_info.child_nodes:
-                            if child_node.node_type == 'GENERIC::standard_surface':  # Ensure we're only looking for standard surfaces
-                                connected_node_info = child_node
-                                break
-                if connected_node_info:
-                    new_node = self.old_new_node_map.get(connected_node_info.traversal_path)
-                    print(f"DEBUG: {connected_node_info=}")
-                    if new_node and new_node != output_node:
-                        print(f"DEBUG: Setting input {output_index} of {output_node.path()} to {new_node.path()}")
-                        output_node.setInput(output_index, new_node)
-                    else:
-                        print(
-                            f"DEBUG: New node for {key} not found in old_new_node_map or is the same as the output node.")
+            for connected_node_info in connected_nodes:
+                new_node = self.old_new_node_map.get(connected_node_info.node_path)
+                if new_node and new_node != output_node:
+                    print(f"DEBUG: Setting input {output_index} of {output_node.path()} to {new_node.path()}")
+                    output_node.setInput(output_index, new_node)
                 else:
-                    print(f"DEBUG: No connected node info found for output node {output_node.path()}")
+                    print(
+                        f"DEBUG: New node for {output_type} not found in old_new_node_map or is the same as the output node.")
+
+    def recreate_nodes(self):
+        # Create the initial shader network based on the target renderer
+        if self.target_renderer == 'mtlx':
+            self.material_builder, self.created_output_nodes = self.create_init_mtlx_shader(self.target_context)
+        elif self.target_renderer == 'arnold':
+            self.material_builder, self.created_output_nodes = self.create_init_arnold_shader(self.target_context)
+        else:
+            raise Exception(f"Unsupported target renderer: {self.target_renderer}")
+
+        print(f"{self.material_builder=}, {self.output_nodes=}, {self.created_output_nodes=}")
+
+        # Create output nodes first
+        print(f"\n\n\nDEBUG: STARTING create_output_nodes()....")
+        self.create_output_nodes()
+
+        # Proceed with node creation and input setting
+        print(f"\n\n\nDEBUG: STARTING _create_all_nodes()....")
+        self._create_nodes_recursive(self.material_data.nodes)
+
+        print(f"\n\n\nDEBUG: STARTING _set_node_inputs()....")
+        self._set_node_inputs(self.material_data.nodes)
+
+        print(f"\n\n\nDEBUG: STARTING _set_output_connections()....")
+        self._set_output_connections()
 
 
-def run(selected_node, target_context, target_renderer='arnold'):
-    traverse_class = TraverseNodeConnections()
+def run(selected_node, target_context, target_renderer='mtlx'):
+    if selected_node.type().name() == 'arnold_materialbuilder':
+        material_type = 'arnold'
+    elif selected_node.type().name() == 'subnet':
+        for child_node in selected_node.children():
+            if 'mtlx' in child_node.type().name():
+                material_type = 'mtlx'
+                break
+    else:
+        raise Exception(f"Couldn't determine Input material type, currently only Arnold and MTLX supported!")
+
+    traverse_class = TraverseNodeConnections(material_type=material_type)
 
     material_data = traverse_class.create_material_data(selected_node)
 
