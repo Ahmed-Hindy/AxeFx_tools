@@ -60,20 +60,6 @@ class NodeInfo:
                 f"node_path={self.node_path}, connected_input_index={self.connected_input_index},"
                 f"child_nodes={self.child_nodes}, {b})")
 
-@dataclass
-class TextureInfo:
-    """
-    Represents texture information in a material network.
-
-    Attributes:
-        file_path (str): The file path to the texture.
-        nodes (List[NodeInfo]): A list of nodes associated with this texture.
-    """
-    file_path: str
-    nodes: List[NodeInfo] = field(default_factory=list)
-
-    def __str__(self):
-        return f"TextureInfo(file_path={self.file_path}, nodes={self.nodes})"
 
 @dataclass
 class MaterialData:
@@ -88,7 +74,6 @@ class MaterialData:
     """
     material_name: str
     material_path: Optional[str] = None
-    textures: Dict[str, TextureInfo] = field(default_factory=dict)
     nodes: List[NodeInfo] = field(default_factory=list)
 
     def __str__(self):
