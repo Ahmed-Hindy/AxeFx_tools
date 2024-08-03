@@ -83,4 +83,4 @@ class MaterialData:
         return self._pretty_print()
 
     def _pretty_print(self):
-        return f"MaterialData(material_name={self.material_name}, textures={self.textures}, nodes={self.nodes})"
+        return f"MaterialData(material_name={self.material_name}, nodes={self.nodes})"
