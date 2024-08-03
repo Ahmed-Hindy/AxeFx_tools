@@ -535,6 +535,7 @@ node = hou.node('/mat/material_arnold')
 # node = hou.node('/mat/principledshader1')
 
 material_processor.run(node, target_context)
+# material_processor.test()
 ]]></script>
   </tool>
 </shelfDocument>
