@@ -522,4 +522,19 @@ reload(PySide2_ui)
 PySide2_ui.show_my_main_window()
 ]]></script>
   </tool>
+
+  <tool name="tmp_btn" label="tmp button" icon="hicon:/SVGIcons.index?DOP_emptydata.svg">
+    <script scriptType="python"><![CDATA[from importlib import reload
+import hou
+from Material_Processor import material_processor
+reload(material_processor)
+
+target_context = hou.node('/mat')
+node = hou.node('/mat/mtlxmaterial')
+node = hou.node('/mat/material_arnold')
+# node = hou.node('/mat/principledshader1')
+
+material_processor.run(node, target_context)
+]]></script>
+  </tool>
 </shelfDocument>
