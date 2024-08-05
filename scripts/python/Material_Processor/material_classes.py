@@ -36,14 +36,13 @@ class NodeInfo:
     """
     node_type: str
     node_name: str
-    parameters: List[NodeParameter] = field(default_factory=list)
-    node_path: str = ""
-    connected_input_index: Optional[int] = None
-    child_nodes: List['NodeInfo'] = field(default_factory=list)  # Added to store child nodes
+    parameters: List[NodeParameter]
+    node_path: str
+    connected_input_index: Optional[int]
+    child_nodes: List['NodeInfo']
 
-    # New attributes specific to output nodes
-    is_output_node: bool = False
-    output_type: Optional[str] = None  # Could be 'surface', 'displacement', etc.
+    is_output_node: bool = False  # Add this line
+    output_type: Optional[str] = None
 
     def __str__(self):
         b = "Not Output"
@@ -71,10 +70,12 @@ class MaterialData:
         material_path (Optional[str]): The path to the material within the network.
         textures (Dict[str, TextureInfo]): A dictionary of texture information associated with the material.
         nodes (List[NodeInfo]): A list of nodes that make up the material network.
+        output_connections (Dict[str, Optional[NodeInfo]]): A dictionary of output connections for the material.
     """
     material_name: str
     material_path: Optional[str] = None
     nodes: List[NodeInfo] = field(default_factory=list)
+    output_connections: Dict[str, NodeInfo] = field(default_factory=dict)  # Add this line
 
     def __str__(self):
         return self._pretty_print()
