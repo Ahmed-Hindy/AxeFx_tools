@@ -34,13 +34,13 @@ GENERIC_NODE_TYPES = {
     'arnold::standard_surface': 'GENERIC::standard_surface',
     'arnold::image': 'GENERIC::image',
     'arnold::color_correct': 'GENERIC::color_correct',
-    # 'arnold_material': 'GENERIC::output',
+    'arnold_material': 'GENERIC::output_node',
 
     'mtlxstandard_surface': 'GENERIC::standard_surface',
     'mtlximage': 'GENERIC::image',
     'mtlxcolorcorrect': 'GENERIC::color_correct',
     'mtlxdisplacement': 'GENERIC::displacement',
-    # 'subnetconnector': 'GENERIC::output',
+    'subnetconnector': 'GENERIC::output_node',
     'null': 'GENERIC::null'
 }
 
@@ -458,11 +458,11 @@ class NodeStandardizer:
         self.node_traverser = node_traverser
         self.traverse_tree = node_traverser.nested_nodes_dict
         self.material_type = material_type
-        self.output_nodes = node_traverser.output_nodes  # Add this line
-        self.input_material_builder_node = input_material_builder_node  # Add this line
+        self.output_nodes = node_traverser.output_nodes
+        self.input_material_builder_node = input_material_builder_node
 
-        self.standardize_output_nodes()
-        self.create_standardized_material_data()
+        self.standardized_output_nodes = self.standardize_output_nodes()
+        self.material_data = self.create_standardized_material_data()
 
     def convert_parms_to_dict(parms_list: List[hou.Parm]) -> List[Dict[str, str]]:
         """
@@ -482,13 +482,11 @@ class NodeStandardizer:
         standardized_output_nodes = {}
         for key, value in output_nodes.items():
             standardized_key = f"GENERIC::output_{key}"
-            relative_path = value['node'].path().replace(f"{self.input_material_builder_node.path()}/", "")
             standardized_output_nodes[standardized_key] = {
-                'node_path': relative_path,
+                'node_path': value['node'].path(),
                 'connected_node': value['connected_node'],
                 'connected_node_index': value['connected_node_index']
             }
-        self.standardized_output_nodes = standardized_output_nodes
         return standardized_output_nodes
 
     @staticmethod
@@ -579,8 +577,7 @@ class NodeStandardizer:
             node, connected_input_index = extract_node_and_index(key)
             is_output_node = False
             output_type = None
-
-            if node.type().name() in OUTPUT_NODE_MAP.values():
+            if node.type().name() == OUTPUT_NODE_MAP[self.material_type]:
                 is_output_node = True
                 output_type = GENERIC_NODE_TYPES.get(node.type().name())
 
@@ -631,32 +628,54 @@ class NodeStandardizer:
             return node_info_list
 
         nodes_info_list = traverse_tree(custom_node_tree)
-        return MaterialData(material_name=material_name, nodes=nodes_info_list)
+        return MaterialData(material_name=material_name, nested_nodes=nodes_info_list)
 
     def create_standardized_material_data(self) -> MaterialData:
         nodes_info_list = self.traverse_node_tree(self.traverse_tree)
-        print(f"DEBUG: {nodes_info_list=}")
+        # print(f"////////////////////// DEBUG: {nodes_info_list=}, \n\n{self.output_nodes=}\n\n")
+
+        def find_connected_node_info(connected_node_path: str, nodes_list: List[NodeInfo]) -> NodeInfo:
+            """
+            Recursively search for a node in the nodes list that matches the connected node path.
+
+            Args:
+                connected_node_path (str): The path of the connected node to find.
+                nodes_list (List[NodeInfo]): The list of NodeInfo objects to search through.
+
+            Returns:
+                NodeInfo: The NodeInfo object that matches the connected node path, or None if not found.
+            """
+            for node_info in nodes_list:
+                if node_info.node_path == connected_node_path:
+                    return node_info
+                # Recursively search in child nodes
+                found = find_connected_node_info(connected_node_path, node_info.child_nodes)
+                if found:
+                    return found
+            return None
 
         output_connections = {}
         for output_type, output_info in self.output_nodes.items():
-            connected_node = output_info.get('connected_node')
+            connected_node: hou.Node = output_info.get('connected_node')
             if connected_node:
-                connected_node_path = connected_node.path()
-                connected_node_info = next(
-                    (node_info for node_info in nodes_info_list if node_info.node_path == connected_node_path),
-                    None
-                )
+                connected_node_path: str = connected_node.path()
+                connected_node_info = find_connected_node_info(connected_node_path, nodes_info_list)
                 if connected_node_info:
-                    output_connections[output_type] = connected_node_info
+                    output_connections[f"GENERIC::output_{output_type}"] = connected_node_info
+                else:
+                    pass
+                    # print(f"////////////////// DEBUG: COULDN'T FIND ANY OUTPUT CONNECTIONS for {connected_node_path=}")
 
         material_data = MaterialData(
             material_name=self.input_material_builder_node.name(),
-            nodes=nodes_info_list,
+            nested_nodes=nodes_info_list,
             output_connections=output_connections
         )
+        # print(f"////////////// DEBUG: {output_connections=}")
 
-        self.material_data = material_data
         return material_data
+
+
 
 
 
@@ -680,7 +699,7 @@ class NodeRecreator:
         self.standardizer = standardizer
         self.target_context = target_context
         self.target_renderer = target_renderer
-        self.old_new_node_map = {}  # a dict of {old_node.path():str : new_node:hou.Node}
+        self.old_new_node_map = {}  # a dict of {old_node.path():str  :  new_node:hou.Node}
         self.reused_nodes = {}
 
     @staticmethod
@@ -743,53 +762,50 @@ class NodeRecreator:
         """
         output_node_type = OUTPUT_NODE_MAP.get(self.target_renderer)  # e.g. 'arnold_material' or 'subnetconnector'
         print(f"DEBUG: {self.created_output_nodes=}")
-        print(f"DEBUG: {self.standardizer.output_nodes=}")
-        for output_type, output_info in self.standardizer.output_nodes.items():
+        print(f"DEBUG: {self.standardizer.standardized_output_nodes=}")
+        for output_type, output_info in self.standardizer.standardized_output_nodes.items():
             # Check if the output node already exists in the target context
-            # TODO: self.standardizer.output_nodes should be GENERIC types instead of 'surface' and 'displacement'
-            created_output_node: hou.Node = self.created_output_nodes[output_type]['node']
+            created_output_node: hou.VopNode = self.created_output_nodes[output_type]['node']
             if created_output_node:
-                node = created_output_node
+                newly_created_output_node: hou.Node = created_output_node
                 print(
-                    f"Reusing existing output node: {node.path()} of type {output_node_type} for output {output_type}")
+                    f"Reusing existing output node: {newly_created_output_node.path()} of type {output_node_type} for output {output_type}")
             else:
-                node = self.material_builder.createNode(output_node_type, output_info['node'].name())
-                print(f"Created new output node: {node.path()} of type {output_node_type} for output {output_type}")
+                newly_created_output_node = self.material_builder.createNode(output_node_type, output_info['node'])
+                print(f"Created new output node: {newly_created_output_node.path()} of type {output_node_type} for output {output_type}")
 
-            self.old_new_node_map[output_info['node_path']] = node
-            self.created_output_nodes[output_type]['node'] = node
-            print(f"DEBUG: create_oputput_nodes, {self.created_output_nodes=}")
+            # print(f"///////////DEBUG: key: {output_info['node_path']} set to {newly_created_output_node}")
+            self.old_new_node_map[output_info['node_path']] = newly_created_output_node
+            # print(f"////////////////////DEBUG: {self.old_new_node_map=}")
 
-    def _create_nodes_recursive(self, nodes: List[NodeInfo], processed_nodes=None):
+            self.created_output_nodes[output_type]['node'] = newly_created_output_node
+            print(f"DEBUG: create_output_nodes, {self.created_output_nodes=}")
+
+    def _create_nodes_recursive(self, nested_nodes_info: List[NodeInfo], processed_nodes=None):
         """
         Recursively create nodes from NodeInfo objects.
 
         Args:
-            nodes (List[NodeInfo]): The list of NodeInfo objects.
+            nested_nodes_info (List[NodeInfo]): The list of NodeInfo objects.
             processed_nodes (set, optional): A set of processed node paths.
         """
         if processed_nodes is None:
             processed_nodes = set()
-
-        for node_info in nodes:
+        for node_info in nested_nodes_info:
             if node_info.node_path in processed_nodes:
                 print(f"DEBUG: Skipping already created node {node_info.node_name} of type {node_info.node_type}")
                 continue
 
-            print(f"Creating node: {node_info.node_name} of type {node_info.node_type}")
-            new_node = self._create_node(node_info)
-            if not new_node:
-                print(f"DEBUG: Couldn't create new node {node_info.node_type}")
-                continue
+            if node_info.node_type == 'GENERIC::output_node':
+                print(f"DEBUG: OUTPUT DETECTED!!!!!!")
 
-            self.old_new_node_map[node_info.node_path] = new_node
+            if node_info.node_type != 'GENERIC::output_node':  # Don't create output nodes
+                print(f"Creating node: {node_info.node_name} of type {node_info.node_type}")
+                newly_created_node = self._create_node(node_info)
+                self.old_new_node_map[node_info.node_path] = newly_created_node
+
             processed_nodes.add(node_info.node_path)
-            self._create_nodes_recursive(nodes=node_info.child_nodes, processed_nodes=processed_nodes)
-
-            # Add output nodes to the map if they are marked as such
-            if node_info.is_output_node:
-                print(f"DEBUG: Output node detected: {node_info.node_name} of type {node_info.node_type}")
-                self.old_new_node_map[node_info.node_path] = new_node
+            self._create_nodes_recursive(nested_nodes_info=node_info.child_nodes, processed_nodes=processed_nodes)
 
     def _create_node(self, node_info: NodeInfo) -> hou.Node:
         """
@@ -799,7 +815,7 @@ class NodeRecreator:
             node_info (NodeInfo): The NodeInfo object containing node information.
 
         Returns:
-            hou.Node: The created Houdini node.
+            (hou.Node): The created Houdini node.
         """
         new_node_type = self._convert_generic_node_type_to_renderer_node_type(node_info.node_type,
                                                                               target_renderer=self.target_renderer)
@@ -813,6 +829,7 @@ class NodeRecreator:
             self.apply_parameters(node, node_info.parameters)
             self.reused_nodes[node_info.node_path] = node
             self.old_new_node_map[node_info.node_path] = node  # Ensure all nodes are mapped
+
             return node
 
         # Create new node if no reusable node is found
@@ -820,53 +837,55 @@ class NodeRecreator:
         self.apply_parameters(new_node, node_info.parameters)
         self.reused_nodes[node_info.node_path] = new_node
         self.old_new_node_map[node_info.node_path] = new_node  # Ensure all nodes are mapped
-        print(f"\n{self.old_new_node_map=}")
+        print(f"{self.old_new_node_map=}///")
         return new_node
 
-    def _set_node_inputs(self, nodes: List[NodeInfo]):
+
+    def _set_node_inputs(self, nested_nodes_info: List[NodeInfo]):
         """
         Set the inputs for the created nodes.
 
         Args:
-            nodes (List[NodeInfo]): The list of NodeInfo objects.
+            nested_nodes_info (List[NodeInfo]): Nested nodes info as a list of one item.
         """
-        for node_info in nodes:
+        for node_info in nested_nodes_info:
             print(f"DEBUG: connecting node {node_info.node_path} of type {node_info.node_type}")
+            new_node: hou.Node = self.old_new_node_map.get(node_info.node_path)
 
-            # Skip setting inputs for output nodes
-            if node_info.is_output_node:
-                print(f"DEBUG: {node_info.node_type=} found in output nodes, skipping direct connection.")
-                self._set_inputs_recursive(node_info, self.old_new_node_map.get(node_info.node_path))
-                continue
-
-            new_node = self.old_new_node_map.get(node_info.node_path)
             if not new_node:
                 print(f"DEBUG: new_node is None for {node_info.node_path}.")
                 continue
 
-            self._set_inputs_recursive(node_info, new_node)
+            self._set_inputs_recursive(node_info, new_node=new_node)
 
     def _set_inputs_recursive(self, node_info: NodeInfo, new_node: hou.Node):
+        """
+        Recursively set inputs for nodes.
+
+        Args:
+            node_info (NodeInfo): Information about the current node.
+            new_node (hou.Node): The newly created node corresponding to node_info.
+        """
         if new_node is None:
             print(f"DEBUG: new_node is None for {node_info.node_path}, skipping.")
             return
 
         for child_info in node_info.child_nodes:
             print(f"DEBUG: {child_info.node_type=}, {child_info.node_path=}")
-            if child_info.is_output_node:
-                print(f"DEBUG: {child_info.node_type=} found in output nodes, skipping direct connection.")
-                continue  # Skip setting inputs for output nodes
+            child_node: hou.VopNode = self.old_new_node_map.get(child_info.node_path)
 
-            child_node = self.old_new_node_map.get(child_info.node_path)
             if not child_node:
                 print(f"DEBUG: child_node is None for {child_info.node_path}.")
                 continue
 
-            if child_info.connected_input_index is not None:
-                print(f"DEBUG: Setting input {child_info.connected_input_index} of {new_node=} to {child_node.path()}.")
-                new_node.setInput(child_info.connected_input_index, child_node)
-            else:
-                print(f"DEBUG: connected_input_index is None for child node {child_info.node_path}.")
+            if new_node.type().name() not in OUTPUT_NODE_MAP[self.target_renderer]:
+                print(f"DEBUG: {child_info.node_type=} found in output nodes, skipping direct connection.")
+
+                if child_info.connected_input_index is not None:
+                    print(f"DEBUG: Setting input {child_info.connected_input_index} of {new_node.path()} to {child_node.path()}.")
+                    new_node.setInput(child_info.connected_input_index, child_node)
+                else:
+                    print(f"DEBUG: connected_input_index is None for child node {child_info.node_path}.")
 
             self._set_inputs_recursive(child_info, child_node)
 
@@ -913,7 +932,7 @@ class NodeRecreator:
                     if child_node and input_index is not None:
                         new_node.setInput(input_index, child_node)
 
-        recursive_create_nodes(material_data.nodes)
+        recursive_create_nodes(material_data.nested_nodes)
 
     @staticmethod
     def apply_parameters(node: hou.Node, parameters: List[NodeParameter]):
@@ -958,6 +977,8 @@ class NodeRecreator:
 
             # Find the connected node info from the material_data output connections
             connected_node_info = self.standardizer.material_data.output_connections.get(output_type)
+            print(f"DEBUG: {connected_node_info=}, {output_type=}")
+
             if connected_node_info:
                 new_node = self.old_new_node_map.get(connected_node_info.node_path)
                 if new_node and new_node != output_node:
@@ -996,10 +1017,11 @@ class NodeRecreator:
 
         # Proceed with node creation and input setting
         print(f"\n\n\nDEBUG: STARTING _create_all_nodes()....")
-        self._create_nodes_recursive(self.standardizer.material_data.nodes)
+        self._create_nodes_recursive(self.standardizer.material_data.nested_nodes)
+        print(f"DEBUG: {self.old_new_node_map=}")
 
         print(f"\n\n\nDEBUG: STARTING _set_node_inputs()....")
-        self._set_node_inputs(self.standardizer.material_data.nodes)
+        self._set_node_inputs(self.standardizer.material_data.nested_nodes)
 
         print(f"\n\n\nDEBUG: STARTING _set_output_connections()....")
         self._set_output_connections()
@@ -1052,7 +1074,7 @@ def run(input_material_builder_node, target_context, target_renderer='arnold'):
     standardizer = NodeStandardizer(node_traverser=traverser, material_type=material_type, input_material_builder_node=input_material_builder_node)
 
     print("\nFinal MaterialData:")
-    for node_info in standardizer.material_data.nodes:  # 2 items in loop, surface and displacement if mtlx.
+    for node_info in standardizer.material_data.nested_nodes:  # 2 items in loop, surface and displacement if mtlx.
         print(f"{node_info=}\nchildren:-->")
         for child_node in node_info.child_nodes:
             print(f"'-->  Child Node Type: {child_node.node_type},"
