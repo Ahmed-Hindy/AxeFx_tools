@@ -531,7 +531,7 @@ reload(material_processor)
 
 target_context = hou.node('/mat')
 node = hou.node('/mat/mtlxmaterial_ORIG')
-# node = hou.node('/mat/material_arnold_ORIG')
+node = hou.node('/mat/material_arnold_ORIG')
 # node = hou.node('/mat/principledshader_ORIG')
 
 material_processor.run(node, target_context)
