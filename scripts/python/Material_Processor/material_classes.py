@@ -69,12 +69,12 @@ class MaterialData:
         material_name (str): The name of the material.
         material_path (Optional[str]): The path to the material within the network.
         textures (Dict[str, TextureInfo]): A dictionary of texture information associated with the material.
-        nested_nodes (List[NodeInfo]): A list of nodes that make up the material network.
+        nested_nodeInfo (List[NodeInfo]): A list of nodes that make up the material network.
         output_connections (Dict[str, Optional[NodeInfo]]): A dictionary of output connections for the material.
     """
     material_name: str
     material_path: Optional[str] = None
-    nested_nodes: List[NodeInfo] = field(default_factory=list)
+    nested_nodeInfo: List[NodeInfo] = field(default_factory=list)
     output_connections: Dict[str, NodeInfo] = field(default_factory=dict)  # Add this line
 
     def __str__(self):
@@ -84,4 +84,4 @@ class MaterialData:
         return self._pretty_print()
 
     def _pretty_print(self):
-        return f"MaterialData(material_name={self.material_name}, nodes={self.nested_nodes})"
+        return f"MaterialData(material_name={self.material_name}, nodes={self.nested_nodeInfo})"
