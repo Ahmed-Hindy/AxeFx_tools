@@ -162,14 +162,14 @@ class USD_Shaders_Ingest:
     @staticmethod
     def _get_primitives_assigned_to_material(stage, usdshade_material:  UsdShade.Material, material_data: MaterialData) -> None:
         """
-        Adds all primitives that have the given material assigned to them into the material_data.
+        Adds all primitives that have the given material assigned to them into the nested_nodeinfo.
 
         :param stage: Usd.Stage object
         :param usdshade_material: UsdShade.Material type primitive on stage
         :param material_data: MaterialData instance containing the material name and textures
         """
         if not isinstance(material_data, MaterialData):
-            raise ValueError(f"material_data is not a <MaterialData> object, instead it's a {type(material_data)}.")
+            raise ValueError(f"nested_nodeinfo is not a <MaterialData> object, instead it's a {type(material_data)}.")
 
         if not usdshade_material or not isinstance(usdshade_material, UsdShade.Material):
             raise ValueError(
@@ -201,7 +201,7 @@ class USD_Shaders_Ingest:
 
     def _standardize_textures_format(self, material_data: MaterialData) -> None:
         """
-        Standardizes material_data.textures dictionary variable.
+        Standardizes nested_nodeinfo.textures dictionary variable.
         :param material_data: MaterialData object.
         """
         standardized_textures = {}
@@ -395,7 +395,7 @@ class USD_Shader_Create:
 
     def _arnold_fill_texture_file_paths(self, material_prim, shader):
         """
-        Fills the texture file paths for the given shader using the material_data.
+        Fills the texture file paths for the given shader using the nested_nodeinfo.
         """
         texture_types_to_inputs = {
             'albedo': 'base_color',
@@ -452,7 +452,7 @@ class USD_Shader_Create:
 
     def _mtlx_fill_texture_file_paths(self, material_prim, shader_usdshade):
         """
-        Fills the texture file paths for the given shader using the material_data.
+        Fills the texture file paths for the given shader using the nested_nodeinfo.
         """
         texture_types_to_inputs = {
             'albedo': 'base_color',
@@ -538,7 +538,7 @@ class USD_Shader_Create:
 def ingest_stage_and_recreate_usd_materials(stage, parent_prim='/pp/smol', create_usd_preview=True, create_arnold=True, create_mtlx=False):
     """
     [temp] ingests stage, creates new usd materials, and reassign it to prims which already been assigned to previous
-     material_data.
+     nested_nodeinfo.
     """
     # get all found materials on stage and return a list of MaterialData objects for each one.
     materialdata_list = USD_Shaders_Ingest(stage).materialdata_list
