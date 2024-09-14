@@ -5,6 +5,7 @@ This module processes material nodes in Houdini, extracting and converting shade
 
 """
 import json
+import logging
 from typing import Dict, List
 from pprint import pprint, pformat
 from importlib import reload
@@ -252,9 +253,9 @@ class NodeTraverser:
                 continue
 
             input_index = None
-            for input in node.inputConnections():
-                if input.inputNode() == input_node:
-                    input_index = input.inputIndex()
+            for input_conn in node.inputConnections():
+                if input_conn.inputNode() == input_node:
+                    input_index = input_conn.inputIndex()
                     break
 
             # Recursively get child nodes
@@ -489,19 +490,24 @@ class NodeStandardizer:
     Class for standardizing Shader nodes and creating MaterialData Class.
     """
 
-    def __init__(self, node_traverser: NodeTraverser, material_type, input_material_builder_node):
-        self.traverse_tree = node_traverser.nested_nodes_dict
-        self.output_nodes: Dict = node_traverser.output_nodes
+    def __init__(self, traverse_tree: Dict, output_nodes: Dict, material_type: str,
+                 input_material_builder_node: hou.Node):
+        """
+        Initialize the NodeStandardizer with the traverse tree and output nodes.
+
+        Args:
+            traverse_tree (Dict): The nested node dictionary from NodeTraverser.
+            output_nodes (Dict): The detected output nodes from NodeTraverser.
+            material_type (str): The type of material (e.g., 'arnold', 'mtlx', 'principledshader').
+            input_material_builder_node (hou.Node): The input material builder node.
+        """
+        self.traverse_tree = traverse_tree
+        self.output_nodes = output_nodes
         self.material_type = material_type
         self.input_material_builder_node = input_material_builder_node
-
-        print(f"\n traverse tree:")
-        pprint(self.traverse_tree, indent=1)
-        print(f"\n{self.material_type=}, {self.output_nodes=}\n")
-
-
         self.standardized_output_nodes = self.standardize_output_nodes(self.output_nodes)
-        self.material_data = self.create_standardized_material_data()
+
+
 
     @staticmethod
     def convert_parms_to_dict(parms_list: List[hou.Parm]) -> List[Dict[str, str]]:
@@ -546,7 +552,7 @@ class NodeStandardizer:
         node = hou.node(node_path)
         node_type = node.type().name()
         parms_list = NodeStandardizer.convert_parms_to_dict(node.parms())
-        print(f"DEBUG: {parms_list=}")
+        # logging.INFO(f"DEBUG: {parms_list=}")
         parameters = NodeStandardizer.standardize_shader_parameters(node_type, parms_list)
         generic_node_type = GENERIC_NODE_TYPES.get(node_type)
 
@@ -579,16 +585,11 @@ class NodeStandardizer:
             print(f"WARNING: node_type: {node_type} not in STANDARDIZED_PARAM_NAMES dict")
             return []
 
-        node_parameters = [
-            NodeParameter(
-                name=param['name'],
-                value=param['value'],
-                standardized_name=standardized_names.get(param['name'], param['name'])
-            )
-            for param in parms if param['name'] in standardized_names
+        node_parameters = [NodeParameter(name=param['name'], value=param['value'],
+                           standardized_name=standardized_names.get(param['name'], param['name'])
+                           ) for param in parms if param['name'] in standardized_names
         ]
         return node_parameters
-
 
     def traverse_node_tree(self, node_dict: Dict) -> List[NodeInfo]:
         """
@@ -603,7 +604,7 @@ class NodeStandardizer:
         local_nodes_info = []
 
         for node_path, node_info in node_dict.items():
-            print(f"DEBUG: node_path={node_path}, node_info={node_info}")
+            # print(f"DEBUG: node_path={node_path}, node_info={node_info}")
 
             is_output_node = node_info.get('is_output_node', False)
             output_type = node_info.get('output_type', None)
@@ -637,7 +638,6 @@ class NodeStandardizer:
             local_nodes_info.append(node_info_obj)
 
         return local_nodes_info
-
 
     @staticmethod
     def standardize_custom_tree(custom_node_tree: Dict, material_name: str) -> MaterialData:
@@ -696,7 +696,7 @@ class NodeStandardizer:
         nodes_info_list = traverse_tree(custom_node_tree)
 
         # Create and return the MaterialData object with the processed nodes
-        return MaterialData(material_name=material_name, nested_nodes=nodes_info_list)
+        return MaterialData(material_name=material_name, nested_nodeInfo=nodes_info_list)
 
     def create_standardized_material_data(self):
         """
@@ -707,50 +707,19 @@ class NodeStandardizer:
         # Traverse the node tree and capture the list of NodeInfo objects
         nodes_info_list = self.traverse_node_tree(self.traverse_tree)
 
-        def find_connected_node_info(connected_node_path: str, nodes_list: List[NodeInfo]) -> NodeInfo:
-            """
-            Recursively search for a node in the nodes list that matches the connected node path.
-
-            Args:
-                connected_node_path (str): The path of the connected node to find.
-                nodes_list (List[NodeInfo]): The list of NodeInfo objects to search through.
-
-            Returns:
-                NodeInfo: The NodeInfo object that matches the connected node path, or None if not found.
-            """
-            for node_info in nodes_list:
-                if node_info.node_path == connected_node_path:
-                    return node_info
-                # Recursively search in child nodes
-                found = find_connected_node_info(connected_node_path, node_info.child_nodes)
-                if found:
-                    return found
-            return None
-
-        # Iterate through output nodes and map them to their connected nodes
         output_connections = {}
-        for output_type, output_info in self.output_nodes.items():
-            connected_node = output_info.get('connected_node')
-            if connected_node:
-                connected_node_path = connected_node.path()
-                connected_node_info = find_connected_node_info(connected_node_path, nodes_info_list)
-                if connected_node_info:
-                    output_connections[f"GENERIC::output_{output_type}"] = connected_node_info
-                else:
-                    print(
-                        f"WARNING: Connected node '{connected_node_path}' for output '{output_type}' not found in node list.")
-            else:
-                print(f"WARNING: No connected node for output '{output_type}'.")
+        for output_NodeInfo in nodes_info_list:
+            output_type = output_NodeInfo.output_type  # e.g. output_type='surface', 'displacement'
+            output_connections[f"GENERIC::output_{output_type}"] = output_NodeInfo
 
         # Create and return the MaterialData object with standardized node information
         material_data = MaterialData(
             material_name=self.input_material_builder_node.name(),
-            nested_nodes=nodes_info_list,
+            nested_nodeInfo=nodes_info_list,
             output_connections=output_connections
         )
-
-        self.material_data = material_data
         return material_data
+
 
 
 class NodeRecreator:
@@ -758,17 +727,19 @@ class NodeRecreator:
     Class for recreating Houdini nodes in a target renderer context.
     """
 
-    def __init__(self, standardizer: NodeStandardizer, target_context, target_renderer='arnold'):
+    def __init__(self, nested_nodeinfo: list[NodeInfo], output_connections: Dict, target_context: hou.Node,
+                 target_renderer: str = 'arnold'):
         """
         Initialize the NodeRecreator with the provided material data and target context.
 
         Args:
-            standardizer
+            nested_nodeinfo (list[NodeInfo]): The standardized material data.
+            output_connections (Dict): The output connections mapping.
             target_context (hou.Node): The target Houdini context node.
             target_renderer (str, optional): The target renderer (default is 'arnold').
-            traverse_class (class, optional): The class used for node traversal.
         """
-        self.standardizer = standardizer
+        self.nested_nodeinfo = nested_nodeinfo
+        self.output_connections = output_connections
         self.target_context = target_context
         self.target_renderer = target_renderer
         self.old_new_node_map = {}  # a dict of {old_node.path():str  :  new_node:hou.Node}
@@ -828,30 +799,28 @@ class NodeRecreator:
         }
         return node_material_builder, output_nodes
 
-    def create_output_nodes(self):
+    def create_output_nodes(self, nested_nodes_info: List[NodeInfo]):
         """
         Create or reuse output nodes in the target context.
         """
-        output_node_type = OUTPUT_NODE_MAP.get(self.target_renderer)  # e.g. 'arnold_material' or 'subnetconnector'
-        print(f"DEBUG: {self.created_output_nodes=}")
-        print(f"DEBUG: {self.standardizer.standardized_output_nodes=}")
-        for output_type, output_info in self.standardizer.standardized_output_nodes.items():
-            # Check if the output node already exists in the target context
-            created_output_node: hou.VopNode = self.created_output_nodes[output_type]['node']
+        output_node_type = OUTPUT_NODE_MAP[self.target_renderer]  # e.g. 'arnold_material' or 'subnetconnector'
+
+        for output_type, output_info in self.output_connections.items():
+            created_output_node_info = self.created_output_nodes.get(output_type, {})
+            created_output_node = created_output_node_info.get('node')
             if created_output_node:
                 newly_created_output_node: hou.Node = created_output_node
-                print(
-                    f"Reusing existing output node: {newly_created_output_node.path()} of type {output_node_type} for output {output_type}")
+                print(f"Reusing existing output node: {newly_created_output_node.path()} of type {output_node_type}"
+                      f"for output {output_type}")
             else:
-                newly_created_output_node = self.material_builder.createNode(output_node_type, output_info['node'])
-                print(f"Created new output node: {newly_created_output_node.path()} of type {output_node_type} for output {output_type}")
+                raise Exception(f"This part of code is never tested!, rewrite it!")
 
-            # print(f"///////////DEBUG: key: {output_info['node_path']} set to {newly_created_output_node}")
-            self.old_new_node_map[output_info['node_path']] = newly_created_output_node
-            # print(f"////////////////////DEBUG: {self.old_new_node_map=}")
+            print(f"DEBUG: {output_info.node_path=}")  # '/mat/material_mtlx_ORIG/mtlxstandard_surface' TODO: THIS IS WRONG. IT SHOULD BE THE OUTPUT NODE
+            self.old_new_node_map[output_info.node_path] = newly_created_output_node
 
             self.created_output_nodes[output_type]['node'] = newly_created_output_node
-            print(f"DEBUG: create_output_nodes, {self.created_output_nodes=}")
+        print(f"DEBUG: {self.old_new_node_map=}")
+
 
     def _create_nodes_recursive(self, nested_nodes_info: List[NodeInfo], processed_nodes=None):
         """
@@ -908,8 +877,8 @@ class NodeRecreator:
         self.apply_parameters(new_node, node_info.parameters)
         self.reused_nodes[node_info.node_path] = new_node
         self.old_new_node_map[node_info.node_path] = new_node  # Ensure all nodes are mapped
-        print(f"{self.old_new_node_map=}///")
         return new_node
+
 
     def _set_node_inputs(self, nested_nodes_info: List[NodeInfo]):
         """
@@ -918,7 +887,11 @@ class NodeRecreator:
         Args:
             nested_nodes_info (List[NodeInfo]): Nested nodes info as a list of NodeInfo objects.
         """
+
+        print(f"\nDEBUG: {self.old_new_node_map=}")
+
         for node_info in nested_nodes_info:
+            print(f"DEBUG: {node_info.node_path=}")
             new_node = self.old_new_node_map.get(node_info.node_path)
 
             if not new_node:
@@ -973,7 +946,8 @@ class NodeRecreator:
 
             self._set_inputs_recursive(child_info, child_node)
 
-    def _convert_generic_node_type_to_renderer_node_type(self, node_type: str, target_renderer: str) -> str:
+    @staticmethod
+    def _convert_generic_node_type_to_renderer_node_type(node_type: str, target_renderer: str):
         """
         Convert a generic node type to a renderer-specific node type.
 
@@ -990,33 +964,7 @@ class NodeRecreator:
         else:
             return CONVERSION_MAP[target_renderer]['GENERIC::null']
 
-    def create_nodes_from_material_data(self, material_data: MaterialData):
-        """
-        Create nodes in Houdini from the MaterialData object.
 
-        Args:
-            material_data (MaterialData): The MaterialData object containing standardized traverse tree.
-        """
-
-        def recursive_create_nodes(tree: List[NodeInfo], parent_node: hou.Node = None):
-            for node_info in tree:
-                new_node = self.material_builder.createNode(
-                    self._convert_generic_node_type_to_renderer_node_type(node_info.node_type, self.target_renderer),
-                    node_info.node_name)
-                self.apply_parameters(new_node, node_info.parameters)
-                self.old_new_node_map[node_info.node_name] = new_node
-
-                # Recursively create child nodes
-                recursive_create_nodes(node_info.child_nodes, new_node)
-
-                # Set inputs for the new node
-                for child_node_info in node_info.child_nodes:
-                    input_index = child_node_info.connected_input_index
-                    child_node = self.old_new_node_map.get(child_node_info.node_name)
-                    if child_node and input_index is not None:
-                        new_node.setInput(input_index, child_node)
-
-        recursive_create_nodes(material_data.nested_nodes)
 
     @staticmethod
     def apply_parameters(node: hou.Node, parameters: List[NodeParameter]):
@@ -1055,7 +1003,7 @@ class NodeRecreator:
             hou_parm = node.parm(renderer_specific_name)
             if hou_parm is not None:
                 hou_parm.set(param.value)
-                print(f"Set parameter '{renderer_specific_name}' on node '{node.path()}' to '{param.value}'")
+                # print(f"Set parameter '{renderer_specific_name}' on node '{node.path()}' to '{param.value}'")
             else:
                 print(f"WARNING: Parm '{renderer_specific_name}' not found on node '{node.path()}'.")
 
@@ -1067,7 +1015,6 @@ class NodeRecreator:
         if not renderer_output_connections:
             raise KeyError(f"Unsupported renderer: {self.target_renderer}")
 
-        print(f"DEBUG: {self.created_output_nodes=}")
         for output_type, output_info in self.created_output_nodes.items():
             output_index = renderer_output_connections[output_type]
             output_node = output_info['node']
@@ -1075,9 +1022,8 @@ class NodeRecreator:
             if output_type not in renderer_output_connections:
                 raise KeyError(f"{output_type=} not found in {renderer_output_connections=}")
 
-            # Find the connected node info from the material_data output connections
-            connected_node_info = self.standardizer.material_data.output_connections.get(output_type)
-            print(f"DEBUG: {connected_node_info=}, {output_type=}")
+            # Find the connected node info from the nested_nodeinfo output connections
+            connected_node_info = self.output_connections.get(output_type)
 
             if connected_node_info:
                 new_node = self.old_new_node_map.get(connected_node_info.node_path)
@@ -1112,16 +1058,17 @@ class NodeRecreator:
         # print(f"{self.material_builder=}, {self.standardizer.output_nodes=}, {self.created_output_nodes=}")
 
         # Create output nodes first
-        print(f"\n\n\nDEBUG: STARTING create_output_nodes()....")
-        self.create_output_nodes()
+        print(f"DEBUG: STARTING create_output_nodes()....")
+        self.create_output_nodes(self.nested_nodeinfo)
 
         # Proceed with node creation and input setting
         print(f"\n\n\nDEBUG: STARTING _create_all_nodes()....")
-        self._create_nodes_recursive(self.standardizer.material_data.nested_nodes)
+        self._create_nodes_recursive(self.nested_nodeinfo)
         print(f"DEBUG: {self.old_new_node_map=}")
 
         print(f"\n\n\nDEBUG: STARTING _set_node_inputs()....")
-        self._set_node_inputs(self.standardizer.material_data.nested_nodes)
+        print(f"DEBUG: {len(self.nested_nodeinfo)=}")
+        self._set_node_inputs(self.nested_nodeinfo)
 
         print(f"\n\n\nDEBUG: STARTING _set_output_connections()....")
         self._set_output_connections()
@@ -1152,7 +1099,7 @@ def get_material_type(materialbuilder_node: hou.VopNode) -> str:
     return material_type
 
 
-def run(input_material_builder_node, target_context, target_renderer='mtlx'):
+def run(input_material_builder_node, target_context, target_renderer='arnold'):
     """
     Run the material conversion process for the selected node.
 
@@ -1166,12 +1113,16 @@ def run(input_material_builder_node, target_context, target_renderer='mtlx'):
     if not material_type:
         raise Exception(f"Couldn't determine Input material type, currently only Arnold and MTLX supported!")
 
+    print("NodeTraverser() START----------------------\n")
     traverser = NodeTraverser(material_type=material_type)
     traverser.traverse_children_nodes(input_material_builder_node)
+    print("NodeTraverser() Finished----------------------\n\n\n")
 
-    # Pass output_nodes to NodeStandardizer
+
+    print("NodeStandardizer() START----------------------\n")
     standardizer = NodeStandardizer(
-        node_traverser=traverser,
+        traverse_tree=traverser.nested_nodes_dict,
+        output_nodes=traverser.output_nodes,
         material_type=material_type,
         input_material_builder_node=input_material_builder_node
     )
@@ -1180,18 +1131,27 @@ def run(input_material_builder_node, target_context, target_renderer='mtlx'):
     material_data = standardizer.create_standardized_material_data()
 
     print("\nFinal MaterialData:")
-    for node_info in material_data.nested_nodes:
+    for node_info in material_data.nested_nodeInfo:
         print(f"{node_info=}\nchildren:-->")
         for child_node in node_info.child_nodes:
             print(f"'-->  Child Node Type: {child_node.node_type},"
                   f"Path: {child_node.node_path},"
                   f"children: {child_node.child_nodes}\n")
+    print("NodeStandardizer() Finished----------------------\n\n\n")
 
-    # Initialize NodeRecreator with the standardized material data
-    recreator = NodeRecreator(standardizer, target_context, target_renderer)
+
+    print("NodeRecreator() START----------------------\n")
+    recreator = NodeRecreator(
+        nested_nodeinfo=material_data.nested_nodeInfo,
+        output_connections=material_data.output_connections,
+        target_context=target_context,
+        target_renderer=target_renderer
+    )
     recreator.run()
-
+    print("NodeRecreator() Finished----------------------\n\n\n")
     print(f"Material conversion complete. Converted material from {material_type} to {target_renderer}.")
+
+
 
 
 
@@ -1216,26 +1176,39 @@ def convert_to_serializable(obj):
 
 
 def test():
+    """
+    create a material from a dictionary
+    """
+    # Define a custom node tree with proper structure and input indices
     custom_tree = {
-        'node1': {
-            'generic_type': 'GENERIC::standard_surface',
-            'parameters': [
-                {'name': 'base', 'value': 1.0},
-                {'name': 'specular', 'value': 0.5}
-            ],
+        'output_node': {
+            'generic_type': 'GENERIC::output_surface',
+            'parameters': [],
             'connections': {
-                ('node2', 0): {
-                    'generic_type': 'GENERIC::image',
+                'node1': {
+                    'generic_type': 'GENERIC::standard_surface',
                     'parameters': [
-                        {'name': 'file', 'value': 'path/to/image.png'}
+                        {'name': 'base', 'value': 1.0},
+                        {'name': 'specular', 'value': 0.5}
                     ],
+                    'input_index': 0,  # Connect to input index 0 of output_node
                     'connections': {
-                        ('node3', 0): {
-                            'generic_type': 'GENERIC::color_correct',
+                        'node2': {  # Connected to node1
+                            'generic_type': 'GENERIC::image',
                             'parameters': [
-                                {'name': 'gamma', 'value': 2.2}
+                                {'name': 'file', 'value': 'path/to/image.png'}
                             ],
-                            'connections': {}
+                            'input_index': 0,  # Connect to input index 0 of node1
+                            'connections': {
+                                'node3': {  # Connected to node2
+                                    'generic_type': 'GENERIC::color_correct',
+                                    'parameters': [
+                                        {'name': 'gamma', 'value': 2.2}
+                                    ],
+                                    'input_index': 0,  # Connect to input index 0 of node2
+                                    'connections': {}
+                                }
+                            }
                         }
                     }
                 }
@@ -1244,14 +1217,24 @@ def test():
     }
 
     material_name = "CustomMaterial"
-    target_context = hou.node('/mat')
+    target_context = hou.node('/mat')  # Ensure this node exists in your Houdini scene
 
-    # NodeStandardizer_instance = NodeStandardizer()
+    # Standardize the custom tree into MaterialData
     standardized_material_data = NodeStandardizer.standardize_custom_tree(custom_tree, material_name)
-    # standardized_output_nodes = NodeStandardizer.standardize_output_nodes(custom_tree.get('output_nodes', {}))
     print(f"DEBUG: {standardized_material_data=}")
 
-    recreator = NodeRecreator(standardized_material_data, target_context=target_context, target_renderer='mtlx')
-    recreator.run()
+    # Initialize NodeRecreator with the standardized material data and output connections
+    recreator = NodeRecreator(
+        nested_nodeinfo=standardized_material_data.nested_nodeInfo,  # Pass the list of NodeInfo objects
+        output_connections=standardized_material_data.output_connections,  # Pass the output connections dictionary
+        target_context=target_context,
+        target_renderer='mtlx'  # Specify the target renderer
+    )
+    recreator.run()  # Execute the recreation process
+
+    # Optional: Print the standardized material data for verification
     pprint(standardized_material_data)
+
+
+
 
