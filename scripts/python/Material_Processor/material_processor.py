@@ -40,6 +40,7 @@ GENERIC_NODE_TYPES = {
 
     'mtlxstandard_surface': 'GENERIC::standard_surface',
     'mtlximage': 'GENERIC::image',
+    'mtlxrange': 'GENERIC::range',
     'mtlxcolorcorrect': 'GENERIC::color_correct',
     'mtlxdisplacement': 'GENERIC::displacement',
     'subnetconnector': 'GENERIC::output_node',
@@ -56,15 +57,15 @@ CONVERSION_MAP = {
                 'GENERIC::standard_surface': 'arnold::standard_surface',
                 'GENERIC::image': 'arnold::image',
                 'GENERIC::color_correct': 'arnold::color_correct',
-                # 'GENERIC::output': 'arnold_material',
+                'GENERIC::range': 'arnold::range',
                 'GENERIC::null': 'null'
             },
             'mtlx': {
                 'GENERIC::standard_surface': 'mtlxstandard_surface',
                 'GENERIC::image': 'mtlximage',
                 'GENERIC::color_correct': 'mtlxcolorcorrect',
+                'GENERIC::range': 'mtlxrange',
                 'GENERIC::displacement': 'mtlxdisplacement',
-                # 'GENERIC::output': 'subnetconnector',
                 'GENERIC::null': 'null'
             }
         }
@@ -105,14 +106,23 @@ STANDARDIZED_PARAM_NAMES = {
         'opacity': 'opacity'
     },
     'mtlximage': {
-        'file': 'filename'
+        'signature': 'signature',
+        'file': 'filename',
     },
     'mtlxcolorcorrect': {
+        'hue': 'hue',
         'saturation': 'saturation',
         'gamma': 'gamma',
         'gain': 'gain',
         'contrast': 'contrast',
         'exposure': 'exposure',
+    },
+    'mtlxrange': {
+        'inlow': 'inlow',
+        'inhigh': 'inhigh',
+        'gamma': 'gamma',
+        'outlow': 'outlow',
+        'outhigh': 'outhigh',
     },
     'mtlxdisplacement': {
         'displacement': 'displacement',
@@ -149,9 +159,17 @@ STANDARDIZED_PARAM_NAMES = {
     },
     'arnold::color_correct': {
         'gamma': 'gamma',
+        'hue_shift': 'hue',
         'saturation': 'saturation',
         'contrast': 'contrast',
         'exposure': 'exposure',
+    },
+    'arnold::range': {
+        'input_min': 'inlow',
+        'input_max': 'inhigh',
+        'gamma': 'gamma',
+        'output_min': 'outlow',
+        'output_max': 'outhigh',
     },
 
     'principledshader::2.0': {
@@ -744,8 +762,21 @@ class NodeRecreator:
         self.output_connections = output_connections
         self.target_context = target_context
         self.target_renderer = target_renderer
-        self.old_new_node_map = {}  # a dict of {old_node.path():str  :  new_node:hou.Node}
+        self.old_new_node_map = {}  # a dict of {old_node_path:str  :  new_node_path:str}
         self.reused_nodes = {}
+        self.material_builder = None
+        self.created_output_nodes_dict = None  # e.g.: {'GENERIC::output_surface':{
+        #                                                  'node': <hou.VopNode of type arnold_material at /mat/arnold_materialbuilder1/OUT_material>,
+        #                                                  'node_path': '/mat/arnold_materialbuilder1/OUT_material'
+        #                                                                          },
+        #                                               'GENERIC::output_displacement': {
+        #                                                   'node': <hou.VopNode of type arnold_material at /mat/arnold_materialbuilder1/OUT_material>,
+        #                                                   'node_path': '/mat/arnold_materialbuilder1/OUT_material'
+        #                                                                                }
+        #                                               }
+
+        self.run()
+
 
     @staticmethod
     def create_init_mtlx_shader(matnet=None):
@@ -807,25 +838,26 @@ class NodeRecreator:
         """
         output_node_type = OUTPUT_NODE_MAP[self.target_renderer]  # e.g. 'arnold_material' or 'subnetconnector'
 
-        for output_type, output_info in self.output_connections.items():
+        for generic_output_type, output_info in self.output_connections.items():
             # e.g. output_type = "GENERIC::output_surface"
             # e.g. output_info = {'node_path': '/mat/material_mtlx_ORIG/surface_output',
             #                     'connected_node': <hou.VopNode of type mtlxstandard_surface at /mat/material_mtlx_ORIG/mtlxstandard_surface>,
             #                     'connected_node_index': 0}
-            created_output_node_info = self.created_output_nodes.get(output_type, {})
-            created_output_node = created_output_node_info.get('node')
-            if created_output_node:
-                newly_created_output_node: hou.Node = created_output_node
-                print(f"Reusing existing output node: {newly_created_output_node.path()} of type {output_node_type} "
-                      f"for output type: {output_type}")
-            else:
+            created_output_node_dict: dict = self.created_output_nodes_dict.get(generic_output_type, {})
+            created_output_node: hou.VopNode = created_output_node_dict.get('node')
+            created_output_node_path: hou.VopNode = created_output_node_dict.get('node_path')
+            if not created_output_node:
                 raise Exception(f"This part of code is never tested!, rewrite it!")
+
+            print(f"Reusing existing output node: '{created_output_node_path}' of type: '{output_node_type}' "
+                  f"for output generic type: {generic_output_type}")
+
 
             print(f"DEBUG: {output_info=}")
             # print(f"DEBUG: {output_info['node_path']=}")  # '/mat/material_mtlx_ORIG/mtlxstandard_surface' TODO: THIS IS WRONG. IT SHOULD BE THE OUTPUT NODE
-            self.old_new_node_map[output_info['node_path']] = newly_created_output_node
+            self.old_new_node_map[output_info['node_path']] = created_output_node.path()
 
-            self.created_output_nodes[output_type]['node'] = newly_created_output_node
+            self.created_output_nodes_dict[generic_output_type]['node'] = created_output_node
         print(f"DEBUG: {self.old_new_node_map=}")
 
 
@@ -846,7 +878,7 @@ class NodeRecreator:
             # Create the node if it's not an output node
             if node_info.node_type != 'GENERIC::output_node':
                 newly_created_node = self._create_node(node_info)
-                self.old_new_node_map[node_info.node_path] = newly_created_node
+                self.old_new_node_map[node_info.node_path] = newly_created_node.path()
 
             processed_nodes.add(node_info.node_path)
 
@@ -875,7 +907,7 @@ class NodeRecreator:
             print(f"Using existing node: {node.path()} of type {node.type().name()}")
             self.apply_parameters(node, node_info.parameters)
             self.reused_nodes[node_info.node_path] = node
-            self.old_new_node_map[node_info.node_path] = node  # Ensure all nodes are mapped
+            self.old_new_node_map[node_info.node_path] = node.path()  # Ensure all nodes are mapped
 
             return node
 
@@ -883,7 +915,7 @@ class NodeRecreator:
         new_node = self.material_builder.createNode(new_node_type, node_info.node_name)
         self.apply_parameters(new_node, node_info.parameters)
         self.reused_nodes[node_info.node_path] = new_node
-        self.old_new_node_map[node_info.node_path] = new_node  # Ensure all nodes are mapped
+        self.old_new_node_map[node_info.node_path] = new_node.path()  # Ensure all nodes are mapped
         return new_node
 
 
@@ -899,7 +931,8 @@ class NodeRecreator:
 
         for node_info in nested_nodes_info:
             print(f"DEBUG: {node_info.node_path=}")
-            new_node = self.old_new_node_map.get(node_info.node_path)
+            new_node_path = self.old_new_node_map.get(node_info.node_path)
+            new_node = hou.node(new_node_path)
 
             if not new_node:
                 continue
@@ -910,7 +943,8 @@ class NodeRecreator:
                 input_index = child.connected_input_index
 
                 # Retrieve the corresponding new node from the map
-                child_node = self.old_new_node_map.get(connected_node_path)
+                child_node_path = self.old_new_node_map.get(connected_node_path)
+                child_node = hou.node(child_node_path)
 
                 if child_node and input_index is not None:
                     try:
@@ -1022,7 +1056,7 @@ class NodeRecreator:
         if not renderer_output_connections:
             raise KeyError(f"Unsupported renderer: {self.target_renderer}")
 
-        for output_type, output_info in self.created_output_nodes.items():
+        for output_type, output_info in self.created_output_nodes_dict.items():
             # e.g. output_type = 'GENERIC::output_surface'
             # e.g. output_info = {'node': <hou.VopNode of type arnold_material at /mat/arnold_materialbuilder4/OUT_material>,
             #                     'node_path': '/mat/arnold_materialbuilder4/OUT_material'}
@@ -1046,8 +1080,8 @@ class NodeRecreator:
 
             if connected_node_info:
                 print(f"DEBUG: {connected_node_info=}")
-                old_connected_node_path = connected_node_info.get('connected_node_path')   # TODO: WRONG NODE TO CONNECT TO
-                new_connected_node_path = self.old_new_node_map[old_connected_node_path].path()
+                old_connected_node_path = connected_node_info.get('connected_node_path')
+                new_connected_node_path = self.old_new_node_map[old_connected_node_path]
                 print(f"DEBUG: {old_connected_node_path=}")
                 print(f"DEBUG: {new_connected_node_path=}")
 
@@ -1064,7 +1098,8 @@ class NodeRecreator:
                 existing_output_node = self.old_new_node_map.get(output_info['node_path'])
                 if existing_output_node:
                     self.old_new_node_map[output_info['node_path']] = existing_output_node
-                    print(f"DEBUG: Reusing existing output node {existing_output_node.path()} for {output_type}")
+                    print(f"DEBUG: Using newly created output node: '{existing_output_node.path()}' for "
+                          f"generic output: '{output_type}'")
                 else:
                     print(f"DEBUG: No connected node info found for {output_type=}")
 
@@ -1074,13 +1109,13 @@ class NodeRecreator:
         """
         # Create the initial shader network based on the target renderer
         if self.target_renderer == 'mtlx':
-            self.material_builder, self.created_output_nodes = self.create_init_mtlx_shader(self.target_context)
+            self.material_builder, self.created_output_nodes_dict = self.create_init_mtlx_shader(self.target_context)
         elif self.target_renderer == 'arnold':
-            self.material_builder, self.created_output_nodes = self.create_init_arnold_shader(self.target_context)
+            self.material_builder, self.created_output_nodes_dict = self.create_init_arnold_shader(self.target_context)
         else:
             raise Exception(f"Unsupported target renderer: {self.target_renderer}")
 
-        # print(f"{self.material_builder=}, {self.standardizer.output_nodes=}, {self.created_output_nodes=}")
+        # print(f"{self.material_builder=}, {self.standardizer.output_nodes=}, {self.created_output_nodes_dict=}")
 
         # Create output nodes first
         print(f"DEBUG: STARTING create_output_nodes()....")
@@ -1124,7 +1159,7 @@ def get_material_type(materialbuilder_node: hou.VopNode) -> str:
     return material_type
 
 
-def run(input_material_builder_node, target_context, target_renderer='arnold'):
+def run(input_material_builder_node, target_context, target_renderer='mtlx'):
     """
     Run the material conversion process for the selected node.
 
@@ -1151,17 +1186,6 @@ def run(input_material_builder_node, target_context, target_renderer='arnold'):
         material_type=material_type,
         input_material_builder_node=input_material_builder_node
     )
-
-    # # Create standardized material data
-    # material_data = standardizer.traverse_node_tree()
-
-    # print("\nFinal MaterialData:")
-    # for node_info in material_data.nodeinfo_list:
-    #     print(f"{node_info=}\nchildren:-->")
-    #     for child_node in node_info.child_nodes:
-    #         print(f"'-->  Child Node Type: {child_node.node_type},"
-    #               f"Path: {child_node.node_path},"
-    #               f"children: {child_node.child_nodes}\n")
     print("NodeStandardizer() Finished----------------------\n\n\n")
 
 
@@ -1172,9 +1196,15 @@ def run(input_material_builder_node, target_context, target_renderer='arnold'):
         target_context=target_context,
         target_renderer=target_renderer
     )
-    recreator.run()
     print("NodeRecreator() Finished----------------------\n\n\n")
-    print(f"Material conversion complete. Converted material from {material_type} to {target_renderer}.")
+    print(f"Material conversion complete. Converted material from '{material_type}' to '{target_renderer}'.")
+
+    """
+    TODO:
+        - newly created mtlximage nodes need to have correct signature      [DONE]
+        - mtlxrange isn't supported yet                                     [DONE]
+    
+    """
 
 
 
@@ -1183,7 +1213,7 @@ def run(input_material_builder_node, target_context, target_renderer='arnold'):
 
 def convert_to_serializable(obj):
     """
-    Convert non-serializable objects to a string for JSON dumping.
+    [TEMP FOR DEBUG ONLY] Convert non-serializable objects to a string for JSON dumping.
     """
     print(f"///////////////////////////{type(obj)=}")
     if not obj:
