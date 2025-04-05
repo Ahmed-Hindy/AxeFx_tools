@@ -47,17 +47,20 @@ class NodeInfo:
     def __str__(self):
         output_print = "Not Output"
         if self.is_output_node:
-            output_print = f"is_output_node={self.is_output_node}, output_type={self.output_type})"
-        return(f"NodeInfo(node_type={self.node_type}, node_name={self.node_name},"
-                f"node_path={self.node_path}, connected_input_index={self.connected_input_index},"
-                f"{output_print} child_nodes={self.child_nodes} -->")
+            output_print = f"IS_OUTPUT_NODE = {self.is_output_node}, output_type = {self.output_type})"
+
+        return(f"NodeInfo(node_type={self.node_type}, node_name={self.node_name}, "
+               f"node_path={self.node_path}, connected_input_index={self.connected_input_index}, "
+               f"{output_print}, child_nodes=\n        {self.child_nodes} -->")
+
     def __repr__(self):
         output_print = "Not Output"
         if self.is_output_node:
-            output_print = f"{self.is_output_node}, output_type = {self.output_type})"
-        return (f"NodeInfo(node_type={self.node_type}, node_name={self.node_name},"
-                f"node_path={self.node_path}, connected_input_index={self.connected_input_index},"
-                f"{output_print} child_nodes={self.child_nodes} -->")
+            output_print = f"IS_OUTPUT_NODE = {self.is_output_node}, output_type = {self.output_type})"
+
+        return (f"NodeInfo(node_type={self.node_type}, node_name={self.node_name}, "
+                f"node_path={self.node_path}, connected_input_index={self.connected_input_index}, "
+                f"{output_print}, child_nodes={self.child_nodes} -->")
 
 
 @dataclass
@@ -69,12 +72,12 @@ class MaterialData:
         material_name (str): The name of the material.
         material_path (Optional[str]): The path to the material within the network.
         textures (Dict[str, TextureInfo]): A dictionary of texture information associated with the material.
-        nested_nodeInfo (List[NodeInfo]): A list of nodes that make up the material network.
+        nodeinfo_list (List[NodeInfo]): A list of nodes that make up the material network.
         output_connections (Dict[str, Optional[NodeInfo]]): A dictionary of output connections for the material.
     """
     material_name: str
     material_path: Optional[str] = None
-    nested_nodeInfo: List[NodeInfo] = field(default_factory=list)
+    nodeinfo_list: List[NodeInfo] = field(default_factory=list)
     output_connections: Dict[str, NodeInfo] = field(default_factory=dict)  # Add this line
 
     def __str__(self):
@@ -84,4 +87,4 @@ class MaterialData:
         return self._pretty_print()
 
     def _pretty_print(self):
-        return f"MaterialData(material_name={self.material_name}, nodes={self.nested_nodeInfo})"
+        return f"MaterialData(material_name={self.material_name}, nodes={self.nodeinfo_list})"

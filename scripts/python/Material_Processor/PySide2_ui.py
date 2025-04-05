@@ -106,7 +106,7 @@ class MyMainWindow(QMainWindow):
         }
 
     def convert_materials(self):
-        reload(materials_processer)
+        reload(material_processor)
         selected_nodes = [self.node_list.item(i).text() for i in range(self.node_list.count())]
         selected_format = self.format_combobox.currentText()
         self.logger.info(f"Converting materials for nodes: {selected_nodes} to format: {selected_format}")
@@ -117,11 +117,11 @@ class MyMainWindow(QMainWindow):
                 self.logger.warning(f"Node not found: {node_path}, skipping...")
                 continue
             try:
-                material_ingest_instance = materials_processer.MaterialIngest(selected_node=node)
+                material_ingest_instance = material_processor.MaterialIngest(selected_node=node)
                 material_data = material_ingest_instance.material_data
                 shader_parms_dict = material_ingest_instance.shader_parms_dict
-                materials_processer.MaterialCreate(material_data=material_data, shader_parms_dict=shader_parms_dict,
-                                                   convert_to=selected_format)
+                material_processor.MaterialCreate(material_data=material_data, shader_parms_dict=shader_parms_dict,
+                                                  convert_to=selected_format)
 
                 self.logger.info(f"Converted materials for node: {node_path} to format: {selected_format}")
             except Exception as e:
