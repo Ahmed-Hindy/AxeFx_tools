@@ -1,2 +1,3 @@
 /scripts/python/AdrienLambert/
-/scripts/python/Material_Processor/__pycache__
+__pycache__/
+backup/

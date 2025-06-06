@@ -16,5 +16,6 @@
     <memberTool name="usd_mat_override"/>
     <memberTool name="convert_from_relative_absolute"/>
     <memberTool name="live_renamer"/>
+    <memberTool name="tmp_btn"/>
   </toolshelf>
 </shelfDocument>

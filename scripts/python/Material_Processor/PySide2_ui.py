@@ -6,7 +6,7 @@ from PySide2.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
 from PySide2 import QtCore, QtGui
 
 import hou
-from Material_Processor import materials_processer
+from Material_Processor import material_processor
 
 
 class QTextEditLogger(logging.Handler):
@@ -106,7 +106,7 @@ class MyMainWindow(QMainWindow):
         }
 
     def convert_materials(self):
-        reload(materials_processer)
+        reload(material_processor)
         selected_nodes = [self.node_list.item(i).text() for i in range(self.node_list.count())]
         selected_format = self.format_combobox.currentText()
         self.logger.info(f"Converting materials for nodes: {selected_nodes} to format: {selected_format}")
@@ -117,11 +117,11 @@ class MyMainWindow(QMainWindow):
                 self.logger.warning(f"Node not found: {node_path}, skipping...")
                 continue
             try:
-                material_ingest_instance = materials_processer.MaterialIngest(selected_node=node)
+                material_ingest_instance = material_processor.MaterialIngest(selected_node=node)
                 material_data = material_ingest_instance.material_data
                 shader_parms_dict = material_ingest_instance.shader_parms_dict
-                materials_processer.MaterialCreate(material_data=material_data, shader_parms_dict=shader_parms_dict,
-                                                   convert_to=selected_format)
+                material_processor.MaterialCreate(material_data=material_data, shader_parms_dict=shader_parms_dict,
+                                                  convert_to=selected_format)
 
                 self.logger.info(f"Converted materials for node: {node_path} to format: {selected_format}")
             except Exception as e:
@@ -207,19 +207,19 @@ class NodeListWidget(QListWidget):
 
     def dropEvent(self, event):
         mime = event.mimeData()
-        if mime.hasText():
-            node_paths = mime.text().split('\t')  # Split the text on tab character
-            logger = logging.getLogger(__name__)
-            for node_path in node_paths:
-                # Check if the node is already in the list
-                if not self.findItems(node_path, QtCore.Qt.MatchExactly):
-                    self.addItem(node_path)
-                    logger.info(f"Node dropped: {node_path}")
-                else:
-                    logger.info(f"Node already in list: {node_path}")
-        else:
+        if not mime.hasText():
             logger = logging.getLogger(__name__)
             logger.warning(f'Unsupported object for drag and drop, {mime.formats()}\n')
+
+        node_paths = mime.text().split('\t')  # Split the text on tab character
+        logger = logging.getLogger(__name__)
+        for node_path in node_paths:
+            # Check if the node is already in the list
+            if not self.findItems(node_path, QtCore.Qt.MatchExactly):
+                self.addItem(node_path)
+                logger.info(f"Node dropped: {node_path}")
+            else:
+                logger.info(f"Node already in list: {node_path}")
 
     def keyPressEvent(self, event):
         logger = logging.getLogger(__name__)
