@@ -10,7 +10,8 @@
     <memberTool name="cam_bake"/>
     <memberTool name="Cam_shake"/>
     <memberTool name="usdPreviewSurface_converter"/>
-    <memberTool name="material_processor"/>
+    <memberTool name="material_processor_legacy"/>
+    <memberTool name="material_processor_beta"/>
   </toolshelf>
 
   <tool name="batchChangePaths_1.1" label="Batch Change Paths 1.1" icon="PLASMA_App">
@@ -489,12 +490,12 @@ else:
 
   <tool name="live_renamer" label="live_renamer" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[from importlib import reload
-from my_scripts import live_renamer as lr
+from my_scripts import live_renamer
 
-reload(lr)
+reload(live_renamer)
 
 nodes = hou.selectedNodes()
-renamer = lr.live_renamer(nodes)
+renamer = live_renamer.live_renamer(nodes)
 renamer.show()
 ]]></script>
   </tool>
@@ -511,7 +512,54 @@ classMC  = usd_material_processor.USD_Shaders_Ingest()
 ]]></script>
   </tool>
 
-  <tool name="material_processor" label="material processor" icon="hicon:/SVGIcons.index?COMMON_houdinimaterialx.svg">
+  <tool name="gaea_add_UDIM_tag" label="Gaea Add UDIM tag" icon="hicon:/SVGIcons.index?VIEW_layout_quad.svg">
+    <script scriptType="python"><![CDATA[import os
+import re
+import hou
+
+
+def convert_to_udim(filename):
+    """
+    Convert Gaea split build filename format [FileName]_x[x]_y[y] to UDIM tag format.
+    """
+    match = re.match(r"(.+)_x(\d+)_y(\d+)(\.[a-zA-Z0-9]+)$", filename)
+    if match:
+        base_name = match.group(1)
+        x = int(match.group(2))
+        y = int(match.group(3))
+        file_extension = match.group(4)
+
+        # UDIM numbering starts from 1001 at x000_y000, and increments based on x and y
+        udim = 1001 + (y * 10) + x
+        return f"{base_name}.{udim:04d}{file_extension}"
+    return None
+
+def rename_files(directory):
+    """
+    Rename all Gaea split build files in the directory to UDIM format.
+    """
+    for filename in os.listdir(directory):
+        old_file_path = os.path.join(directory, filename)
+
+        if os.path.isfile(old_file_path):
+            new_filename = convert_to_udim(filename)
+            if new_filename:
+                new_file_path = os.path.join(directory, new_filename)
+                os.rename(old_file_path, new_file_path)
+                print(f"Renamed: {filename} -> {new_filename}")
+
+
+
+directory = hou.ui.selectFile(file_type=hou.fileType.Directory, chooser_mode=hou.fileChooserMode.Read)
+print(directory)
+
+rename_files(directory)
+
+
+]]></script>
+  </tool>
+
+  <tool name="material_processor_legacy" label="material processor [LEGACY]" icon="hicon:/SVGIcons.index?COMMON_houdinimaterialx.svg">
     <script scriptType="python"><![CDATA[from importlib import reload
 # import Example_Scripts.PySide2_test_v001 as PySide2_app
 from Material_Processor import PySide2_ui
@@ -520,6 +568,22 @@ reload(PySide2_ui)
 
 # PySide2_test_v002.main()
 PySide2_ui.show_my_main_window()
+]]></script>
+  </tool>
+
+  <tool name="material_processor_beta" label="material processor [Beta]" icon="hicon:/SVGIcons.index?COMMON_houdinimaterialx.svg">
+    <script scriptType="python"><![CDATA[from importlib import reload
+import hou
+from Material_Processor import material_processor
+reload(material_processor)
+
+target_context = hou.node('/mat')
+node = hou.node('/mat/material_mtlx_ORIG')
+# node = hou.node('/mat/material_arnold_ORIG')
+# node = hou.node('/mat/principledshader_ORIG')
+
+material_processor.run(node, target_context)
+# material_processor.test()
 ]]></script>
   </tool>
 </shelfDocument>
