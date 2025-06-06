@@ -11,12 +11,1527 @@
     <memberToolshelf name="lop_oceans"/>
     <memberToolshelf name="terrainfx"/>
     <memberToolshelf name="arnold"/>
-    <memberToolshelf name="Redshift"/>
     <memberToolshelf name="prism"/>
     <memberToolshelf name="aelib_shelf"/>
-    <memberToolshelf name="AxeFx_Shelf_tab"/>
-    <memberToolshelf name="AxeFx_archived_Shelf_tab"/>
     <memberToolshelf name="sparse_pyro_dynamics"/>
-    <memberToolshelf name="RenderMan26"/>
+    <memberToolshelf name="AxeFx_Shelf_tab"/>
   </shelfSet>
+
+  <toolshelf name="sparse_pyro_dynamics" label="Pyro FX">
+    <memberTool name="spyro_billowysmoke"/>
+    <memberTool name="spyro_fireball"/>
+    <memberTool name="spyro_airexplosion"/>
+    <memberTool name="spyro_groundexplosion"/>
+    <memberTool name="spyro_shockwave"/>
+    <memberTool name="spyro_campfire"/>
+    <memberTool name="spyro_firespread"/>
+  </toolshelf>
+
+  <toolshelf name="terrainfx" label="Terrain FX">
+    <memberTool name="terrain_hills"/>
+    <memberTool name="terrain_mountain"/>
+    <memberTool name="terrain_valley"/>
+    <memberTool name="terrain_moonscape"/>
+    <memberTool name="terrain_islands"/>
+    <memberTool name="terrain_canyon"/>
+    <memberTool name="terrain_dunes"/>
+  </toolshelf>
+
+  <toolshelf name="simplefx" label="Simple FX">
+    <memberTool name="geometry_vellumsimplecloth"/>
+    <memberTool name="geometry_vellumsimplesoftbody"/>
+    <memberTool name="geometry_rbdsimplefracture"/>
+    <memberTool name="geometry_rbdsimpleguided"/>
+    <memberTool name="geometry_muzzleflash"/>
+    <memberTool name="geometry_pyrosimplebillowysmoke"/>
+    <memberTool name="geometry_spyro_gpuburst"/>
+    <memberTool name="geometry_spyro_gputorch"/>
+    <memberTool name="geometry_pyrosimplefireball"/>
+    <memberTool name="geometry_spyro_airexplosion"/>
+    <memberTool name="geometry_spyro_groundexplosion"/>
+    <memberTool name="geometry_spyro_shockwave"/>
+    <memberTool name="geometry_spyro_campfire"/>
+    <memberTool name="geometry_pyrosimplefirespread"/>
+  </toolshelf>
+
+  <toolshelf name="lights_and_cameras" label="Lights and Cameras">
+    <memberTool name="object_cam"/>
+    <memberTool name="object_pointlight"/>
+    <memberTool name="object_spotlight"/>
+    <memberTool name="object_arealight"/>
+    <memberTool name="obj_geolight"/>
+    <memberTool name="obj_volumelight"/>
+    <memberTool name="object_distantlight"/>
+    <memberTool name="object_envlight"/>
+    <memberTool name="obj_skylight"/>
+    <memberTool name="obj_gilight"/>
+    <memberTool name="obj_causticlight"/>
+    <memberTool name="obj_portallight"/>
+    <memberTool name="object_ambient"/>
+    <memberTool name="object_stereocamrig"/>
+    <memberTool name="object_vrcam"/>
+    <memberTool name="object_switcher"/>
+    <memberTool name="obj_gamepadcamera"/>
+  </toolshelf>
+
+  <toolshelf name="lop_oceans" label="Oceans">
+    <memberTool name="geometry_smallocean"/>
+    <memberTool name="geometry_largeocean"/>
+  </toolshelf>
+
+  <toolshelf name="AxeFx_Shelf_tab" label="AxeFx">
+    <memberTool name="KB3D_change_mat_res"/>
+    <memberTool name="cam_bake"/>
+    <memberTool name="Cam_shake"/>
+    <memberTool name="usdPreviewSurface_converter"/>
+    <memberTool name="material_processor"/>
+  </toolshelf>
+
+  <toolshelf name="arnold" label="Arnold">
+    <memberTool name="add_arnold_properties"/>
+    <memberTool name="remove_arnold_properties"/>
+    <memberTool name="arnold_rop"/>
+    <memberTool name="arnold_volume"/>
+    <memberTool name="arnold_implicit"/>
+    <memberTool name="arnold_procedural"/>
+    <memberTool name="arnold_alembic"/>
+    <memberTool name="arnold_usd"/>
+    <memberTool name="arnold_point_light"/>
+    <memberTool name="arnold_distant_light"/>
+    <memberTool name="arnold_spot_light"/>
+    <memberTool name="arnold_quad_light"/>
+    <memberTool name="arnold_disk_light"/>
+    <memberTool name="arnold_cylinder_light"/>
+    <memberTool name="arnold_skydome_light"/>
+    <memberTool name="arnold_light_portal"/>
+    <memberTool name="arnold_mesh_light"/>
+    <memberTool name="arnold_photometric_light"/>
+  </toolshelf>
+
+  <toolshelf name="prism" label="Prism">
+    <memberTool name="prism_save"/>
+    <memberTool name="prism_commentsave"/>
+    <memberTool name="prism_browser"/>
+    <memberTool name="prism_manager"/>
+    <memberTool name="prism_settings"/>
+  </toolshelf>
+
+  <toolshelf name="AxeFx_archived_Shelf_tab" label="AxeFx Archived">
+    <memberTool name="batchChangePaths_1.1"/>
+    <memberTool name="Paragon_Importer"/>
+    <memberTool name="File_Loader"/>
+    <memberTool name="attribmantut"/>
+    <memberTool name="XOP_SP_Linker"/>
+    <memberTool name="Principled_to_MTLX_v4"/>
+    <memberTool name="principled_from_pat"/>
+    <memberTool name="usd_mat_override"/>
+    <memberTool name="convert_from_relative_absolute"/>
+    <memberTool name="live_renamer"/>
+    <memberTool name="gaea_add_UDIM_tag"/>
+  </toolshelf>
+
+  <tool name="prism_settings" label="Settings" icon="prismSettings.png">
+    <helpText><![CDATA["""Opens the Prism Settings"""]]></helpText>
+    <script scriptType="python"><![CDATA[import PrismInit
+
+PrismInit.pcore.prismSettings()]]></script>
+  </tool>
+
+  <tool name="prism_manager" label="State Manager" icon="prismStates.png">
+    <helpText><![CDATA["""Opens the State Manager"""]]></helpText>
+    <script scriptType="python"><![CDATA[import PrismInit
+
+PrismInit.pcore.stateManager()]]></script>
+  </tool>
+
+  <tool name="prism_browser" label="Project Browser" icon="prismBrowser.png">
+    <helpText><![CDATA["""Opens the Project Browser"""]]></helpText>
+    <script scriptType="python"><![CDATA[import PrismInit
+
+PrismInit.pcore.projectBrowser()]]></script>
+  </tool>
+
+  <tool name="prism_commentsave" label="Save Comment" icon="prismSaveComment.png">
+    <helpText><![CDATA["""Saves the current file to a new version with a comment"""]]></helpText>
+    <script scriptType="python"><![CDATA[import PrismInit
+
+PrismInit.pcore.saveWithComment()]]></script>
+  </tool>
+
+  <tool name="prism_save" label="Save Version" icon="prismSave.png">
+    <helpText><![CDATA["""Saves the current file to a new version"""]]></helpText>
+    <script scriptType="python"><![CDATA[import PrismInit
+
+PrismInit.pcore.saveScene()]]></script>
+  </tool>
+
+  <tool name="tmp_btn" label="tmp button" icon="hicon:/SVGIcons.index?DOP_emptydata.svg">
+    <script scriptType="python"><![CDATA[from importlib import reload
+import hou
+from Material_Processor import material_processor
+reload(material_processor)
+
+target_context = hou.node('/mat')
+node = hou.node('/mat/material_mtlx_ORIG')
+node = hou.node('/mat/material_arnold_ORIG')
+# node = hou.node('/mat/principledshader_ORIG')
+
+# material_processor.run(node, target_context)
+material_processor.test()
+]]></script>
+  </tool>
+
+  <tool name="material_processor" label="material processor" icon="hicon:/SVGIcons.index?COMMON_houdinimaterialx.svg">
+    <script scriptType="python"><![CDATA[from importlib import reload
+# import Example_Scripts.PySide2_test_v001 as PySide2_app
+from Material_Processor import PySide2_ui
+reload(PySide2_ui)
+
+
+# PySide2_test_v002.main()
+PySide2_ui.show_my_main_window()
+]]></script>
+  </tool>
+
+  <tool name="usdPreviewSurface_converter" label="usdPreviewSurface Converter" icon="hicon:/SVGIcons.index?VOP_usdpreviewsurface.svg">
+    <script scriptType="python"><![CDATA[from importlib import reload
+from Material_Processor import usd_material_processor
+reload(usd_material_processor)
+
+
+classMC  = usd_material_processor.USD_Shaders_Ingest()
+
+# classMC.create_materials_from_textures()
+]]></script>
+  </tool>
+
+  <tool name="live_renamer" label="live_renamer" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[from importlib import reload
+from my_scripts import live_renamer
+
+reload(live_renamer)
+
+nodes = hou.selectedNodes()
+renamer = live_renamer.live_renamer(nodes)
+renamer.show()
+]]></script>
+  </tool>
+
+  <tool name="convert_from_relative_absolute" label="batch convert from relative absolute" icon="hicon:/SVGIcons.index?BUTTONS_reload.svg">
+    <script scriptType="python"><![CDATA[### works on selected nodes, converts all relative parameters to absolute ###
+
+import string
+def abs_path_reference(node):
+    parms = node.parms()
+    
+    #filter string type parameters
+    refParms = []
+    for i in parms:
+        if ( (i.rawValue().find('ch("../') != -1) or (i.rawValue().find('chs("../') != -1) ):
+            refParms.append(i)            
+    print(str( len(refParms) ) + " parameters channel referenced and modified to:")
+    
+    #loop for finding out node(s) which channels reference from
+    for parm in refParms:
+        orig_expr=parm.rawValue()
+        absPathStrs=[]
+        relPathStrs=[]
+        for i in parm.rawValue().split('('):
+            for j in i.split(')'):
+                if j.find('../')!=-1:                    
+                    tmp1=j.split('/')
+                    tmp1.pop()
+                    tmp2='/'.join(tmp1)
+                    relNodePath=tmp2[1:len(tmp2)]
+                    refNode=node.node(relNodePath)
+                    absNodePath=refNode.path()
+                    absPathStrs.append(absNodePath)
+                    relPathStrs.append(relNodePath)
+                                                
+        #setting new expressions
+        new_expr=orig_expr
+        for index in range(len(relPathStrs)):
+            count=new_expr.count(relPathStrs[index])            
+            new_expr=new_expr.replace(relPathStrs[index],absPathStrs[index],count)
+        print(new_expr)
+        parm.setExpression(new_expr)
+
+    print("-------------------------------------------")
+            
+                                    
+#excute script
+sels = hou.selectedNodes()
+if sels:
+    for sel in sels:
+        abs_path_reference(sel)
+else:
+    hou.ui.displayMessage('please select a Node', severity=hou.severityType.Warning, title='No Node Selected')
+    ]]></script>
+  </tool>
+
+  <tool name="usd_mat_override" label="usd_mat_override" icon="hicon:/SVGIcons.index?VOP_usdpreviewsurface.svg">
+    <script scriptType="python"><![CDATA[from importlib import reload
+from my_scripts import usd_mat_override
+reload(usd_mat_override)
+
+node = hou.node('/stage/x')
+data = SolarisMaterialOverride().run_debug(target_stage=node)]]></script>
+  </tool>
+
+  <tool name="Principled_to_MTLX_v4" label="Principled_to_MTLX_v4" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[# test script from adrien lambert
+
+from importlib import reload
+from AdrienLambert import principledShader_to_MTLX_v4
+reload(principledShader_to_MTLX_v4)
+]]></script>
+  </tool>
+
+  <tool name="principled_from_pat" label="principled shader from path" icon="hicon:/SVGIcons.index?SOP_texture.svg">
+    <script scriptType="python"><![CDATA[import hou
+from importlib import reload
+from my_scripts import principled_from_path
+reload(principled_from_path)
+
+]]></script>
+  </tool>
+
+  <tool name="XOP_SP_Linker" label="XOP SP Linker" icon="Xolsplink">
+    <script scriptType="python"><![CDATA[#Xolotl Studio
+#Created by Ymmanuel Flores on 2018
+#Copyright 2018 Crowdorchestra SAPI de CV. All rights reserved.
+#xolsplink v 1.0.0.8
+
+import hou
+import hrpyc
+import xolsplink
+
+from PySide2 import QtWidgets,QtCore
+
+class XolSPLinkDialog(QtWidgets.QMainWindow):
+    def __init__(self,parent = None):
+        super(XolSPLinkDialog,self).__init__(parent)
+        self.construct_ui()
+
+    def construct_ui(self):
+        self.setWindowTitle("Xolotl SP Live Link")
+        self.setStyleSheet(hou.qt.styleSheet())
+        self.setProperty("houdiniStyle",True)
+
+        main_widget = QtWidgets.QWidget(self)
+        self.setCentralWidget(main_widget)
+
+        g_layout = QtWidgets.QVBoxLayout()
+        layoutServer = QtWidgets.QFormLayout()
+        layoutMesh = QtWidgets.QFormLayout()
+        main_widget.setLayout(g_layout)
+
+        #Add widgets
+        self.txtPort = QtWidgets.QLineEdit()
+        self.txtPort.setText("8080")
+        layoutServer.addRow('Port',self.txtPort)
+
+        self.btnStartServer = QtWidgets.QPushButton('Start Server')
+        self.btnStartServer.clicked.connect(self.startServer)
+        layoutServer.addRow('',self.btnStartServer)
+
+        self.cbUdim = QtWidgets.QCheckBox()
+        layoutMesh.addRow('Udims',self.cbUdim)
+
+        self.cmbNormal = QtWidgets.QComboBox()
+        self.cmbNormal.addItem("OpenGL")
+        self.cmbNormal.addItem("DirectX")
+        layoutMesh.addRow('Format',self.cmbNormal)
+
+        self.cmbRes = QtWidgets.QComboBox()
+        self.cmbRes.addItem("128")
+        self.cmbRes.addItem("256")
+        self.cmbRes.addItem("512")
+        self.cmbRes.addItem("1024")
+        self.cmbRes.addItem("2048")
+        self.cmbRes.addItem("4096")
+        layoutMesh.addRow('Resolution',self.cmbRes)
+
+
+        self.btnSendMesh = QtWidgets.QPushButton('Send Mesh')
+        self.btnSendMesh.clicked.connect(self.sendMesh)
+        layoutMesh.addRow('',self.btnSendMesh)
+
+
+        #Main layout
+        g_layout.addLayout(layoutServer)
+        g_layout.addLayout(layoutMesh)
+
+
+    def startServer(self):
+        port = int(self.txtPort.text())
+        try:
+            hrpyc.start_server(port=port)
+        except:
+            print("Xolotl SP Live Link: Server is already listening")
+
+    def sendMesh(self):
+        normal = self.cmbNormal.currentText()
+        res = self.cmbRes.currentText()
+        udims = self.cbUdim.isChecked()
+        xolsplink.server.sendMesh(normal,res,udims)
+
+w = XolSPLinkDialog()
+w.setWindowFlags(w.windowFlags() & QtCore.Qt.CustomizeWindowHint)
+w.setWindowFlags(w.windowFlags() & ~QtCore.Qt.WindowMinMaxButtonsHint)
+w.show()
+]]></script>
+  </tool>
+
+  <tool name="attribmantut" label="Attribute Manager tut" icon="hicon:/SVGIcons.index?VIEW_display_text.svg">
+    <script scriptType="python"><![CDATA[import os
+from package1.attribman import attribman
+from importlib import reload
+
+
+reload(attribman)
+attribman.show()
+
+
+
+print("printed from shelf tool..")]]></script>
+  </tool>
+
+  <tool name="Cam_shake" label="Cam Shake" icon="OBJ_camera">
+    <script scriptType="python"><![CDATA["""
+CAMERA SHAKE TOOL
+credits to github.com/juanjo4martinez
+-----------------
+Add some movement to your camera to make it look like it's handheld.
+Make sure your Camera node is selected when running this tool!
+"""
+
+# Get the selected camera.
+this_node = hou.selectedNodes()
+this_cam = this_node[0]
+
+# /obj context.
+obj = hou.node("/obj")
+
+# Create CHOP Network called "cameraShake".
+chopnet = obj.findOrCreateMotionEffectsNetwork()
+chopnet.setName(f"cameraShake_{this_cam.name()}", unique_name=True)
+
+# Inside the CHOPNet, create a Channel node and give it a name.
+channel_node = chopnet.createNode("channel")
+channel_node.setName(f"{this_cam.name()}_rotationClips", unique_name=True)
+
+# Pick the rotation channels from the camera and use "Euler Rotation".
+channel_node.parm("name0").set(f"{this_cam.name()}:r")
+channel_node.parm("type0").set(1)
+
+# Store the newly created channel's values as individual variables.
+channel_value_x = channel_node.parm("value0x")
+channel_value_y = channel_node.parm("value0y")
+channel_value_z = channel_node.parm("value0z")
+
+# Store the camera's rotation parameters as individual variables.
+cam_rot_x = this_cam.parm("rx")
+cam_rot_y = this_cam.parm("ry")
+cam_rot_z = this_cam.parm("rz")
+
+# CONDITIONAL:
+# If rotation is animated, copy those keyframes into the channel's node values.
+# If rotation is NOT animated, just copy the camera's rotation values.
+if len(cam_rot_x.keyframes()) > 0:
+    for k in cam_rot_x.keyframes():
+        channel_value_x.setKeyframe(k)    
+else: 
+    channel_node.parm("value0x").set(this_cam.parm("rx").eval())
+
+if len(cam_rot_y.keyframes()) > 0:
+    for k in cam_rot_y.keyframes():
+        channel_value_y.setKeyframe(k)
+else: 
+    channel_node.parm("value0y").set(this_cam.parm("ry").eval())
+
+if len(cam_rot_z.keyframes()) > 0:
+    for k in cam_rot_z.keyframes():
+        channel_value_z.setKeyframe(k)    
+else: 
+    channel_node.parm("value0z").set(this_cam.parm("rz").eval())
+
+# Set the channel units to Frames and the graph color to green.
+channel_node.parm("units").set(0)
+channel_node.parmTuple("gcolor").set((0,1,0))
+
+# Turn off the Export flag on the Channel node.
+channel_node.setExportFlag(0)
+
+# Inside the CHOPNet, create a Math node.
+math_node = channel_node.parent().createNode("math")
+math_node.setName(f"{this_cam.name()}_addNoiseToRotation", unique_name=True)
+
+# The Math node will sum (Add) the rotation channels to the noise.
+math_node.parm("chopop").set(1)
+
+# Turn on the Display and Export flags on the Math node.
+math_node.setDisplayFlag(1)
+math_node.setExportFlag(1)
+
+# Inside the CHOPNet, create a Noise node.
+noise_node = chopnet.createNode("noise")
+
+# The name of the noise channels will be the same as in the Channel node (cam:rx,ry,rz).
+noise_node.parm("channelname").set(f"`run('chopls {channel_node.path()}')`")
+
+# The seed of the noise will be $C (number of channels, i.e: 3).
+noise_node.parm("seed").setExpression("$C")
+
+# Set the roughness to 0 for camera-like movements.
+noise_node.parm("rough").set(0)
+
+# Plug the Channel and Noise nodes into the Math inputs.
+math_node.setInput(0, channel_node)
+math_node.setInput(1, noise_node)
+
+# Layout nodes inside the CHOPNet.
+chopnet.layoutChildren()
+
+
+# CONTROLLERS
+# Stores the CHOPNet's parameters as a template.
+group = chopnet.parmTemplateGroup()
+
+# Create different parameters to control the effect.
+stab = hou.FloatParmTemplate(
+    "stab",
+    "Stabilization",
+    1,
+    default_value=[.5],
+    min=.1,
+    max=1.5,
+    help="How stabilized you want your camera to be (0.1 = Shaky footage, >1 = Stabilized footage)."
+    )
+    
+amp = hou.FloatParmTemplate(
+    "amp",
+    "Amplitude",
+    1,
+    default_value=[10],
+    max=20,
+    help="How far the camera moves (0 = No motion, >10 = Wider range)."
+    )
+    
+seed = hou.FloatParmTemplate(
+    "seed",
+    "Seed",
+    1,
+    default_value=[1],
+    min=0,
+    help="Add variation to your camera by changing this value."
+    )
+
+# Create a Tab to store the parameters we just created.
+folder = hou.FolderParmTemplate(
+    "cameraShake",
+    "Camera Shake",
+    parm_templates=[stab, amp, seed],
+    )
+
+# Add the Tab to the CHOPNet's template.
+group.append(folder)
+
+# Applies this new template to the CHOPNet.
+chopnet.setParmTemplateGroup(group)
+
+# The Â«StabilizationÂ» parameter controls the noise's Â«PeriodÂ» parameter.
+noise_node.parm("period").setExpression(f"ch('{chopnet.path()}/stab')")
+
+# The Â«AmpÂ» parameter controls the noise's Â«AmpÂ» parameter
+noise_node.parm("amp").setExpression(f"ch('{chopnet.path()}/amp')")
+
+# The Â«SeedÂ» parameter controls the noise's Y Translate (changes the waveform and adds variation).
+noise_node.parm("transy").setExpression(f"ch('{chopnet.path()}/seed')")
+
+# Deselect everything except the CHOPNet so the user sees where to tweak the values.
+chopnet.setCurrent(1, clear_all_selected=1)
+]]></script>
+  </tool>
+
+  <tool name="cam_bake" label="Camera Bake" icon="OBJ_camera">
+    <script scriptType="python"><![CDATA[import hou
+
+nodes           = hou.selectedNodes()
+frame_range     = [int(hou.playbar.playbackRange()[0]), int(hou.playbar.playbackRange()[1])+1]
+parms_animated  = ['tx', 'ty', 'tz', 'rx', 'ry', 'rz']
+parms_static    = ['iconscale', 'aspect', 'vm_bgenable','focal', 'aperture', 'near', 'far',
+                    'resx', 'resy', 'winsizex', 'winsizey', 'shutter', 'aspect']
+for node in nodes:
+    if node.type().name() == 'cam':
+        node_baked = hou.node('/obj').createNode('cam', node.name() + '_baked')
+        node_position = node.position()
+        node_baked.setPosition([node_position[0], node_position[1]-2])
+        hou.setFrame(int(hou.playbar.playbackRange()[0]))
+
+        ### set static parms
+        for parm_static in parms_static:
+            node_baked.parm(parm_static).set(node.parm(parm_static).eval())
+
+        ### set bg_image
+        node_baked.parm('vm_background').set(node.parm('vm_background').rawValue())
+
+        ### set animated parms
+        for f in range(frame_range[0], frame_range[1]):
+            hou.setFrame(f)
+            node_baked.setWorldTransform(node.worldTransform())  ##maybe dont put it under a framerange forloop?
+            for parm_animated in parms_animated:
+                node_baked.parm(parm_animated).setKeyframe(hou.Keyframe(node_baked.parm(parm_animated).eval()))
+]]></script>
+  </tool>
+
+  <tool name="File_Loader" label="File Loader" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[####    STEPS   ####
+# get the file directory
+# get the list of files
+# create a geo obj
+# create a merge node inside
+
+
+# for every file in filesList:
+#   create a file SOP
+#   path = file directory + file
+#   connect the file SOP to the merge SOP
+
+# append a null after with display and render flags
+
+
+
+import hou
+import os
+
+
+obj = hou.node("/obj")
+LoaderObj = obj.createNode("geo", "Multi_Loader")
+
+folder = hou.ui.selectFile(title="choose folder to import from",
+                           file_type=hou.fileType.Directory)  # Main folder
+folder_expanded = hou.text.expandString(folder) # this is new, check "folder" isnt used later.
+folderList = os.listdir(folder_expanded)  # Main Folder children list
+
+# create merge and null SOPs
+mergeSop = LoaderObj.createNode("merge", "All_merger")
+nullMerge = LoaderObj.createNode("null", "OUT_MERGING")
+nullMerge.setInput(0, mergeSop, 0)
+nullMerge.setDisplayFlag(True)
+nullMerge.setRenderFlag(True)
+
+
+for file in folderList:  # iterate over each file entry and create a file SOP
+    if(".fbx" or ".abc" or ".usd") in file:
+        LoaderSop = LoaderObj.createNode("file", file)
+        LoaderSop.parm("file").set(folder + file)  # set path
+        mergeSop.setNextInput(LoaderSop)
+    print(os.path.split(file)[-1])  #test 
+
+#cleaning
+LoaderObj.layoutChildren()
+]]></script>
+  </tool>
+
+  <tool name="KB3D_change_mat_res" label="KB3D change material resolution" icon="F:/Users/Ahmed Hindy/Downloads/k_icon_1_5f698675-1655-41df-be55-cabbec292518_1500x.jpeg">
+    <script scriptType="python"><![CDATA[""" run this script on the matnet in a KB3D provided hipfile """
+
+from importlib import reload
+from my_scripts import KB3D_change_res
+reload(KB3D_change_res)
+
+KB3D_change_res.KB3DProcessor().run()
+]]></script>
+  </tool>
+
+  <tool name="Paragon_Importer" label="Paragon Importer" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import hou
+nodes = hou.selectedNodes()
+
+for node in nodes:
+    parms = node.globParms("*_texture")    
+    for parm in parms:
+        if parm.eval() != "":
+            parm_new = parm.eval().replace("_EditorSphere", "")
+            parm.set(parm_new)
+            print(parm , "/n")]]></script>
+  </tool>
+
+  <tool name="batchChangePaths_1.1" label="Batch Change Paths 1.1" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[from importlib import reload
+from my_scripts import batch_change_paths
+reload(usd_mat_override)
+]]></script>
+  </tool>
+
+  <tool name="arnold_photometric_light" label="Photometric" icon="OBJ_hlight">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'arnold_light',
+            'arnold_photometric_light1', (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+newnode.parm("ar_light_type").set('photometric')]]></script>
+  </tool>
+
+  <tool name="arnold_mesh_light" label="Mesh" icon="OBJ_light_geo">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'arnold_light',
+                        'arnold_mesh_light1', 
+                        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+newnode.parm("ar_light_type").set('mesh')]]></script>
+  </tool>
+
+  <tool name="arnold_light_portal" label="Portal" icon="OBJ_light_portal">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'arnold_light',
+                        'arnold_light_portal1', 
+                        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+newnode.parm("ar_light_type").set('quad')
+newnode.parm("ar_portal").set(1)]]></script>
+  </tool>
+
+  <tool name="arnold_skydome_light" label="Skydome" icon="OBJ_light_environment">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'arnold_light',
+                        'arnold_skydome_light1', 
+                        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+newnode.parm("ar_light_type").set('skydome')]]></script>
+  </tool>
+
+  <tool name="arnold_cylinder_light" label="Cylinder" icon="OBJ_light_fluorescent">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'arnold_light',
+                        'arnold_cylinder_light1', 
+                        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+newnode.parm("ar_light_type").set('cylinder')]]></script>
+  </tool>
+
+  <tool name="arnold_disk_light" label="Disk" icon="OBJ_light_disk">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'arnold_light',
+                        'arnold_disk_light1', 
+                        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+newnode.parm("ar_light_type").set('disk')]]></script>
+  </tool>
+
+  <tool name="arnold_quad_light" label="Quad" icon="OBJ_light_area">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'arnold_light',
+                        'arnold_quad_light1', 
+                        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+newnode.parm("ar_light_type").set('quad')]]></script>
+  </tool>
+
+  <tool name="arnold_spot_light" label="Spot" icon="OBJ_light_spot">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'arnold_light',
+                        'arnold_spot_light1', 
+                        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+newnode.parm("ar_light_type").set('spot')]]></script>
+  </tool>
+
+  <tool name="arnold_distant_light" label="Distant" icon="OBJ_light_directional">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'arnold_light',
+                        'arnold_distant_light1', 
+                        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+newnode.parm("ar_light_type").set('distant')]]></script>
+  </tool>
+
+  <tool name="arnold_point_light" label="Point" icon="OBJ_light_point">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'arnold_light',
+            'arnold_point_light1', (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+newnode.parm("ar_light_type").set('point')]]></script>
+  </tool>
+
+  <tool name="arnold_rop" label="Arnold ROP" icon="ROP_arnold">
+    <script scriptType="python"><![CDATA[__import__('roptoolutils').createRenderNode('arnold')]]></script>
+  </tool>
+
+  <tool name="arnold_usd" label="USD" icon="NETWORKS_obj">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+objecttoolutils.genericTool(kwargs, 'arnold::usd')]]></script>
+  </tool>
+
+  <tool name="arnold_alembic" label="Alembic" icon="NETWORKS_obj">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+objecttoolutils.genericTool(kwargs, 'arnold::alembic')]]></script>
+  </tool>
+
+  <tool name="arnold_procedural" label="Procedural" icon="NETWORKS_obj">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+objecttoolutils.genericTool(kwargs, 'arnold::procedural')]]></script>
+  </tool>
+
+  <tool name="arnold_implicit" label="Implicit" icon="SOP_volumesdf">
+    <script scriptType="python"><![CDATA[__import__('objecttoolutils').genericTool(kwargs, 'arnold_implicit')]]></script>
+  </tool>
+
+  <tool name="arnold_volume" label="Volume" icon="SOP_volume">
+    <script scriptType="python"><![CDATA[__import__('objecttoolutils').genericTool(kwargs, 'arnold_volume')]]></script>
+  </tool>
+
+  <tool name="remove_arnold_properties" label="Remove Arnold Properties" icon="SOP_attribute">
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Arnold</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+from htoa.properties import removeArnoldProperties
+
+prompt = toolutils.selectionPrompt(hou.objNodeTypeCategory())
+scene_viewer = toolutils.sceneViewer()
+selected_objects = scene_viewer.selectObjects(prompt)
+
+removeArnoldProperties(selected_objects)
+]]></script>
+  </tool>
+
+  <tool name="add_arnold_properties" label="Add Arnold Properties" icon="SOP_attribcreate">
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Arnold</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+from htoa.properties import addArnoldProperties
+
+prompt = toolutils.selectionPrompt(hou.objNodeTypeCategory())
+scene_viewer = toolutils.sceneViewer()
+selected_objects = scene_viewer.selectObjects(prompt)
+
+addArnoldProperties(selected_objects)
+]]></script>
+  </tool>
+
+  <tool name="object_ambient" label="Ambient Light" icon="OBJ_light">
+    <helpURL>operator:Object/ambient</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/ambient</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox'] = hou.BoundingBox(-1.5, -1.5, -1.5, 1.5, 1.5, 1.5)
+objecttoolutils.genericTool(kwargs, 'ambient')]]></script>
+  </tool>
+
+  <tool name="object_switcher" label="Switcher" icon="OBJ_switcher">
+    <helpURL>operator:Object/switcher</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/switcher</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Cameras</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+objecttoolutils.genericTool(kwargs, 'switcher')]]></script>
+  </tool>
+
+  <tool name="obj_gamepadcamera" label="Gamepad Camera" icon="CHOP_gamepad">
+    <helpURL>tool:gamepadcamera</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/cam</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Cameras</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+cam = objecttoolutils.genericCameraLightTool(kwargs, 'cam', 'cam1',
+        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))
+kwargs['node'] = cam
+objecttoolutils.constraintgamepadStateTool(kwargs)]]></script>
+  </tool>
+
+  <tool name="object_vrcam" label="VR Camera" icon="SHOP_vrlens">
+    <helpURL>operator:Object/vrcam</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/vrcam</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Cameras</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox'] = hou.BoundingBox(-0.0875, -0.075, 0.0, 0.0875, 0.236, 0.43)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'vrcam',
+        'cam1',
+        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))]]></script>
+  </tool>
+
+  <tool name="object_stereocamrig" label="Stereo Camera" icon="OBJ_stereocamera">
+    <helpURL>operator:Object/stereocamrig</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/stereocamrig</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Cameras</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox'] = hou.BoundingBox(-0.0875, -0.075, 0.0, 0.0875, 0.236, 0.43)
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'stereocamrig',
+        'stereocamrig1',
+        (not kwargs['ctrlclick'] and not kwargs['cmdclick']))]]></script>
+  </tool>
+
+  <tool name="object_cam" label="Camera" icon="OBJ_camera">
+    <helpURL>operator:Object/cam</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Cameras</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+# When launched from a scene view, always create a camera that matches
+# the current viewpoint.
+clicktoplace = False
+lock_to_view = kwargs['ctrlclick'] or kwargs['cmdclick']
+
+import loptoolutils
+if (loptoolutils.getToolCategoryForPane(pane) == hou.lopNodeTypeCategory()):
+    newnode = loptoolutils.genericCameraLightTool(kwargs, 'camera',
+                'camera1', clicktoplace, lock_to_view)
+
+else:
+    import objecttoolutils
+    kwargs['bbox_min'] = hou.Vector3(-0.1, -0.1, 0.0001)
+    kwargs['bbox_max'] = hou.Vector3(0.1, 0.236, 0.431)
+    newnode = objecttoolutils.genericCameraLightTool(kwargs, 'cam', 'cam1',
+                clicktoplace, lock_to_view)
+    ]]></script>
+  </tool>
+
+  <tool name="obj_causticlight" label="Caustic Light" icon="OBJ_light_caustic">
+    <helpURL>operator:Object/indirectlight#caustic</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/indirectlight</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+newnode = objecttoolutils.genericTool(kwargs, 'indirectlight', 'causticlight1', False)
+newnode.parm('light_type').set('caustic')
+newnode.parm('photon_filter').set('sphere')
+newnode.parm('photon_count').set(100)
+newnode.parm('photon_prefilter').set(False)]]></script>
+  </tool>
+
+  <tool name="obj_gilight" label="GI Light" icon="OBJ_light_gi">
+    <helpURL>operator:Object/indirectlight#gi</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/indirectlight</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+objecttoolutils.genericTool(kwargs, 'indirectlight', 'gilight1', False)]]></script>
+  </tool>
+
+  <tool name="obj_skylight" label="Sky Light" icon="OBJ_light_sky">
+    <helpURL>operator:Object/envlight#sky</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/envlight</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+objecttoolutils.createSkyLight(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="object_envlight" label="Environment Light" icon="OBJ_light_environment">
+    <helpURL>operator:Object/envlight</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+import loptoolutils
+if (loptoolutils.getToolCategoryForPane(pane) == hou.lopNodeTypeCategory()):
+    newnode   = loptoolutils.genericTool(kwargs, 'domelight::2.0',
+                'domelight1', clicktoplace=False)
+
+else:
+    import objecttoolutils
+    from objecttoolutils import OrientInfo
+    objecttoolutils.genericTool(kwargs, 'envlight',
+        None, False, orient=OrientInfo('r'))]]></script>
+  </tool>
+
+  <tool name="object_distantlight" label="Distant Light" icon="OBJ_light_directional">
+    <helpURL>operator:Lop/distantlight</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+# When launched from a scene view, always create a camera that matches
+# the current viewpoint.
+clicktoplace = False
+lock_to_view = kwargs['ctrlclick'] or kwargs['cmdclick']
+
+import loptoolutils
+if (loptoolutils.getToolCategoryForPane(pane) == hou.lopNodeTypeCategory()):
+    newnode = loptoolutils.genericCameraLightTool(kwargs, 'distantlight::2.0',
+                'distantlight1', clicktoplace, lock_to_view)
+
+else:
+    import objecttoolutils
+    kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+    kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+    newnode = objecttoolutils.genericCameraLightTool(kwargs, 'hlight::2.0',
+                'distantlight1', clicktoplace, lock_to_view)
+    newnode.parm("light_type").set('distant')]]></script>
+  </tool>
+
+  <tool name="obj_portallight" label="Portal Light" icon="OBJ_light_portal">
+    <helpURL>operator:Object/envlight#portal</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/envlight</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+import objecttoolutils
+
+# Get selection
+scene_viewer = toolutils.sceneViewer()
+targets = scene_viewer.selectObjects(
+                prompt = toolutils.selectionPrompt(hou.objNodeTypeCategory()),
+                allow_multisel = False,
+                allowed_types = ("geo",))
+newnode = objecttoolutils.genericTool(kwargs, 'envlight', 'portallight1', False)
+newnode.parm("folder01").set(1)
+newnode.parm("env_portalenable").set( 1 )
+if len( targets ) > 0:
+    target = targets[0]
+    target_path = newnode.relativePathTo( target )
+    newnode.parm("env_portal").set( target_path )]]></script>
+  </tool>
+
+  <tool name="obj_volumelight" label="Volume Light" icon="SHELF_volumelight">
+    <helpURL>operator:Lop/light#volume</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextOpType>Object/arealight</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+import objecttoolutils
+kwargs['bbox'] = hou.BoundingBox(-0.5, -0.5, 0.0, 0.5, 0.5, 0.0)
+
+# Get selection
+scene_viewer = toolutils.sceneViewer()
+targets = scene_viewer.selectObjects(
+                prompt = toolutils.selectionPrompt(hou.objNodeTypeCategory()),
+                allow_multisel = False,
+                allowed_types = ("geo",))
+newnode = objecttoolutils.genericTool(kwargs, 'hlight::2.0',
+                'volumelight1', False)
+newnode.parmTuple("stdswitcher4")[0].set(1)
+newnode.parmTuple("atten_folder_1")[0].set(1)
+if len( targets ) > 0:
+    target = targets[0]
+    hou.hscript("opproperty -f %s mantra vm_emitillum" % target.path())
+    target.parm("vm_emitillum").set(0)
+    target_path = newnode.relativePathTo( target )
+    newnode.setWorldTransform( target.worldTransform() )
+    newnode.parm("shop_materialpath").set( target.parm("shop_materialpath").eval() )
+    newnode.parm("areageometry").set( target_path )
+newnode.parm("light_type").set('geo')
+newnode.parm("normalizearea").set(0)
+newnode.parm("selfshadow").set(0)
+newnode.parm("pc_enable").set(1)]]></script>
+  </tool>
+
+  <tool name="obj_geolight" label="Geometry Light" icon="OBJ_light_geo">
+    <helpURL>operator:Lop/light#geo</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+import loptoolutils
+if (loptoolutils.getToolCategoryForPane(pane) == hou.lopNodeTypeCategory()):
+    if pane.pwd().childTypeCategory() != hou.lopNodeTypeCategory():
+        hou.ui.displayMessage('Error Creating Geometry Light',
+            title='Geometry Light',
+            help='Geometry Lights must be created directly in a\n' +
+            'Lop context. This tool cannot be run within a\n' +
+            pane.pwd().childTypeCategory().name() +
+            ' context nested inside a Lop context.')
+
+    else:
+        newnode = loptoolutils.genericTool(kwargs, 'rendergeometrysettings')
+        newnode.parmTuple("xn__primvarskarmaobjecttreat_as_lightsource_control_oicfg")[0].set('set')
+        newnode.parmTuple("xn__primvarskarmaobjecttreat_as_lightsource_n4bfg")[0].set('Yes')
+
+else:
+    import objecttoolutils
+    kwargs['bbox'] = hou.BoundingBox(-0.5, -0.5, 0.0, 0.5, 0.5, 0.0)
+
+    # Get selection
+    scene_viewer = toolutils.sceneViewer()
+    targets = scene_viewer.selectObjects(
+                    prompt = toolutils.selectionPrompt(hou.objNodeTypeCategory()),
+                    allow_multisel = False,
+                    allowed_types = ("geo",))
+    newnode = objecttoolutils.genericTool(kwargs, 'hlight::2.0',
+                    'geolight1', False)
+    newnode.parmTuple("stdswitcher4")[0].set(1)
+    newnode.parmTuple("atten_folder_1")[0].set(1)
+    if len( targets ) > 0:
+        target = targets[0]
+        target_path = newnode.relativePathTo( target )
+        newnode.setWorldTransform( target.worldTransform() )
+        newnode.parm("areageometry").set( target_path )
+        target.setDisplayFlag( False )
+    newnode.parm("light_type").set('geo')
+    newnode.parm("normalizearea").set(0)
+]]></script>
+  </tool>
+
+  <tool name="object_arealight" label="Area Light" icon="OBJ_light_area">
+    <helpURL>operator:Lop/light#area</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+# When launched from a scene view, always create a camera that matches
+# the current viewpoint.
+clicktoplace = False
+lock_to_view = kwargs['ctrlclick'] or kwargs['cmdclick']
+
+import loptoolutils
+if (loptoolutils.getToolCategoryForPane(pane) == hou.lopNodeTypeCategory()):
+    newnode = loptoolutils.genericCameraLightTool(kwargs, 'light::2.0',
+                'arealight1', clicktoplace, lock_to_view)
+    newnode.parm("lighttype").set('UsdLuxRectLight')
+    loptoolutils.setGoodLightExposure(kwargs, newnode)
+
+else:
+    import objecttoolutils
+    kwargs['bbox'] = hou.BoundingBox(-0.5, -0.5, 0.0, 0.5, 0.5, 0.0)
+    newnode = objecttoolutils.genericCameraLightTool(kwargs, 'hlight::2.0',
+                'arealight1', clicktoplace, lock_to_view)
+    newnode.parmTuple("stdswitcher4")[0].set(1)
+    newnode.parmTuple("atten_folder_1")[0].set(1)
+    objecttoolutils.setGoodLightExposure(kwargs, newnode)
+    newnode.parm("light_type").set('grid')]]></script>
+  </tool>
+
+  <tool name="object_pointlight" label="Point Light" icon="OBJ_light_point">
+    <helpURL>operator:Lop/light#point</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+# When launched from a scene view, always create a camera that matches
+# the current viewpoint.
+clicktoplace = False
+lock_to_view = kwargs['ctrlclick'] or kwargs['cmdclick']
+
+import loptoolutils
+if (loptoolutils.getToolCategoryForPane(pane) == hou.lopNodeTypeCategory()):
+    newnode = loptoolutils.genericCameraLightTool(kwargs, 'light::2.0',
+                'pointlight1', clicktoplace, lock_to_view)
+    newnode.parm("lighttype").set("point")
+    loptoolutils.setGoodLightExposure(kwargs, newnode)
+
+else:
+    import objecttoolutils
+    kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+    kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+    newnode = objecttoolutils.genericCameraLightTool(kwargs, 'hlight::2.0',
+                'pointlight1', clicktoplace, lock_to_view)
+    objecttoolutils.setGoodLightExposure(kwargs, newnode)
+    newnode.parm("light_type").set("point")]]></script>
+  </tool>
+
+  <tool name="object_spotlight" label="Spot Light" icon="OBJ_light_spot">
+    <helpURL>operator:Lop/light#spot</helpURL>
+    <toolMenuContext name="viewer">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Lights</toolSubmenu>
+    <script scriptType="python"><![CDATA[import toolutils
+pane = toolutils.activePane(kwargs)
+
+# When launched from a scene view, always create a camera that matches
+# the current viewpoint.
+clicktoplace = False
+lock_to_view = kwargs['ctrlclick'] or kwargs['cmdclick']
+
+import loptoolutils
+if (loptoolutils.getToolCategoryForPane(pane) == hou.lopNodeTypeCategory()):
+    newnode = loptoolutils.genericCameraLightTool(kwargs, 'light::2.0',
+                'spotlight1', clicktoplace, lock_to_view)
+    newnode.parm("lighttype").set("point")
+    newnode.parm("spotlightenable").set(1)
+    newnode.parm(hou.text.encodeParm("inputs:shaping:cone:angle")).set(22.5)
+    loptoolutils.setGoodLightExposure(kwargs, newnode)
+
+else:
+    import objecttoolutils
+    kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+    kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+    newnode = objecttoolutils.genericCameraLightTool(kwargs, 'hlight::2.0',
+                'spotlight1', clicktoplace, lock_to_view)
+    objecttoolutils.setGoodLightExposure(kwargs, newnode)
+    newnode.parm("light_type").set("point")
+    newnode.parm("coneenable").set(1)]]></script>
+  </tool>
+
+  <tool name="geometry_spyro_gpuburst" label="Simple GPU Ground Explosion" icon="SHELF_spyro_gpuburst">
+    <helpURL>tool:spyro_simplegpuexplosion</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.sopGPUBurst(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="geometry_spyro_gputorch" label="Simple GPU Torch" icon="SHELF_torch">
+    <helpURL>tool:spyro_gputorch</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.sopGPUTorch(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="geometry_spyro_airexplosion" label="Simple Aerial Explosion" icon="SHELF_aerial_explosion">
+    <helpURL>tool:spyro_simpleairexplosion</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createAerialExplosion(kwargs, False)
+]]></script>
+  </tool>
+
+  <tool name="geometry_spyro_groundexplosion" label="Simple Ground Explosion" icon="SHELF_explosion">
+    <helpURL>tool:spyro_simplegroundexplosion</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createGroundExplosion(kwargs, False)
+]]></script>
+  </tool>
+
+  <tool name="geometry_rbdsimpleguided" label="Simple Guided RBDs" icon="SHELF_rbd_guided">
+    <helpURL>tool:rbdsimpleguided</helpURL>
+    <script scriptType="python"><![CDATA[
+import doprbdtoolutils
+
+node = doprbdtoolutils.createSopRBD(kwargs, 'guided sim')
+]]></script>
+  </tool>
+
+  <tool name="geometry_rbdsimplefracture" label="Simple Fracture" icon="SOP_rbdmaterialfracture">
+    <helpURL>operator:Sop/rbdmaterialfracture</helpURL>
+    <script scriptType="python"><![CDATA[
+import doprbdtoolutils
+
+node = doprbdtoolutils.createSopRBD(kwargs, 'fracture')
+]]></script>
+  </tool>
+
+  <tool name="geometry_vellumsimplesoftbody" label="Simple Softbody" icon="SHELF_vellum_softbody">
+    <helpURL>tool:vellumsimplesoftbody</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+
+node = doppoptoolutils.createSopVellum(kwargs, 'softbody')
+]]></script>
+  </tool>
+
+  <tool name="geometry_vellumsimplecloth" label="Simple Cloth" icon="SHELF_vellum_simplecloth">
+    <helpURL>tool:vellumsimplecloth</helpURL>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import doppoptoolutils
+
+node = doppoptoolutils.createSopVellum(kwargs, 'cloth')
+]]></script>
+  </tool>
+
+  <tool name="geometry_pyrosimplebillowysmoke" label="Simple Billowy Smoke" icon="SHELF_smoke_heavy">
+    <helpURL>tool:pyrosimplebillowysmoke</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createBillowySmoke(kwargs, False)
+]]></script>
+  </tool>
+
+  <tool name="geometry_pyrosimplefireball" label="Simple Fireball" icon="SHELF_fireball">
+    <helpURL>tool:pyrosimplefireball</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createFireball(kwargs, False)
+]]></script>
+  </tool>
+
+  <tool name="geometry_pyrosimplefirespread" label="Simple Spreading Fire" icon="SHELF_spyro_firespread">
+    <helpURL>tool:pyrosimplefirespread</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+
+node = dopsparsepyrotools.createSopSpreadingFire(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="geometry_spyro_campfire" label="Simple Bonfire" icon="SHELF_campfire">
+    <helpURL>tool:spyro_simplecampfire</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createBonfire(kwargs, False)
+]]></script>
+  </tool>
+
+  <tool name="geometry_spyro_shockwave" label="Simple Shockwave" icon="SHELF_shockwave">
+    <helpURL>tool:pyrosimpleshockwave</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createFireballShockwave(kwargs, False)
+]]></script>
+  </tool>
+
+  <tool name="geometry_muzzleflash" label="Simple Muzzle Flash" icon="SHELF_muzzle_flash">
+    <helpURL>tool:pyrosimplemuzzleflash</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.sopMuzzleFlash(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="terrain_dunes" label="Terrain: Dunes" icon="SHELF_terrain_fx">
+    <helpURL>tool:terrain_dunes</helpURL>
+    <toolSubmenu>Environments/Terrain</toolSubmenu>
+    <script scriptType="python"><![CDATA[import terraintoolutils
+terraintoolutils.fxDunes(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="terrain_canyon" label="Terrain: Canyon" icon="SHELF_terrain_fx">
+    <helpURL>tool:terrain_canyon</helpURL>
+    <toolSubmenu>Environments/Terrain</toolSubmenu>
+    <script scriptType="python"><![CDATA[import terraintoolutils
+terraintoolutils.fxCanyon(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="terrain_islands" label="Terrain: Islands" icon="SHELF_terrain_fx">
+    <helpURL>tool:terrain_islands</helpURL>
+    <toolSubmenu>Environments/Terrain</toolSubmenu>
+    <script scriptType="python"><![CDATA[import terraintoolutils
+terraintoolutils.fxIslands(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="terrain_moonscape" label="Terrain: Moonscape" icon="SHELF_terrain_fx">
+    <helpURL>tool:terrain_moonscape</helpURL>
+    <toolSubmenu>Environments/Terrain</toolSubmenu>
+    <script scriptType="python"><![CDATA[import terraintoolutils
+terraintoolutils.fxMoonscape(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="terrain_valley" label="Terrain: Valley" icon="SHELF_terrain_fx">
+    <helpURL>tool:terrain_valley</helpURL>
+    <toolSubmenu>Environments/Terrain</toolSubmenu>
+    <script scriptType="python"><![CDATA[import terraintoolutils
+terraintoolutils.fxValley(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="terrain_mountain" label="Terrain: Mountain" icon="SHELF_terrain_fx">
+    <helpURL>tool:terrain_mountain</helpURL>
+    <toolSubmenu>Environments/Terrain</toolSubmenu>
+    <script scriptType="python"><![CDATA[import terraintoolutils
+terraintoolutils.fxMountain(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="terrain_hills" label="Terrain: Hills" icon="SHELF_terrain_fx">
+    <helpURL>tool:terrain_hills</helpURL>
+    <toolSubmenu>Environments/Terrain</toolSubmenu>
+    <script scriptType="python"><![CDATA[import terraintoolutils
+terraintoolutils.fxRockyLowLands(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="geometry_largeocean" label="Large Ocean" icon="SHELF_ocean_large">
+    <helpURL>tool:largeocean</helpURL>
+    <toolSubmenu>Environments/Oceans</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.largeOcean(kwargs)]]></script>
+  </tool>
+
+  <tool name="geometry_smallocean" label="Small Ocean" icon="SHELF_ocean_small">
+    <helpURL>tool:smallocean</helpURL>
+    <toolSubmenu>Environments/Oceans</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import doptoolutils
+import dopparticlefluidtoolutils
+dopparticlefluidtoolutils.smallOcean(kwargs)]]></script>
+  </tool>
+
+  <tool name="spyro_campfire" label="Bonfire" icon="SHELF_campfire">
+    <helpURL>tool:spyro_campfire</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createBonfire(kwargs, True)
+]]></script>
+  </tool>
+
+  <tool name="spyro_shockwave" label="Shockwave" icon="SHELF_shockwave">
+    <helpURL>tool:spyro_shockwave</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createFireballShockwave(kwargs, True)
+]]></script>
+  </tool>
+
+  <tool name="spyro_fireball" label="Sparse Fireball" icon="SHELF_fireball">
+    <helpURL>tool:spyro_fireball</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createFireball(kwargs, True)
+]]></script>
+  </tool>
+
+  <tool name="spyro_billowysmoke" label="Sparse Billowy Smoke" icon="SHELF_smoke_heavy">
+    <helpURL>tool:spyro_billowysmoke</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createBillowySmoke(kwargs, True)
+]]></script>
+  </tool>
+
+  <tool name="spyro_firespread" label="Spreading Fire" icon="SHELF_spyro_firespread">
+    <helpURL>tool:spyro_firespread</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createSpreadingFire(kwargs)
+]]></script>
+  </tool>
+
+  <tool name="spyro_airexplosion" label="Aerial Explosion" icon="SHELF_aerial_explosion">
+    <helpURL>tool:spyro_airexplosion</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createAerialExplosion(kwargs, True)
+]]></script>
+  </tool>
+
+  <tool name="spyro_groundexplosion" label="Ground Explosion" icon="SHELF_explosion">
+    <helpURL>tool:spyro_groundexplosion</helpURL>
+    <script scriptType="python"><![CDATA[
+import dopsparsepyrotools
+dopsparsepyrotools.createGroundExplosion(kwargs, True)
+]]></script>
+  </tool>
 </shelfDocument>
