@@ -1,3 +1,5 @@
 /scripts/python/AdrienLambert/
 __pycache__/
+backup/
 */backup/
+*.pyc

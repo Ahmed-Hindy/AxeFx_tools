@@ -1,0 +1,9 @@
+{
+    "enable" : true,
+    "env": [
+        {"CUSTOMPACKAGES": "F:/Users/$USERNAME/Documents/houdiniTools"},
+        {"AXETools": "$CUSTOMPACKAGES/AxeFx_tools"}
+    ],
+    "path": "$AXETools"
+}
+
