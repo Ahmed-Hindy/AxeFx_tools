@@ -7,25 +7,36 @@ class KB3DProcessor:
         self.orig_string = "4k"  # orig string to replace
         self.new_string  = r'`chs("../../res")`'  # replace with this
         self.obj = hou.node("/obj")
-        self.matnet_node = hou.selectedNodes()[0]
-        if not isinstance(self.matnet_node, hou.ShopNode):
-            raise Exception("Please select a valid Material Network")
+        self.matnet_node = None
 
-    def add_str_res_parm_to_node(self, param_name='parm_name', label='parm_label', default_value="4k") -> None:
+        selected_nodes = hou.selectedNodes()
+        if not selected_nodes:
+            hou.ui.displayMessage(text='No node selected!')
+            return
+        if not isinstance(selected_nodes[0], hou.ShopNode):
+            hou.ui.displayMessage("Please select a valid Material Network")
+            return
+
+        self.matnet_node = selected_nodes[0]
+
+    def add_str_res_parm_to_node(self, node, param_name='parm_name', label='parm_label', default_value="4k"):
         """
         function: adds a string parameter for a node.
         need to make sure the input is a valid node object and not a list, currently this is hardcoded in the next 3 lines,
         maybe a seperate validator function?
         """
+        if node.parm(param_name):
+            print("WARNING: Material Network already modified.")
+            return
 
         # Create a string parameter template with a default value
         parm_template = hou.StringParmTemplate(param_name, label, 1, default_value=[default_value])
         # Get the existing parameter group from the node
-        parm_group = self.matnet_node.parmTemplateGroup()
+        parm_group = node.parmTemplateGroup()
         # Append the new parameter template to the group
         parm_group.append(parm_template)
         # Update the node with the new parameter group
-        self.matnet_node.setParmTemplateGroup(parm_group)
+        node.setParmTemplateGroup(parm_group)
 
 
     def get_principled_shaders(self):
@@ -65,8 +76,13 @@ class KB3DProcessor:
         # print(f"changed roughness for {principled_shader.parent().path()}")
 
     def run(self):
-        """Main function to run from shelf. runs on a matnet"""
-        self.add_str_res_parm_to_node(param_name='res', label='res', default_value="4k")
+        """
+        Main function to run from shelf. runs on a matnet
+        """
+        if not self.matnet_node:
+            return
+
+        self.add_str_res_parm_to_node(node=self.matnet_node, param_name='res', label='res', default_value="4k")
         for principledShader in self.get_principled_shaders():
             self.change_resolution(principledShader)
             self.change_rough(principledShader)
