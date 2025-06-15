@@ -11,7 +11,7 @@ This repo is for personal use. You might find the [otls](otls) helpful. Please c
 
 
 ## [Material Processor](https://github.com/Ahmed-Hindy/Materials-Processor)
-a WIP Houdini tool for Ingestion/ Conversions for complex multi-input/ multi-output materials in multiple DCCs and USD\
-Universal support for other dccs and .usd file format will be added in near future.
-
-
+a WIP 3D Materials tool for Ingestion, Standardization, and Conversion for complex multi-input/ multi-output materials\
+in various DCCs. Also supports USD file format.\
+Currently in pre-release with support for only Arnold, MaterialX, PrincipledShader in Houdini.\
+Has basic support also for USD.
