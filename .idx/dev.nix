@@ -1,14 +1,15 @@
 # To learn more about how to use Nix to configure your environment
-# see: https://developers.google.com/idx/guides/customize-idx-env
+# see: https://firebase.google.com/docs/studio/customize-workspace
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
-  channel = "stable-23.11"; # or "unstable"
+  channel = "stable-24.05"; # or "unstable"
 
   # Use https://search.nixos.org/packages to find packages
   packages = [
     # pkgs.go
-    # pkgs.python311
-    # pkgs.python311Packages.pip
+    pkgs.python310
+    pkgs.python310Packages.pip
+    pkgs.git-filter-repo
     # pkgs.nodejs_20
     # pkgs.nodePackages.nodemon
   ];
