@@ -5,18 +5,6 @@
  Note, that two definitions of the same element are not allowed in
  a single file. -->
 
-  <shelfSet name="AxeFx_Shelf_set" label="AxeFx Shelf set">
-    <memberToolshelf name="lights_and_cameras"/>
-    <memberToolshelf name="simplefx"/>
-    <memberToolshelf name="lop_oceans"/>
-    <memberToolshelf name="terrainfx"/>
-    <memberToolshelf name="arnold"/>
-    <memberToolshelf name="prism"/>
-    <memberToolshelf name="aelib_shelf"/>
-    <memberToolshelf name="sparse_pyro_dynamics"/>
-    <memberToolshelf name="AxeFx_Shelf_tab"/>
-  </shelfSet>
-
   <toolshelf name="sparse_pyro_dynamics" label="Pyro FX">
     <memberTool name="spyro_billowysmoke"/>
     <memberTool name="spyro_fireball"/>
@@ -79,14 +67,6 @@
     <memberTool name="geometry_largeocean"/>
   </toolshelf>
 
-  <toolshelf name="AxeFx_Shelf_tab" label="AxeFx">
-    <memberTool name="KB3D_change_mat_res"/>
-    <memberTool name="cam_bake"/>
-    <memberTool name="Cam_shake"/>
-    <memberTool name="usdPreviewSurface_converter"/>
-    <memberTool name="material_processor"/>
-  </toolshelf>
-
   <toolshelf name="arnold" label="Arnold">
     <memberTool name="add_arnold_properties"/>
     <memberTool name="remove_arnold_properties"/>
@@ -114,20 +94,6 @@
     <memberTool name="prism_browser"/>
     <memberTool name="prism_manager"/>
     <memberTool name="prism_settings"/>
-  </toolshelf>
-
-  <toolshelf name="AxeFx_archived_Shelf_tab" label="AxeFx Archived">
-    <memberTool name="batchChangePaths_1.1"/>
-    <memberTool name="Paragon_Importer"/>
-    <memberTool name="File_Loader"/>
-    <memberTool name="attribmantut"/>
-    <memberTool name="XOP_SP_Linker"/>
-    <memberTool name="Principled_to_MTLX_v4"/>
-    <memberTool name="principled_from_pat"/>
-    <memberTool name="usd_mat_override"/>
-    <memberTool name="convert_from_relative_absolute"/>
-    <memberTool name="live_renamer"/>
-    <memberTool name="gaea_add_UDIM_tag"/>
   </toolshelf>
 
   <tool name="prism_settings" label="Settings" icon="prismSettings.png">
@@ -1534,4 +1500,35 @@ import dopsparsepyrotools
 dopsparsepyrotools.createGroundExplosion(kwargs, True)
 ]]></script>
   </tool>
+
+  <shelfSet name="Axe_Shelf_set" label="Axe Shelf set">
+    <memberToolshelf name="lights_and_cameras"/>
+    <memberToolshelf name="simplefx"/>
+    <memberToolshelf name="lop_oceans"/>
+    <memberToolshelf name="terrainfx"/>
+    <memberToolshelf name="sparse_pyro_dynamics"/>
+    <memberToolshelf name="arnold"/>
+    <memberToolshelf name="vray_render"/>
+    <memberToolshelf name="RenderMan26"/>
+    <memberToolshelf name="prism"/>
+    <memberToolshelf name="aelib_shelf"/>
+    <memberToolshelf name="Axe_tools_Shelf_tab"/>
+    <memberToolshelf name="MaterialProcessorShelf"/>
+    <memberToolshelf name="AxeFx_archived_Shelf_tab"/>
+    <memberToolshelf name="misc_shelf_tab"/>
+  </shelfSet>
+
+  <toolshelf name="Axe_archived_shelf_tab" label="Axe Archived">
+    <memberTool name="batchChangePaths_1.1"/>
+    <memberTool name="Paragon_Importer"/>
+    <memberTool name="File_Loader"/>
+    <memberTool name="attribmantut"/>
+    <memberTool name="XOP_SP_Linker"/>
+    <memberTool name="Principled_to_MTLX_v4"/>
+    <memberTool name="principled_from_pat"/>
+    <memberTool name="usd_mat_override"/>
+    <memberTool name="convert_from_relative_absolute"/>
+    <memberTool name="live_renamer"/>
+    <memberTool name="gaea_add_UDIM_tag"/>
+  </toolshelf>
 </shelfDocument>

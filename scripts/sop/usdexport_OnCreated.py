@@ -1,0 +1,10 @@
+node = kwargs['node']
+node.parm('trange').set('normal')
+node.parm('lopoutput').set('$PUBLISH/$VER/$OS.$F4.usd')
+# node.parm('pathprefix').set('/geo/$OS')
+node.parm('fileperframe').set(1)
+node.parm('trackprimexistence').set(0)
+node.parm('defaultprim').set('/geo')
+# node.parm('enable_topologyhandling').set(1)
+# node.parm('enable_staticattribs').set(1)
+node.parm('alfprogress').set(1)
